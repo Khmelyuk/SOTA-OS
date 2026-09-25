@@ -1,0 +1,24 @@
+# Local Gradle/Kotlin output and IDE state
+.gradle/
+.kotlin/
+.idea/
+**/build/
+*.iml
+
+# Local agent configuration and credentials
+.agents/
+.codex/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local SQLite databases
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Keep the Gradle wrapper and the documented HTTPS test fixture versioned.
