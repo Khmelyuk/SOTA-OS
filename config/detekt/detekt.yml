@@ -1,0 +1,12 @@
+style:
+  WildcardImport:
+    active: false
+
+naming:
+  PackageNaming:
+    active: false
+
+complexity:
+  LongParameterList:
+    functionThreshold: 8
+    constructorThreshold: 10

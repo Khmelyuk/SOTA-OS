@@ -1,0 +1,59 @@
+-- A local append position is a transport cursor, not an event timestamp or origin sequence.
+CREATE TABLE sync_journal (
+    position INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    event_id TEXT NOT NULL UNIQUE REFERENCES event(event_id),
+    record_json TEXT NOT NULL
+);
+
+CREATE TABLE sync_checkpoint (
+    peer_id TEXT NOT NULL PRIMARY KEY,
+    sent INTEGER NOT NULL,
+    received INTEGER NOT NULL
+);
+
+CREATE TABLE sync_conflict (
+    entity_kind TEXT NOT NULL,
+    entity_id TEXT NOT NULL,
+    left_event_id TEXT NOT NULL REFERENCES event(event_id),
+    right_event_id TEXT NOT NULL REFERENCES event(event_id),
+    PRIMARY KEY(entity_kind, entity_id, left_event_id, right_event_id)
+);
+
+CREATE TRIGGER sync_journal_no_update BEFORE UPDATE ON sync_journal
+BEGIN SELECT RAISE(ABORT, 'sync history is append-only'); END;
+CREATE TRIGGER sync_journal_no_delete BEFORE DELETE ON sync_journal
+BEGIN SELECT RAISE(ABORT, 'sync history is append-only'); END;
+CREATE TRIGGER sync_conflict_no_update BEFORE UPDATE ON sync_conflict
+BEGIN SELECT RAISE(ABORT, 'conflicts are historical facts'); END;
+CREATE TRIGGER sync_conflict_no_delete BEFORE DELETE ON sync_conflict
+BEGIN SELECT RAISE(ABORT, 'conflicts are historical facts'); END;
+
+appendRecord:
+INSERT INTO sync_journal(event_id, record_json) VALUES (?, ?);
+
+allRecords:
+SELECT record_json FROM sync_journal ORDER BY position;
+
+recordsAfter:
+SELECT record_json FROM sync_journal WHERE position > ? ORDER BY position LIMIT ?;
+
+lastPosition:
+SELECT coalesce(max(position), 0) FROM sync_journal;
+
+checkpoint:
+SELECT * FROM sync_checkpoint WHERE peer_id = ?;
+
+saveCheckpoint:
+INSERT OR REPLACE INTO sync_checkpoint(peer_id, sent, received) VALUES (?, ?, ?);
+
+saveConflict:
+INSERT OR IGNORE INTO sync_conflict(entity_kind, entity_id, left_event_id, right_event_id) VALUES (?, ?, ?, ?);
+
+allConflicts:
+SELECT * FROM sync_conflict ORDER BY left_event_id, right_event_id;
+
+hasConflict:
+SELECT count(*) FROM sync_conflict WHERE entity_kind = ? AND entity_id = ?;
+
+untrackedEvents:
+SELECT event_id FROM event WHERE event_id NOT IN (SELECT event_id FROM sync_journal) ORDER BY event_id;

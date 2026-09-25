@@ -13,6 +13,9 @@
 !.env.example
 *.pem
 *.key
+*.p12
+*.pfx
+*.jks
 
 # Local SQLite databases
 *.db
@@ -21,4 +24,4 @@
 *.sqlite
 *.sqlite3
 
-# Keep the Gradle wrapper and the documented HTTPS test fixture versioned.
+# Keep the Gradle wrapper versioned.

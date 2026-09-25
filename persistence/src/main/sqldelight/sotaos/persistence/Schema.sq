@@ -1,0 +1,362 @@
+-- SOTA OS — persistence/src/main/sqldelight/sotaos/persistence/Schema.sq
+-- SQLDelight schema for the FIRST VERTICAL SLICE only
+-- (AC-01,02,04,05,06,07,09,10,11). Remaining entities from the full
+-- Data Model (§62) are added incrementally as later slices require
+-- them — see docs/traceability.md open TBDs.
+--
+-- Mirrors the invariants encoded in the Domain layer (domain module):
+-- append-only event table, no trust_score column, authority requires
+-- issuer/subject/scope/context/validity/accountable target.
+
+CREATE TABLE person (
+    person_id   TEXT NOT NULL PRIMARY KEY,
+    created_at  TEXT NOT NULL
+);
+
+CREATE TABLE identity (
+    identity_id  TEXT NOT NULL PRIMARY KEY,
+    person_id    TEXT NOT NULL,
+    local_handle TEXT NOT NULL,
+    external_refs_json TEXT NOT NULL DEFAULT '[]',
+    FOREIGN KEY (person_id) REFERENCES person(person_id)
+);
+
+CREATE TABLE core (
+    core_id     TEXT NOT NULL PRIMARY KEY,
+    name        TEXT NOT NULL,
+    created_at  TEXT NOT NULL,
+    state       TEXT NOT NULL
+);
+
+CREATE TABLE membership (
+    membership_id   TEXT NOT NULL PRIMARY KEY,
+    person_id       TEXT NOT NULL,
+    collective_kind TEXT NOT NULL,
+    collective_id   TEXT NOT NULL,
+    role_id         TEXT,
+    start_at        TEXT NOT NULL,
+    end_at          TEXT,
+    state           TEXT NOT NULL,
+    FOREIGN KEY (person_id) REFERENCES person(person_id)
+);
+
+CREATE TABLE authority (
+    authority_id     TEXT NOT NULL PRIMARY KEY,
+    issuer_kind      TEXT NOT NULL,
+    issuer_id        TEXT NOT NULL,
+    subject_kind     TEXT NOT NULL,
+    subject_id       TEXT NOT NULL,
+    scope_json       TEXT NOT NULL,
+    context_json     TEXT NOT NULL,
+    basis_json       TEXT NOT NULL,
+    valid_from       TEXT NOT NULL,
+    valid_until      TEXT,
+    accountable_kind TEXT NOT NULL,
+    accountable_id   TEXT NOT NULL,
+    state            TEXT NOT NULL
+);
+
+CREATE TABLE mission (
+    mission_id        TEXT NOT NULL PRIMARY KEY,
+    owner_kind        TEXT NOT NULL,
+    owner_id          TEXT NOT NULL,
+    intent            TEXT NOT NULL,
+    objectives_json   TEXT NOT NULL,
+    participants_json TEXT NOT NULL,
+    mode              TEXT NOT NULL,
+    state             TEXT NOT NULL
+);
+
+CREATE TABLE decision (
+    decision_id   TEXT NOT NULL PRIMARY KEY,
+    subject_kind  TEXT NOT NULL,
+    subject_id    TEXT NOT NULL,
+    intent_ref    TEXT NOT NULL,
+    options_json  TEXT NOT NULL,
+    chosen_option TEXT NOT NULL,
+    authority_ref TEXT NOT NULL,
+    timestamp     TEXT NOT NULL,
+    purpose       TEXT NOT NULL DEFAULT 'Execute mission action',
+    affected_persons_json TEXT NOT NULL DEFAULT '[]',
+    FOREIGN KEY (authority_ref) REFERENCES authority(authority_id)
+);
+
+-- authority_ref is NOT NULL: DB-level second line of defense behind
+-- the domain/application AC-15 check.
+CREATE TABLE action (
+    action_id     TEXT NOT NULL PRIMARY KEY,
+    actor_kind    TEXT NOT NULL,
+    actor_id      TEXT NOT NULL,
+    authority_ref TEXT NOT NULL,
+    decision_ref  TEXT,
+    context_json  TEXT NOT NULL,
+    timestamp     TEXT NOT NULL,
+    mode          TEXT NOT NULL,
+    target        TEXT,
+    FOREIGN KEY (authority_ref) REFERENCES authority(authority_id),
+    FOREIGN KEY (decision_ref) REFERENCES decision(decision_id)
+);
+
+CREATE TABLE result (
+    result_id   TEXT NOT NULL PRIMARY KEY,
+    action_id   TEXT NOT NULL,
+    description TEXT NOT NULL,
+    outcome     TEXT NOT NULL,
+    timestamp   TEXT NOT NULL,
+    FOREIGN KEY (action_id) REFERENCES action(action_id)
+);
+
+-- Append-only: no updateEvent / deleteEvent query is defined below.
+CREATE TABLE event (
+    event_id        TEXT NOT NULL PRIMARY KEY,
+    type            TEXT NOT NULL,
+    actor_kind      TEXT NOT NULL,
+    actor_id        TEXT NOT NULL,
+    timestamp       TEXT NOT NULL,
+    context_json    TEXT NOT NULL,
+    authority_ref   TEXT,
+    decision_ref    TEXT,
+    payload_json    TEXT NOT NULL,
+    result_ref      TEXT,
+    provenance_json TEXT NOT NULL,
+    content_hash    TEXT NOT NULL,
+    signature       TEXT,
+    corrects_event_id TEXT
+);
+
+CREATE TABLE experience (
+    experience_id        TEXT NOT NULL PRIMARY KEY,
+    derived_events_json  TEXT NOT NULL,
+    context_json         TEXT NOT NULL,
+    what_was_tried        TEXT NOT NULL,
+    outcome               TEXT NOT NULL,
+    conclusion            TEXT NOT NULL,
+    applicability         TEXT NOT NULL,
+    confidence             TEXT NOT NULL,
+    provenance_json        TEXT NOT NULL
+);
+
+CREATE TABLE knowledge (
+    knowledge_id             TEXT NOT NULL PRIMARY KEY,
+    statement                TEXT NOT NULL,
+    derived_experience_json  TEXT NOT NULL,
+    evidence_json            TEXT NOT NULL,
+    context_json             TEXT NOT NULL,
+    status                   TEXT NOT NULL,
+    version                  INTEGER NOT NULL DEFAULT 1,
+    supersedes               TEXT,
+    provenance_json          TEXT NOT NULL,
+    validated_by_kind        TEXT,
+    validated_by_id          TEXT
+);
+
+CREATE TABLE right_record (
+    right_id TEXT NOT NULL PRIMARY KEY,
+    subject_kind TEXT NOT NULL,
+    subject_id TEXT NOT NULL,
+    right_type TEXT NOT NULL,
+    scope_json TEXT NOT NULL,
+    source TEXT NOT NULL,
+    status TEXT NOT NULL,
+    constraints_json TEXT NOT NULL
+);
+
+CREATE TABLE consent (
+    consent_id TEXT NOT NULL PRIMARY KEY,
+    subject_person_id TEXT NOT NULL,
+    recipient_kind TEXT NOT NULL,
+    recipient_id TEXT NOT NULL,
+    purpose TEXT NOT NULL,
+    context_json TEXT NOT NULL,
+    scope_json TEXT NOT NULL,
+    notice TEXT NOT NULL,
+    affirmation TEXT NOT NULL,
+    granted_at TEXT NOT NULL,
+    valid_until TEXT,
+    revoked_at TEXT,
+    FOREIGN KEY (subject_person_id) REFERENCES person(person_id)
+);
+
+-- Provider-agnostic account links. One external subject can map to one Person per Sota unit.
+CREATE TABLE authentication_binding (
+    unit_id TEXT NOT NULL,
+    provider_id TEXT NOT NULL,
+    provider_subject TEXT NOT NULL,
+    person_id TEXT NOT NULL,
+    linked_at TEXT NOT NULL,
+    PRIMARY KEY (unit_id, provider_id, provider_subject),
+    FOREIGN KEY (person_id) REFERENCES person(person_id)
+);
+
+-- Local passphrases are PBKDF2 verifiers; plaintext is never persisted.
+CREATE TABLE local_credential (
+    unit_id TEXT NOT NULL,
+    provider_id TEXT NOT NULL DEFAULT 'local-passphrase',
+    login_handle TEXT NOT NULL,
+    salt_base64 TEXT NOT NULL,
+    hash_base64 TEXT NOT NULL,
+    iterations INTEGER NOT NULL,
+    failed_attempts INTEGER NOT NULL DEFAULT 0,
+    locked_until TEXT,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (unit_id, login_handle),
+    FOREIGN KEY (unit_id, provider_id, login_handle)
+        REFERENCES authentication_binding(unit_id, provider_id, provider_subject)
+);
+
+-- ===== Queries =====
+
+insertPerson:
+INSERT INTO person(person_id, created_at) VALUES (?, ?);
+
+selectPersonById:
+SELECT * FROM person WHERE person_id = ?;
+
+selectIdentitiesByPerson:
+SELECT * FROM identity WHERE person_id = ? ORDER BY identity_id;
+
+selectCoreById:
+SELECT * FROM core WHERE core_id = ?;
+
+selectActiveMembership:
+SELECT * FROM membership
+WHERE person_id = ? AND collective_kind = ? AND collective_id = ? AND state = 'ACTIVE'
+ORDER BY start_at DESC LIMIT 1;
+
+selectAuthoritiesBySubject:
+SELECT * FROM authority WHERE subject_kind = ? AND subject_id = ?;
+
+insertIdentity:
+INSERT INTO identity(identity_id, person_id, local_handle, external_refs_json) VALUES (?, ?, ?, ?);
+
+updateAuthority:
+UPDATE authority SET issuer_kind = ?, issuer_id = ?, subject_kind = ?, subject_id = ?,
+scope_json = ?, context_json = ?, basis_json = ?, valid_from = ?, valid_until = ?,
+accountable_kind = ?, accountable_id = ?, state = ? WHERE authority_id = ?;
+
+insertCore:
+INSERT INTO core(core_id, name, created_at, state) VALUES (?, ?, ?, ?);
+
+insertMembership:
+INSERT INTO membership(membership_id, person_id, collective_kind, collective_id, role_id, start_at, end_at, state)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+insertAuthority:
+INSERT INTO authority(authority_id, issuer_kind, issuer_id, subject_kind, subject_id, scope_json, context_json, basis_json, valid_from, valid_until, accountable_kind, accountable_id, state)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectAuthorityById:
+SELECT * FROM authority WHERE authority_id = ?;
+
+updateAuthorityState:
+UPDATE authority SET state = ? WHERE authority_id = ?;
+
+selectMembershipById:
+SELECT * FROM membership WHERE membership_id = ?;
+
+updateMembership:
+UPDATE membership SET person_id = ?, collective_kind = ?, collective_id = ?, role_id = ?,
+start_at = ?, end_at = ?, state = ? WHERE membership_id = ?;
+
+insertMission:
+INSERT INTO mission(mission_id, owner_kind, owner_id, intent, objectives_json, participants_json, mode, state)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+selectMissionById:
+SELECT * FROM mission WHERE mission_id = ?;
+
+selectDecisionById:
+SELECT * FROM decision WHERE decision_id = ?;
+
+selectAuthenticationPerson:
+SELECT person_id FROM authentication_binding
+WHERE unit_id = ? AND provider_id = ? AND provider_subject = ?;
+
+insertAuthenticationBinding:
+INSERT INTO authentication_binding(unit_id, provider_id, provider_subject, person_id, linked_at)
+VALUES (?, ?, ?, ?, ?);
+
+selectLocalCredential:
+SELECT * FROM local_credential WHERE unit_id = ? AND login_handle = ?;
+
+insertLocalCredential:
+INSERT INTO local_credential(unit_id, login_handle, salt_base64, hash_base64, iterations, created_at)
+VALUES (?, ?, ?, ?, ?, ?);
+
+recordLocalFailure:
+UPDATE local_credential SET failed_attempts = failed_attempts + 1,
+locked_until = CASE WHEN failed_attempts + 1 >= ? THEN ? ELSE locked_until END
+WHERE unit_id = ? AND login_handle = ?;
+
+clearLocalFailures:
+UPDATE local_credential SET failed_attempts = 0, locked_until = NULL
+WHERE unit_id = ? AND login_handle = ?;
+
+selectKnowledgeById:
+SELECT * FROM knowledge WHERE knowledge_id = ?;
+
+selectRightById:
+SELECT * FROM right_record WHERE right_id = ?;
+
+selectRightsBySubject:
+SELECT * FROM right_record WHERE subject_kind = ? AND subject_id = ? ORDER BY right_id;
+
+insertRight:
+INSERT INTO right_record(right_id, subject_kind, subject_id, right_type, scope_json, source, status, constraints_json)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+selectConsentById:
+SELECT * FROM consent WHERE consent_id = ?;
+
+selectConsentsBySubject:
+SELECT * FROM consent WHERE subject_person_id = ? ORDER BY granted_at, consent_id;
+
+insertConsent:
+INSERT INTO consent(consent_id, subject_person_id, recipient_kind, recipient_id, purpose, context_json, scope_json, notice, affirmation, granted_at, valid_until, revoked_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateConsent:
+UPDATE consent SET revoked_at = ? WHERE consent_id = ?;
+
+
+updateKnowledge:
+UPDATE knowledge SET statement = ?, derived_experience_json = ?, evidence_json = ?, context_json = ?,
+status = ?, version = ?, supersedes = ?, provenance_json = ?, validated_by_kind = ?,
+validated_by_id = ? WHERE knowledge_id = ?;
+
+-- Immutable by policy and enforced for all SQL clients, not only adapters.
+CREATE TRIGGER event_no_update BEFORE UPDATE ON event
+BEGIN SELECT RAISE(ABORT, 'event rows are append-only'); END;
+
+CREATE TRIGGER event_no_delete BEFORE DELETE ON event
+BEGIN SELECT RAISE(ABORT, 'event rows are append-only'); END;
+
+insertDecision:
+INSERT INTO decision(decision_id, subject_kind, subject_id, intent_ref, options_json, chosen_option, authority_ref, timestamp, purpose, affected_persons_json)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+insertAction:
+INSERT INTO action(action_id, actor_kind, actor_id, authority_ref, decision_ref, context_json, timestamp, mode, target)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+insertResult:
+INSERT INTO result(result_id, action_id, description, outcome, timestamp) VALUES (?, ?, ?, ?, ?);
+
+-- append-only: INSERT ONLY, deliberately no update/delete query exists.
+insertEvent:
+INSERT INTO event(event_id, type, actor_kind, actor_id, timestamp, context_json, authority_ref, decision_ref, payload_json, result_ref, provenance_json, content_hash, signature, corrects_event_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectEventById:
+SELECT * FROM event WHERE event_id = ?;
+
+selectEventsByActor:
+SELECT * FROM event WHERE actor_kind = ? AND actor_id = ?;
+
+insertExperience:
+INSERT INTO experience(experience_id, derived_events_json, context_json, what_was_tried, outcome, conclusion, applicability, confidence, provenance_json)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+insertKnowledge:
+INSERT INTO knowledge(knowledge_id, statement, derived_experience_json, evidence_json, context_json, status, version, supersedes, provenance_json, validated_by_kind, validated_by_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
