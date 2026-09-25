@@ -28,7 +28,9 @@ What exists and is source-complete:
 - `security/` — a protocol-neutral RightsConstraint request and checks wired
   into the state-changing P01-P08 service commands. P05 execution preserves
   the order identity, authority, scope, rights check, then persistence; the
-  applied policy IDs are included in the resulting Event payload.
+  applied policy IDs are included in the resulting Event payload. Ed25519
+  event signing, actor-key lifecycle/audit, trusted peer admission and bearer
+  credential verification are implemented in the security boundary.
 - `sync/` — P09 event exchange, causal deterministic merge without
   last-write-wins, replay protection and `CONTESTED` projections. SQLite
   persists the journal, peer cursors and conflict records atomically.
@@ -60,8 +62,11 @@ What is **not yet done**:
   and P05 execution checks affected People's consent. Broader
   command-specific authority checks remain open beyond the existing P05
   checks and the scoped P08 removal check recorded in ADR-008.
-- A concrete `ExitProtocol` service (the application interface already
-  exists in `ProtocolRegistry.kt`).
+- Durable P10 `ExitRepository` transitions and authority-aware third-party
+  exit remain open. The voluntary self-exit service slice is implemented.
+
+CI is defined in `.github/workflows/ci.yml` and runs the full JDK 21 build,
+Detekt, migration verification and test suite on pushes and pull requests.
 
 Verification on 2026-09-25 in `/home/zvd/sota-os`: **BUILD + TEST PASSED**.
 The full build includes Detekt; no checks were excluded. With JDK 21:

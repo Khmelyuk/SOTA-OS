@@ -32,6 +32,14 @@ stable local node ID and an explicit `SyncAdmission` implementation.
 There is deliberately no default allow-all policy. The permissive policy
 in tests applies only to trusted fixtures.
 
+For deployment, compose `ConfiguredPeerAdmission` with
+`EventSignatureAdmission`: the former allowlists trusted `SotaId` peers and
+can restrict import/export direction, while the latter verifies actor keys.
+`HashedBearerPeerCredentialAuthenticator` can resolve an Authorization
+Bearer header to a peer identity while retaining only SHA-256 hashes. The
+host passes that identity to `SyncEndpoint.exchange`; failed authentication
+must stop before request dispatch.
+
 Call `recordLocal(record)` to record an already-authorized local event
 with explicit causal parents and, when available, a state assertion.
 Call `synchronize(peer, transport)` to exchange one page; repeat while

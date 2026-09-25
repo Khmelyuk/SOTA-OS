@@ -77,6 +77,19 @@ class SqlDelightStore(private val driver: SqlDriver) : AutoCloseable {
             PRIMARY KEY(unit_id, login_handle),
             FOREIGN KEY(unit_id, provider_id, login_handle)
                 REFERENCES authentication_binding(unit_id, provider_id, provider_subject))""", 0)
+        driver.execute(null, """CREATE TABLE IF NOT EXISTS actor_signing_key (
+            actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL, key_id TEXT NOT NULL,
+            public_key_base64 TEXT NOT NULL, PRIMARY KEY (actor_kind, actor_id))""", 0)
+        driver.execute(null, """CREATE TABLE IF NOT EXISTS actor_signing_key_audit (
+            audit_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL, key_id TEXT NOT NULL,
+            operation TEXT NOT NULL, public_key_base64 TEXT, occurred_at TEXT NOT NULL)""", 0)
+        driver.execute(null, """CREATE TRIGGER IF NOT EXISTS actor_signing_key_audit_no_update
+            BEFORE UPDATE ON actor_signing_key_audit
+            BEGIN SELECT RAISE(ABORT, 'actor signing key audit is append-only'); END""", 0)
+        driver.execute(null, """CREATE TRIGGER IF NOT EXISTS actor_signing_key_audit_no_delete
+            BEFORE DELETE ON actor_signing_key_audit
+            BEGIN SELECT RAISE(ABORT, 'actor signing key audit is append-only'); END""", 0)
     }
 
     /** Close the driver when the local node shuts down. */
@@ -87,6 +100,7 @@ class SqlDelightStore(private val driver: SqlDriver) : AutoCloseable {
 class SqlDelightRepositories(database: SotaOsDatabase) {
     val persons: PersonRepository = SqlDelightPersonRepository(database)
     val identities: IdentityRepository = SqlDelightIdentityRepository(database)
+    val actorSigningKeys: ActorSigningKeyRepository = SqlDelightActorSigningKeyRepository(database)
     val cores: CoreRepository = SqlDelightCoreRepository(database)
     val memberships: MembershipRepository = SqlDelightMembershipRepository(database)
     val authorities: AuthorityRepository = SqlDelightAuthorityRepository(database)
@@ -337,6 +351,57 @@ class SqlDelightResultRepository(private val db: SotaOsDatabase) : ResultReposit
         return result
     }
 }
+
+class SqlDelightActorSigningKeyRepository(private val db: SotaOsDatabase) : ActorSigningKeyRepository {
+    override fun save(record: ActorSigningKeyRecord, occurredAt: Instant): ActorSigningKeyRecord {
+        val (kind, id) = ValueJsonMapping.subject(record.actor)
+        db.transaction {
+            val operation = if (db.schemaQueries.selectActorSigningKey(kind, id).executeAsOneOrNull() == null) {
+                ActorSigningKeyOperation.ENROLL
+            } else {
+                ActorSigningKeyOperation.ROTATE
+            }
+            db.schemaQueries.insertActorSigningKey(kind, id, record.keyId, record.publicKeyBase64)
+            db.schemaQueries.insertActorSigningKeyAudit(kind, id, record.keyId, operation.name,
+                record.publicKeyBase64, occurredAt.toString())
+        }
+        return record
+    }
+
+    override fun findByActor(actor: SubjectRef): ActorSigningKeyRecord? {
+        val (kind, id) = ValueJsonMapping.subject(actor)
+        return db.schemaQueries.selectActorSigningKey(kind, id).executeAsOneOrNull()?.toDomain()
+    }
+
+    override fun findAll(): List<ActorSigningKeyRecord> =
+        db.schemaQueries.selectAllActorSigningKeys().executeAsList().map { it.toDomain() }
+
+    override fun revoke(actor: SubjectRef, keyId: String, occurredAt: Instant) {
+        val (kind, id) = ValueJsonMapping.subject(actor)
+        db.transaction {
+            val current = db.schemaQueries.selectActorSigningKey(kind, id).executeAsOneOrNull()
+            require(current?.key_id == keyId) { "Key $keyId is not the active key for actor $id." }
+            db.schemaQueries.deleteActorSigningKey(kind, id, keyId)
+            db.schemaQueries.insertActorSigningKeyAudit(kind, id, keyId, ActorSigningKeyOperation.REVOKE.name,
+                current.public_key_base64, occurredAt.toString())
+        }
+    }
+
+    override fun auditByActor(actor: SubjectRef): List<ActorSigningKeyAuditRecord> {
+        val (kind, id) = ValueJsonMapping.subject(actor)
+        return db.schemaQueries.selectActorSigningKeyAudit(kind, id).executeAsList().map {
+            ActorSigningKeyAuditRecord(ValueJsonMapping.subject(it.actor_kind, it.actor_id), it.key_id,
+                ActorSigningKeyOperation.valueOf(it.operation), it.public_key_base64,
+                Instant.parse(it.occurred_at))
+        }
+    }
+}
+
+private fun sotaos.persistence.Actor_signing_key.toDomain(): ActorSigningKeyRecord = ActorSigningKeyRecord(
+    actor = ValueJsonMapping.subject(actor_kind, actor_id),
+    keyId = key_id,
+    publicKeyBase64 = public_key_base64
+)
 
 class SqlDelightEventStore(private val db: SotaOsDatabase) : EventStore {
     override fun append(event: DomainEvent): DomainEvent {

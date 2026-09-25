@@ -33,3 +33,10 @@ The SQLDelight schema is the current MVP schema. `SqlDelightStore` applies
 idempotent additive table creation for RIGHT and CONSENT so existing database
 files can open with these records available. Other future schema changes
 still need versioned SQLDelight migrations.
+
+`actor_signing_key` stores one active Ed25519 public key per actor as Base64
+X.509 material; private keys are never persisted. Lifecycle changes are
+recorded in append-only `actor_signing_key_audit` with explicit timestamps and
+`ENROLL`, `ROTATE`, or `REVOKE` operations. SQLite triggers reject direct
+UPDATE/DELETE attempts. Load records with `ActorKeyDirectory.fromRecords(...)`
+before constructing `EventSignatureAdmission`.

@@ -202,9 +202,48 @@ CREATE TABLE local_credential (
     PRIMARY KEY (unit_id, login_handle),
     FOREIGN KEY (unit_id, provider_id, login_handle)
         REFERENCES authentication_binding(unit_id, provider_id, provider_subject)
-);
+    );
 
--- ===== Queries =====
+    CREATE TABLE actor_signing_key (
+        actor_kind TEXT NOT NULL,
+        actor_id TEXT NOT NULL,
+        key_id TEXT NOT NULL,
+        public_key_base64 TEXT NOT NULL,
+        PRIMARY KEY (actor_kind, actor_id)
+    );
+
+    insertActorSigningKey:
+    INSERT OR REPLACE INTO actor_signing_key(actor_kind, actor_id, key_id, public_key_base64)
+    VALUES (?, ?, ?, ?);
+
+    selectActorSigningKey:
+    SELECT * FROM actor_signing_key WHERE actor_kind = ? AND actor_id = ?;
+
+    selectAllActorSigningKeys:
+    SELECT * FROM actor_signing_key ORDER BY actor_kind, actor_id;
+
+    deleteActorSigningKey:
+    DELETE FROM actor_signing_key WHERE actor_kind = ? AND actor_id = ? AND key_id = ?;
+
+    CREATE TABLE actor_signing_key_audit (
+        audit_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+        actor_kind TEXT NOT NULL,
+        actor_id TEXT NOT NULL,
+        key_id TEXT NOT NULL,
+        operation TEXT NOT NULL,
+        public_key_base64 TEXT,
+        occurred_at TEXT NOT NULL
+    );
+
+    insertActorSigningKeyAudit:
+    INSERT INTO actor_signing_key_audit(actor_kind, actor_id, key_id, operation, public_key_base64, occurred_at)
+    VALUES (?, ?, ?, ?, ?, ?);
+
+    selectActorSigningKeyAudit:
+    SELECT * FROM actor_signing_key_audit
+    WHERE actor_kind = ? AND actor_id = ? ORDER BY audit_id;
+
+    -- ===== Queries =====
 
 insertPerson:
 INSERT INTO person(person_id, created_at) VALUES (?, ?);
