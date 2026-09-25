@@ -29,14 +29,27 @@ class ExitServiceTest : FunSpec({
         shouldThrow<IllegalArgumentException> { service.requestExit(person, SubjectRef.Core(CoreId("core"))) }
         repository.committed.size shouldBe 0
     }
+
+    test("failed export does not authorize termination") {
+        val repository = FakeExitRepository()
+        val service = ExitService(repository, Clock { now })
+        service.requestExit(person, person)
+        service.revokeActiveDelegations(person)
+        service.closeRelations(person)
+        repository.failSnapshot = true
+        shouldThrow<IllegalStateException> { service.exportPortableData(person) }
+        repository.failSnapshot = false
+        shouldThrow<IllegalArgumentException> { service.terminateParticipation(person, person) }
+    }
 })
 
 private class FakeExitRepository : ExitRepository {
     val committed = mutableListOf<ExitRequest>()
+    var failSnapshot = false
     override fun snapshot(subject: SubjectRef) = ExitSnapshot(
         emptyList(), emptyList(), emptyList(), emptyList(), emptyList(),
         ExitPortableData(emptyList(), emptyList(), emptyList(), emptyList())
-    )
+    ).also { check(!failSnapshot) }
     override fun commitExit(request: ExitRequest): ExitReceipt {
         committed += request
         return ExitReceipt(request.subject, request.requestedBy, request.requestedAt, "exit-1")

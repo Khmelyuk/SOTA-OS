@@ -33,8 +33,9 @@ class ExitService(
 
     override fun exportPortableData(subject: SubjectRef): ExitExport {
         val exit = pending[subject] ?: error("Exit must be requested before export.")
+        val portable = exits.snapshot(exit.request.subject).portable
         exit.stages.add(Stage.EXPORT_READY)
-        return exits.snapshot(exit.request.subject).portable.toExport(subject)
+        return portable.toExport(subject)
     }
 
     override fun terminateParticipation(subject: SubjectRef, from: SubjectRef) {

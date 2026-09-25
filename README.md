@@ -50,11 +50,11 @@ What is **not yet done**:
 - `persistence/` has Core Loop and two-node sync integration coverage,
   including restart, additive sync-schema migration and rollback.
   Broader repository and migration coverage is still open.
-- P09 production hosting, peer credentials/admission policy and additional
-  entity assertion producers remain open. No network listener or CLI sync
-  command is enabled. The general P01-P10 envelope/dispatch layer and
-  `agent/` remain incomplete; see `docs/traceability.md`. Ktor remains
-  deferred until an API server is introduced, per ADR-007.
+- P09 production hosting, durable peer credential governance and additional
+  entity assertion producers remain open. Credential authentication, trusted
+  peer admission, event signatures and authenticated `SyncEndpoint` are
+  implemented; no network listener or CLI sync command is enabled. The
+  general P01-P10 envelope/dispatch layer and `agent/` remain incomplete.
 - The current rule set enforces the known no-Agent-command MVP limit.
   State-changing service commands P01-P08 now carry ProtocolInvocation
   and pass through the constraint. Person bootstrap creation remains a
@@ -68,17 +68,19 @@ What is **not yet done**:
 CI is defined in `.github/workflows/ci.yml` and runs the full JDK 21 build,
 Detekt, migration verification and test suite on pushes and pull requests.
 
-Verification on 2026-09-25 in `/home/zvd/sota-os`: **BUILD + TEST PASSED**.
+Verification on 2026-09-26 in `/home/khmelyuk/SOTA-OS-local`:
+**BUILD + TEST PASSED**.
 The full build includes Detekt; no checks were excluded. With JDK 21:
 
 ```bash
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew build --continue --console=plain
 ```
 
-All **55 tests passed**, with zero failures, errors, or skipped tests:
-the previous 27 Core Loop, consent, authentication and architecture tests,
-plus 28 P09 tests covering merge, persistence/recovery, validation,
-atomicity, HTTPS and the contested-authority execution boundary.
+The current suite has **74 test cases**, all passing with zero failures,
+errors, or skipped tests. It covers Core Loop, consent, authentication,
+architecture invariants, P09 merge/persistence/recovery/validation/atomicity/
+HTTPS, actor-key lifecycle, peer admission, authenticated endpoint handling
+and the voluntary P10 exit slice.
 
 The Detekt cleanup extracts smaller CLI/service functions and separates
 JSON mappings by responsibility. The existing Detekt configuration is
@@ -115,7 +117,8 @@ Follow with:
    those source criteria are not included in this repository. Complete
    production peer admission/hosting and further entity producers as
    required by that mapping.
-2. Implement the `ExitProtocol` service (P10) for AC-18.
+2. Implement durable P10 `ExitRepository` transitions and authority-aware
+  third-party exit after the original AC-18 criteria are available.
 
 Run the CLI with an explicit database path when needed:
 
