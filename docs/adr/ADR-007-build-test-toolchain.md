@@ -42,7 +42,7 @@ sota-os/
 ├── security/        depends on domain+application (Rights/Dignity decorator)
 ├── sync/             depends on domain+application+protocol (P09)
 ├── agent/            depends on domain+application (registration only)
-├── api/               composition root; depends on application+protocol+persistence+security
+├── api/               composition root; depends on application+protocol+persistence+security+sync
 └── test/               depends on ALL modules (T4 conformance + acceptance)
 ```
 
@@ -89,3 +89,9 @@ execution rejection. No transport-library or module dependency was added.
 All choices in this ADR are Implementation-level and replaceable per
 CORE-22 Protocol over Platform, provided the module layering and the
 four-tier test discipline are preserved.
+
+## Production composition refinement — ADR-011
+
+The API composition root now also depends on `sync` to construct P09Runtime.
+This wires existing modules; it does not introduce a listener or transport
+framework. Integration tests depend on `api` to exercise the actual composition.

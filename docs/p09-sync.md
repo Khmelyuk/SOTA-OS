@@ -112,9 +112,10 @@ Both exports and imports pass `SyncAdmission`. It must enforce peer
 trust, permitted sharing, provenance/origin, event integrity and required
 risk-dependent signatures. TLS authenticates the configured endpoint;
 it is not proof of the actor or of an event forwarded from another node.
-The existing optional R0/R1 signatures and the pending ADR-003a signature
-scheme are unchanged. Canonical replay comparison is not a signature
-verifier and does not upgrade legacy event hashes.
+ADR-003a specifies Ed25519. The strict production profile in
+[ADR-011](adr/ADR-011-production-peer-admission.md) requires a signed canonical
+record digest including sync metadata; it does not upgrade legacy event hashes.
+Canonical replay comparison alone is not a signature verifier.
 
 No listener, background sync scheduler, default peer list, peer credential
 provisioning or CLI sync command is enabled. The HTTPS client and handler
@@ -140,7 +141,28 @@ keystore after loading it. No private key is versioned or published.
 Only the test client trusts that certificate; hostname verification
 remains enabled.
 
-The full source text of AC-12/AC-13/AC-17 is not present in this repository.
-These tests demonstrate the described ADR behavior; they do not claim
-formal sign-off for those acceptance criteria. Map the original criteria
-before marking the entire P09/Phase 3 scope complete.
+The original MVP Specification §16 was reviewed on 2026-09-26. Exact
+AC-12/13/17 criteria, PDF fingerprints and test evidence are recorded in
+[the source mapping](ac-p09-mapping.md). AC-17 concerns local Core survival,
+not conflict retention. Overall Phase 3 completion is not claimed.
+
+## Production composition (2026-09-26)
+
+Use `api.sync.P09Runtime(store, localIdentity, governanceContext, clock, ids)`.
+It composes the SQLite trusted peer registry, current actor keys, bearer
+verification, scoped origin/sharing policy and EventSignatureAdmission.
+`exchange(authorizationHeader, body)` is the authenticated inbound entry point;
+`synchronize(peer, transport)` uses the same admission for outbound exchanges.
+`peerProvisioning` and `keyProvisioning` require authenticated local invocations
+and explicit delegated authority. See [ADR-011](adr/ADR-011-production-peer-admission.md)
+for scope strings, bootstrap boundaries, hashing contract and deployment limits.
+
+`PeerTrust.sq` persists trust policies, credential verifiers and append-only
+provisioning audit. SqlDelightStore upgrades older stores additively. Revocation
+and rotation affect existing runtimes without process restart. No private signing
+keys or plaintext peer secrets are stored in these tables.
+
+Strict admission rejects legacy unsigned local events; producers must create
+signed sync-ready records before first persistence. A blocked batch is not
+silently filtered or checkpointed. Full historical-key handling and producer
+adoption remain open; see [the AC source mapping](ac-p09-mapping.md).

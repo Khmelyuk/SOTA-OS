@@ -9,6 +9,7 @@ dependencies {
     implementation(project(":protocol"))
     implementation(project(":persistence"))
     implementation(project(":security"))
+    implementation(project(":sync"))
     implementation("app.cash.sqldelight:sqlite-driver:2.0.2")
 }
 

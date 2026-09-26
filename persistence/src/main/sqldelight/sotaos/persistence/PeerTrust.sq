@@ -1,0 +1,46 @@
+CREATE TABLE IF NOT EXISTS trusted_peer (
+    peer_id TEXT NOT NULL PRIMARY KEY,
+    policy_json TEXT NOT NULL,
+    credential_hash TEXT NOT NULL UNIQUE,
+    revision INTEGER NOT NULL,
+    active INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS provisioning_audit (
+    audit_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    target TEXT NOT NULL,
+    operation TEXT NOT NULL,
+    actor_kind TEXT NOT NULL,
+    actor_id TEXT NOT NULL,
+    authority_id TEXT NOT NULL,
+    purpose TEXT NOT NULL,
+    occurred_at TEXT NOT NULL
+);
+
+CREATE TRIGGER IF NOT EXISTS provisioning_audit_no_update
+BEFORE UPDATE ON provisioning_audit
+BEGIN SELECT RAISE(ABORT, 'provisioning audit is append-only'); END;
+
+CREATE TRIGGER IF NOT EXISTS provisioning_audit_no_delete
+BEFORE DELETE ON provisioning_audit
+BEGIN SELECT RAISE(ABORT, 'provisioning audit is append-only'); END;
+
+selectPeer:
+SELECT * FROM trusted_peer WHERE peer_id = ?;
+
+selectPeers:
+SELECT * FROM trusted_peer ORDER BY peer_id;
+
+insertPeer:
+INSERT INTO trusted_peer(peer_id, policy_json, credential_hash, revision, active)
+VALUES (?, ?, ?, ?, ?);
+
+updatePeer:
+UPDATE trusted_peer SET policy_json = ?, credential_hash = ?, revision = ?, active = ? WHERE peer_id = ?;
+
+appendProvisioningAudit:
+INSERT INTO provisioning_audit(target, operation, actor_kind, actor_id, authority_id, purpose, occurred_at)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+selectProvisioningAudit:
+SELECT * FROM provisioning_audit ORDER BY audit_id;

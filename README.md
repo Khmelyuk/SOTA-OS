@@ -50,10 +50,10 @@ What is **not yet done**:
 - `persistence/` has Core Loop and two-node sync integration coverage,
   including restart, additive sync-schema migration and rollback.
   Broader repository and migration coverage is still open.
-- P09 production hosting, durable peer credential governance and additional
+- P09 production hosting, historical-key handling, producer adoption and additional
   entity assertion producers remain open. Credential authentication, trusted
-  peer admission, event signatures and authenticated `SyncEndpoint` are
-  implemented; no network listener or CLI sync command is enabled. The
+  peer admission, event signatures, durable provisioning governance and
+  `api.sync.P09Runtime` are implemented under ADR-011; no network listener or CLI sync command is enabled. The
   general P01-P10 envelope/dispatch layer and `agent/` remain incomplete.
 - The current rule set enforces the known no-Agent-command MVP limit.
   State-changing service commands P01-P08 now carry ProtocolInvocation
@@ -76,11 +76,12 @@ The full build includes Detekt; no checks were excluded. With JDK 21:
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew build --continue --console=plain
 ```
 
-The current suite has **74 test cases**, all passing with zero failures,
+The current suite has **98 test cases**, all passing with zero failures,
 errors, or skipped tests. It covers Core Loop, consent, authentication,
 architecture invariants, P09 merge/persistence/recovery/validation/atomicity/
 HTTPS, actor-key lifecycle, peer admission, authenticated endpoint handling
-and the voluntary P10 exit slice.
+and the voluntary P10 exit slice. The additional 24 production-P09 tests
+cover registry governance, signed relay/sharing policy, recovery and local autonomy.
 
 The Detekt cleanup extracts smaller CLI/service functions and separates
 JSON mappings by responsibility. The existing Detekt configuration is
@@ -113,12 +114,10 @@ provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
 Follow with:
 
-1. Map the original AC-12/AC-13/AC-17 text to the implemented P09 slice;
-   those source criteria are not included in this repository. Complete
-   production peer admission/hosting and further entity producers as
-   required by that mapping.
-2. Implement durable P10 `ExitRepository` transitions and authority-aware
-  third-party exit after the original AC-18 criteria are available.
+1. Complete production hosting, signed producer adoption and historical-key
+   verification using the [source-to-test mapping](docs/ac-p09-mapping.md).
+2. Implement durable P10 `ExitRepository`, target-Core scoping, obligation
+   settlement and allowed-data export per Protocol Architecture §13/AC-18.
 
 Run the CLI with an explicit database path when needed:
 
@@ -146,3 +145,14 @@ layout and layering rule.
 
 > Increase capability. Preserve autonomy.
 > Implement the architecture. Do not silently redesign it.
+
+## Production peer admission
+
+The P09 composition now uses SQLite-backed peer trust and credential verifiers,
+authorized enroll/rotate/revoke with operator/authority audit, and strict signed
+origin/provenance/sharing checks. See
+[ADR-011](docs/adr/ADR-011-production-peer-admission.md) for setup boundaries,
+canonical signed-record production and limits. The runtime rejects unsigned or
+legacy-hash events instead of implicitly upgrading immutable history.
+[AC-12/13/17 mapping](docs/ac-p09-mapping.md) now cites the original MVP PDF,
+its exact criteria and concrete tests; deployment and legacy-producer gaps remain.
