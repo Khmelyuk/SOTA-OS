@@ -1,0 +1,101 @@
+CREATE TABLE IF NOT EXISTS exit_process (
+ exit_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),
+ core_id TEXT NOT NULL REFERENCES core(core_id), requested_at TEXT NOT NULL,
+ updated_at TEXT NOT NULL, stage TEXT NOT NULL);
+
+CREATE UNIQUE INDEX IF NOT EXISTS exit_one_open ON exit_process(person_id, core_id) WHERE stage != 'COMPLETED' ;
+
+CREATE TABLE IF NOT EXISTS exit_transition (
+ exit_id TEXT NOT NULL REFERENCES exit_process(exit_id), stage TEXT NOT NULL,
+ actor_id TEXT NOT NULL, occurred_at TEXT NOT NULL, PRIMARY KEY(exit_id, stage));
+
+CREATE TABLE IF NOT EXISTS exit_archive (
+ exit_id TEXT NOT NULL PRIMARY KEY REFERENCES exit_process(exit_id),
+ document_json TEXT NOT NULL, sha256 TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS core_exit_relation (
+ relation_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),
+ core_id TEXT NOT NULL REFERENCES core(core_id), kind TEXT NOT NULL, description TEXT NOT NULL,
+ state TEXT NOT NULL CHECK(state IN ('ACTIVE','CLOSED')));
+
+CREATE TABLE IF NOT EXISTS exit_obligation (
+ obligation_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),
+ core_id TEXT NOT NULL REFERENCES core(core_id), description TEXT NOT NULL,
+ state TEXT NOT NULL CHECK(state IN ('OPEN','RETAINED','FULFILLED')), resolution TEXT, resolved_at TEXT);
+
+CREATE TABLE IF NOT EXISTS exit_export_grant (
+ person_id TEXT NOT NULL, core_id TEXT NOT NULL, kind TEXT NOT NULL, artifact_id TEXT NOT NULL,
+ artifact_json TEXT NOT NULL, PRIMARY KEY(person_id, core_id, kind, artifact_id));
+
+CREATE TABLE IF NOT EXISTS owned_exit_evidence (
+ evidence_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),
+ core_id TEXT NOT NULL REFERENCES core(core_id), description TEXT NOT NULL,
+ source_event_id TEXT, recorded_at TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS exit_governance_audit (
+ id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, person_id TEXT NOT NULL, core_id TEXT NOT NULL,
+ operation TEXT NOT NULL, actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL,
+ authority_id TEXT NOT NULL, evidence TEXT NOT NULL, occurred_at TEXT NOT NULL);
+
+findExit:
+SELECT * FROM exit_process WHERE exit_id = ?;
+findOpenExit:
+SELECT * FROM exit_process WHERE person_id = ? AND core_id = ? AND stage != 'COMPLETED';
+insertExit:
+INSERT INTO exit_process(exit_id, person_id, core_id, requested_at, updated_at, stage) VALUES (?, ?, ?, ?, ?, ?);
+updateExit:
+UPDATE exit_process SET stage = ?, updated_at = ? WHERE exit_id = ?;
+insertTransition:
+INSERT INTO exit_transition(exit_id, stage, actor_id, occurred_at) VALUES (?, ?, ?, ?);
+selectTransitions:
+SELECT * FROM exit_transition WHERE exit_id = ? ORDER BY rowid;
+insertArchive:
+INSERT INTO exit_archive(exit_id, document_json, sha256) VALUES (?, ?, ?);
+selectArchive:
+SELECT * FROM exit_archive WHERE exit_id = ?;
+revokeExitDelegations:
+UPDATE authority SET state = 'REVOKED'
+WHERE accountable_kind = 'CORE' AND accountable_id = :core
+AND ((subject_kind = 'PERSON' AND subject_id = :person) OR (issuer_kind = 'PERSON' AND issuer_id = :person))
+AND state NOT IN ('REVOKED', 'COMPLETED', 'REJECTED', 'ABORTED', 'FAILED');
+countExitDelegations:
+SELECT count(*) FROM authority WHERE accountable_kind = 'CORE' AND accountable_id = :core
+AND ((subject_kind = 'PERSON' AND subject_id = :person) OR (issuer_kind = 'PERSON' AND issuer_id = :person))
+AND state NOT IN ('REVOKED', 'COMPLETED', 'REJECTED', 'ABORTED', 'FAILED');
+closeExitRelations:
+UPDATE core_exit_relation SET state = 'CLOSED' WHERE person_id = ? AND core_id = ? AND state = 'ACTIVE';
+countExitRelations:
+SELECT count(*) FROM core_exit_relation WHERE person_id = ? AND core_id = ? AND state = 'ACTIVE';
+selectExitRelations:
+SELECT * FROM core_exit_relation WHERE person_id = ? AND core_id = ? ORDER BY relation_id;
+insertExitRelation:
+INSERT INTO core_exit_relation(relation_id, person_id, core_id, kind, description, state) VALUES (?, ?, ?, ?, ?, 'ACTIVE');
+insertObligation:
+INSERT INTO exit_obligation(obligation_id, person_id, core_id, description, state) VALUES (?, ?, ?, ?, 'OPEN');
+selectObligations:
+SELECT * FROM exit_obligation WHERE person_id = ? AND core_id = ? ORDER BY obligation_id;
+retainObligations:
+UPDATE exit_obligation SET state = 'RETAINED', resolution = ?, resolved_at = ?
+WHERE person_id = ? AND core_id = ? AND state = 'OPEN';
+fulfillObligation:
+UPDATE exit_obligation SET state = 'FULFILLED', resolution = ?, resolved_at = ?
+WHERE obligation_id = ? AND person_id = ? AND core_id = ?;
+countOpenObligations:
+SELECT count(*) FROM exit_obligation WHERE person_id = ? AND core_id = ? AND state = 'OPEN';
+terminateMembership:
+UPDATE membership SET state = 'REVOKED', end_at = ?
+WHERE person_id = ? AND collective_kind = 'CORE' AND collective_id = ? AND state = 'ACTIVE';
+insertExportGrant:
+INSERT OR REPLACE INTO exit_export_grant(person_id, core_id, kind, artifact_id, artifact_json) VALUES (?, ?, ?, ?, ?);
+selectExportGrants:
+SELECT * FROM exit_export_grant WHERE person_id = ? AND core_id = ? ORDER BY kind, artifact_id;
+insertOwnedEvidence:
+INSERT INTO owned_exit_evidence(evidence_id, person_id, core_id, description, source_event_id, recorded_at)
+VALUES (?, ?, ?, ?, ?, ?);
+selectOwnedEvidence:
+SELECT * FROM owned_exit_evidence WHERE evidence_id = ?;
+selectExitExperience:
+SELECT * FROM experience WHERE experience_id = ?;
+insertExitGovernance:
+INSERT INTO exit_governance_audit(person_id, core_id, operation, actor_kind, actor_id, authority_id, evidence, occurred_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);

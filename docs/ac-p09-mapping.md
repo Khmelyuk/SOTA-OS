@@ -20,7 +20,7 @@ what this repository actually verifies.
 | AC-12 | Працювати offline | `SqlDelightCoreLoopIntegrationTest`: full authorized Core Loop without a network service; `LocalAutonomyAcceptanceTest`: local Core creation before/during outage and after restart | Automated coverage of the local MVP slice; no network authorization dependency |
 | AC-13 | Синхронізувати після відновлення зв'язку | `ProductionRoundTripTest`: signed records recorded offline, failed transport, then authenticated exchange between two SQLite production roots; `SyncRecoveryTest`: lost acknowledgements, retries, pagination and restart; `HttpsSyncTransportTest`: real HTTPS adapter | Covered for signed profile records; general production rollout remains PARTIAL because legacy unsigned/Core Loop hash producers cannot pass strict admission and no hosted listener is supplied |
 | AC-17 | Втрата центрального сервісу не знищує локальний Core | `LocalAutonomyAcceptanceTest`: unavailable service throws IOException; Core and active membership survive SQLite close/reopen; creating another Core remains possible while service is unavailable | Direct automated local-autonomy evidence; independent of conflict detection |
-| AC-18 | Користувач може вийти з Core | `CollectiveService.leave` and existing voluntary `ExitServiceTest` are partial evidence | Full durable P10 flow remains OPEN; see below |
+| AC-18 | Користувач може вийти з Core | `ExitServiceTest` and `ExitExportTest`: durable self-exit, isolation, restart, rollback and governed export | Local voluntary P10 implemented; broader contract/delegation integration open; see [P10 evidence](p10-exit.md) |
 
 ## P09 implementation trace
 
@@ -41,8 +41,8 @@ ACTIVE DELEGATIONS → CLOSE RELATIONS → SETTLE OBLIGATIONS → EXPORT ALLOWED
 → TERMINATE PARTICIPATION. Exit must not depend on central-server permission
 except where relationship terms lawfully constrain a particular action.
 
-The current voluntary ExitService provides ordering checks through a fake-tested
-port. It lacks durable ExitRepository transitions, an explicit target-Core exit
-contract, obligation settlement and a production allowed-data export policy.
-Third-party exit is denied. These are concrete AC-18/P10 follow-up gaps; the
-criterion source is now available and is no longer the blocker.
+The durable local self-exit implementation covers the ordered stages in SQLite.
+See [P10 evidence](p10-exit.md) and [ADR-010](adr/ADR-010-exit-protocol.md).
+Unfulfilled obligations are retained, not silently discharged. General contract
+settlement, downstream delegation lineage and signed P09 producer integration
+remain outside this slice. Third-party exit is denied.

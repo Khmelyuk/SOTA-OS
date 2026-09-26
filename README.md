@@ -22,7 +22,7 @@ What exists and is source-complete:
   value-object/JSON-column conversion. The persistence module compiles
   against the generated SQLDelight API.
 - `api/` — executable local CLI composition root with `help`, `init`,
-  `demo`, authentication, and consent commands. `demo` persists one
+  `demo`, authentication, consent, and authenticated `exit leave` commands. `demo` persists one
   authorized Core Loop to a local SQLite database. Commands, terminal
   input, database lifetime, and the demo are kept in separate files.
 - `security/` — a protocol-neutral RightsConstraint request and checks wired
@@ -62,8 +62,9 @@ What is **not yet done**:
   and P05 execution checks affected People's consent. Broader
   command-specific authority checks remain open beyond the existing P05
   checks and the scoped P08 removal check recorded in ADR-008.
-- Durable P10 `ExitRepository` transitions and authority-aware third-party
-  exit remain open. The voluntary self-exit service slice is implemented.
+- P10 general contract settlement, downstream delegation lineage and third-party
+  exit remain open. Durable local self-exit, governed export, retained obligations
+  and CLI delivery are implemented; see [P10 evidence](docs/p10-exit.md).
 
 CI is defined in `.github/workflows/ci.yml` and runs the full JDK 21 build,
 Detekt, migration verification and test suite on pushes and pull requests.
@@ -76,11 +77,13 @@ The full build includes Detekt; no checks were excluded. With JDK 21:
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew build --continue --console=plain
 ```
 
-The current suite has **98 test cases**, all passing with zero failures,
+The current suite has **109 test cases**, all passing with zero failures,
 errors, or skipped tests. It covers Core Loop, consent, authentication,
 architecture invariants, P09 merge/persistence/recovery/validation/atomicity/
 HTTPS, actor-key lifecycle, peer admission, authenticated endpoint handling
-and the voluntary P10 exit slice. The additional 24 production-P09 tests
+and durable P10 exit. Fourteen SQLite-backed P10 tests replace the three former
+fake-port tests and cover restart, scoped cleanup, rollback, governed export,
+retained obligations, private file delivery and migration. The 24 production-P09 tests
 cover registry governance, signed relay/sharing policy, recovery and local autonomy.
 
 The Detekt cleanup extracts smaller CLI/service functions and separates
@@ -93,7 +96,9 @@ CLI smoke checks passed on a temporary SQLite database using the built
 distribution: help, initialization, Core Loop demo, local login creation
 and authentication, consent grant/list/revoke, and persisted revoked
 status. An incorrect affirmation was also rejected through the CLI;
-listing confirmed that no consent had been saved.
+listing confirmed that no consent had been saved. P10 CLI smoke also verified
+local authentication, rejected exit confirmation, selected-Core termination,
+private archive permissions, matching SHA-256 and retained credentials.
 
 ## Current gaps and next steps
 
@@ -116,8 +121,8 @@ Follow with:
 
 1. Complete production hosting, signed producer adoption and historical-key
    verification using the [source-to-test mapping](docs/ac-p09-mapping.md).
-2. Implement durable P10 `ExitRepository`, target-Core scoping, obligation
-   settlement and allowed-data export per Protocol Architecture §13/AC-18.
+2. Integrate P10 with general relation/contract inventories, downstream delegation
+   lineage and signed producers; the durable local AC-18 slice is implemented.
 
 Run the CLI with an explicit database path when needed:
 

@@ -11,5 +11,6 @@ dependencies {
     implementation(project(":sync"))
     implementation(project(":agent"))
     testImplementation(project(":api"))
+    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     testImplementation("app.cash.sqldelight:sqlite-driver:2.0.2")
 }

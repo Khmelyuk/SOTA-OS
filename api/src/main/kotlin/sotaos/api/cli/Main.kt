@@ -16,6 +16,7 @@ fun main(args: Array<String>) {
         }
         "consent" -> runConsentCommand(parsed)
         "auth" -> runAuthCommand(parsed)
+        "exit" -> runExitCommand(parsed)
         else -> {
             System.err.println("Unknown command: ${parsed.command}")
             printHelp()
@@ -86,6 +87,8 @@ private fun printHelp() {
           consent list   List consent records belonging to a Person.
           auth create    Create a Person, local identity, and local passphrase.
           auth enroll    Bootstrap a local passphrase for an existing Person identity.
+          exit leave --handle HANDLE --core CORE_ID --out PATH [--db PATH]
+                 Export allowed data and terminate your membership in one Core.
           help   Show this help.
 
         The default database path is ${'$'}XDG_DATA_HOME/sota-os/sota-os.db,

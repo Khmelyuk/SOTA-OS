@@ -43,17 +43,16 @@ interface ProtocolRegistry {
  * §29).
  */
 interface ExitProtocol {
-    fun requestExit(subject: sotaos.domain.shared.SubjectRef, from: sotaos.domain.shared.SubjectRef)
-    fun revokeActiveDelegations(subject: sotaos.domain.shared.SubjectRef)
-    fun closeRelations(subject: sotaos.domain.shared.SubjectRef)
-    fun exportPortableData(subject: sotaos.domain.shared.SubjectRef): ExitExport
-    fun terminateParticipation(subject: sotaos.domain.shared.SubjectRef, from: sotaos.domain.shared.SubjectRef)
+    fun requestExit(invocation: sotaos.domain.shared.ProtocolInvocation,
+        core: sotaos.domain.shared.CoreId): sotaos.application.ports.ExitProcess
+    fun revokeActiveDelegations(invocation: sotaos.domain.shared.ProtocolInvocation,
+        exitId: String): sotaos.application.ports.ExitProcess
+    fun closeRelations(invocation: sotaos.domain.shared.ProtocolInvocation,
+        exitId: String): sotaos.application.ports.ExitProcess
+    fun settleObligations(invocation: sotaos.domain.shared.ProtocolInvocation,
+        exitId: String): sotaos.application.ports.ExitProcess
+    fun exportPortableData(invocation: sotaos.domain.shared.ProtocolInvocation,
+        exitId: String): sotaos.application.ports.ExitDocument
+    fun terminateParticipation(invocation: sotaos.domain.shared.ProtocolInvocation,
+        exitId: String, exportedSha256: String): sotaos.application.ports.ExitReceipt
 }
-
-data class ExitExport(
-    val subject: sotaos.domain.shared.SubjectRef,
-    val identities: List<Any>,
-    val events: List<Any>,
-    val knowledgeContributed: List<Any>,
-    val evidenceOwned: List<Any>
-)

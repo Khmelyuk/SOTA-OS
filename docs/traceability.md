@@ -19,7 +19,7 @@ Per Master Prompt §16. Every row must be answerable; entries left as
 | `domain/memory/Memory.kt::Experience` | CORE-18 Memory is First-Class | §33 EXPERIENCE | P07 | MVP-06 | `unit/EventNotExperienceTest` |
 | `domain/memory/Memory.kt::Knowledge` | CORE-19 Knowledge -> Capability | §34 KNOWLEDGE | P07 | MVP-06, AC-11 | `architecture_invariants/NoAICanonicalizationTest` |
 | `domain/agency/Agent.kt::Agent` | CORE-21 AI is an Agent, not Principal | Agent/AI §51 | P12 (stub) | MVP §12, AC-16 | `architecture_invariants/NoAgentSelfEscalationTest` |
-| `application/protocols/ExitProtocol` + `application/services/ExitService` | CORE-13 Exitability | §51 Exit | P10 | AC-18 | `acceptance/ExitServiceTest`; AC-18 source mapped; durable repository and obligation settlement open |
+| `application/protocols/ExitProtocol` + `application/services/ExitService` | CORE-13 Exitability | §51 Exit | P10 | AC-18 | `acceptance/ExitServiceTest`, `ExitExportTest`; durable self-exit, governed export and retained obligations; [limits](p10-exit.md) |
 | `persistence/Schema.sq::event` + `SqlDelightEventStore` | CORE-16, CORE-26 Resilience | §54 Immutable history | P06, P09 | AC-12, AC-13 | `integration/SqlDelightCoreLoopIntegrationTest` (SQLite reopen persistence) |
 | `sync/SyncService`, `DeterministicMerge`, `persistence/Sync.sq` | CORE-14/15 Local Autonomy, Offline | §56 Sync | P09 / ADR-004 | AC-12/13/17: see source mapping; AC-17 uses LocalAutonomyAcceptanceTest | `sync/SyncConflictPreservationTest`, `SyncRecoveryTest`, `SyncAtomicityTest` |
 | `protocol/JsonSync*`, `sync/HttpsSyncTransport` | CORE-14 Local Autonomy | ADR-005 | P09 | JSON and HTTPS exchange | `sync/SyncValidationTest`, `HttpsSyncTransportTest` |
@@ -82,4 +82,14 @@ JDK 21 CI already exists and runs full build, Detekt, migrations and tests.
 AC-12/13/17 are mapped to the original MVP Specification §16; see
 [acceptance evidence and limits](ac-p09-mapping.md). This update does not mark the entire
 P09 or Phase 3 complete. Production hosting, legacy producer adoption,
-historical-key verification and durable P10 remain open.
+historical-key verification remain open. Durable local P10 is implemented under ADR-010;
+general contract/delegation integration remains open.
+
+## Durable P10 update — 2026-09-26
+
+ExitService and ExitGovernanceService enforce self-exit and independent
+export/fulfillment authority. SQLite adapters persist each atomic stage, append-only
+audit/event/archive and Core-scoped mutations. P10Runtime connects the adapters to
+authenticated CLI exit; file delivery precedes termination.
+[Source-to-step evidence and limits](p10-exit.md) map AC-18 without claiming the
+entire protocol family or Phase 3 is complete.
