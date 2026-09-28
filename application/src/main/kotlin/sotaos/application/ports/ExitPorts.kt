@@ -58,3 +58,8 @@ interface ExitInventoryRepository {
     fun auditGovernance(target: ExitTarget, operation: String, actor: SubjectRef,
         authority: AuthorityId, evidence: String, at: Instant)
 }
+
+/** Called inside the exit transaction, before the event has ever been persisted. */
+fun interface ExitEventRecorder {
+    fun append(event: Event, parents: Set<EventId>)
+}

@@ -68,8 +68,9 @@ credentials, other Core memberships and immutable history remain intact.
 - Inventory insertion is a trusted local adapter operation. General Trust/Agreement
   persistence, contract ingestion and arbitrary downstream delegation lineage are
   not implemented; direct subject/issuer revocation is the supported boundary.
-- P10 events are local unsigned R0 records. They cannot pass strict signed P09
-  admission until a signed producer is integrated; immutable events are not rewritten.
+- Default CLI P10 events remain local unsigned R0 records. The opt-in
+  SignedP10Runtime signs new events and journals them atomically for strict P09;
+  legacy history is never rewritten. See [signed producer](../p10-exit.md).
 - Third-party expulsion, cancellation/reinstatement of an in-progress exit, remote
   P10 dispatch and a general legal settlement engine remain outside this slice.
 - Export file delivery targets POSIX filesystems (the Linux CLI host).

@@ -5,7 +5,10 @@ import sotaos.domain.shared.*
 import sotaos.persistence.db.SotaOsDatabase
 import java.time.Instant
 
-class SqlDelightExitRepository(private val db: SotaOsDatabase) : ExitRepository {
+class SqlDelightExitRepository(
+    private val db: SotaOsDatabase,
+    private val recorder: ExitEventRecorder = LocalExitEventRecorder(db)
+) : ExitRepository {
     override fun <T> transaction(block: () -> T): T = db.transactionWithResult { block() }
     override fun find(id: String): ExitProcess? = db.exitQueries.findExit(id).executeAsOneOrNull()?.toDomain()
     override fun findOpen(target: ExitTarget): ExitProcess? = db.exitQueries
@@ -21,7 +24,7 @@ class SqlDelightExitRepository(private val db: SotaOsDatabase) : ExitRepository 
     override fun appendTransition(transition: ExitTransition) {
         db.exitQueries.insertTransition(transition.exitId, transition.stage.name,
             transition.actor.value, transition.occurredAt.toString())
-        appendExitEvent(db, requireNotNull(find(transition.exitId)), transition)
+        appendExitEvent(recorder, requireNotNull(find(transition.exitId)), transition)
     }
     override fun transitions(id: String): List<ExitTransition> = db.exitQueries.selectTransitions(id)
         .executeAsList().map { ExitTransition(it.exit_id, ExitStage.valueOf(it.stage), PersonId(it.actor_id),

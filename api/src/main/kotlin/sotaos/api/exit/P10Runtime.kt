@@ -15,9 +15,10 @@ class P10Runtime(
     store: SqlDelightStore,
     clock: Clock,
     ids: IdGenerator,
-    rights: RightsConstraint = RightsConstraintDecorator(listOf(NoAgentActionRule))
+    rights: RightsConstraint = RightsConstraintDecorator(listOf(NoAgentActionRule)),
+    recorder: ExitEventRecorder = LocalExitEventRecorder(store.database)
 ) {
-    private val exits = SqlDelightExitRepository(store.database)
+    private val exits = SqlDelightExitRepository(store.database, recorder)
     private val scope = SqlDelightExitScopeRepository(store.database)
     val service = ExitService(exits, scope, clock, ids, rights)
     val governance = ExitGovernanceService(exits, SqlDelightExitInventoryRepository(store.database),

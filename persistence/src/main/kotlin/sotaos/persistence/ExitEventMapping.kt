@@ -3,9 +3,8 @@ package sotaos.persistence
 import sotaos.application.ports.*
 import sotaos.domain.memory.Event
 import sotaos.domain.shared.*
-import sotaos.persistence.db.SotaOsDatabase
 
-internal fun appendExitEvent(db: SotaOsDatabase, process: ExitProcess, transition: ExitTransition) {
+internal fun appendExitEvent(recorder: ExitEventRecorder, process: ExitProcess, transition: ExitTransition) {
     val actor = SubjectRef.Person(transition.actor)
     val payload = mapOf("exitId" to process.id, "coreId" to process.target.core.value,
         "personId" to process.target.person.value, "stage" to transition.stage.name)
@@ -18,6 +17,8 @@ internal fun appendExitEvent(db: SotaOsDatabase, process: ExitProcess, transitio
         "timestamp" to transition.occurredAt.toString(), "payload" to payload,
         "context" to JsonMapping.context(context), "provenance" to JsonMapping.provenance(provenance)
     )))
-    SqlDelightEventStore(db).append(Event(id, type, actor, transition.occurredAt, context,
-        null, null, payload, null, provenance, hash, null))
+    val previous = ExitStage.entries.getOrNull(transition.stage.ordinal - 1)
+    val parents = previous?.let { setOf(EventId("exit:${process.id}:$it")) } ?: emptySet()
+    recorder.append(Event(id, type, actor, transition.occurredAt, context,
+        null, null, payload, null, provenance, hash, null), parents)
 }

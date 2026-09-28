@@ -69,7 +69,7 @@ What is **not yet done**:
 CI is defined in `.github/workflows/ci.yml` and runs the full JDK 21 build,
 Detekt, migration verification and test suite on pushes and pull requests.
 
-Verification on 2026-09-26 in `/home/khmelyuk/SOTA-OS-local`:
+Verification on 2026-09-28 in `/home/khmelyuk/SOTA-OS-local`:
 **BUILD + TEST PASSED**.
 The full build includes Detekt; no checks were excluded. With JDK 21:
 
@@ -77,13 +77,15 @@ The full build includes Detekt; no checks were excluded. With JDK 21:
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew build --continue --console=plain
 ```
 
-The current suite has **109 test cases**, all passing with zero failures,
+The current suite has **115 test cases**, all passing with zero failures,
 errors, or skipped tests. It covers Core Loop, consent, authentication,
 architecture invariants, P09 merge/persistence/recovery/validation/atomicity/
 HTTPS, actor-key lifecycle, peer admission, authenticated endpoint handling
 and durable P10 exit. Fourteen SQLite-backed P10 tests replace the three former
 fake-port tests and cover restart, scoped cleanup, rollback, governed export,
-retained obligations, private file delivery and migration. The 24 production-P09 tests
+retained obligations, private file delivery and migration. Six additional signed-P10
+tests cover atomic journaling, two-node recovery, key/policy denials and mode
+continuity. The 24 production-P09 tests
 cover registry governance, signed relay/sharing policy, recovery and local autonomy.
 
 The Detekt cleanup extracts smaller CLI/service functions and separates
@@ -122,7 +124,8 @@ Follow with:
 1. Complete production hosting, signed producer adoption and historical-key
    verification using the [source-to-test mapping](docs/ac-p09-mapping.md).
 2. Integrate P10 with general relation/contract inventories, downstream delegation
-   lineage and signed producers; the durable local AC-18 slice is implemented.
+   lineage; the durable local AC-18 slice and opt-in SignedP10Runtime producer
+   are implemented. The default CLI remains local and unsigned.
 
 Run the CLI with an explicit database path when needed:
 

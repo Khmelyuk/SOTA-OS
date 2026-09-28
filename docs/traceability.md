@@ -93,3 +93,12 @@ audit/event/archive and Core-scoped mutations. P10Runtime connects the adapters 
 authenticated CLI exit; file delivery precedes termination.
 [Source-to-step evidence and limits](p10-exit.md) map AC-18 without claiming the
 entire protocol family or Phase 3 is complete.
+
+## Signed P10 producer — 2026-09-28
+
+ExitEventRecorder / SignedP10Runtime bind newly created P10 events to the strict
+P09 signature profile and causal predecessor. Actor keys are loaded from SQLite;
+exit mutations, event and journal share one transaction. SignedExitTest covers
+production exchange after lost acknowledgement/restart, key and policy denials,
+rollback and immutable legacy history. AC-13 evidence now includes signed P10
+facts; remote termination projection and historical-key verification remain open.

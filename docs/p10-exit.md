@@ -33,7 +33,7 @@ human operator with `exit.export`, `core:CORE_ID` and `EVENT:id`, `KNOWLEDGE:id`
 
 Coverage establishes the local voluntary-exit slice. Full production protocol
 coverage still needs general relation/contract inventories, downstream delegation
-lineage and signed P09 producers.
+lineage. Signed P09 event production is available through the opt-in host below.
 
 ## Verification — 2026-09-26
 
@@ -42,3 +42,40 @@ failures/errors/skips (14 P10 SQLite tests). A real CLI smoke run on a temporary
 database verified authentication, rejected confirmation without mutation, successful
 selected-Core exit, other membership and credentials retained, archive SHA-256 and
 0600 file permissions. No user database was modified during verification.
+
+## Signed P09 producer — 2026-09-28
+
+Hosts may opt into `api.exit.SignedP10Runtime`. It exposes `exit` (the existing
+P10 facade) and `sync` (production P09), sharing one SQLite store. Supply the local
+node/allowed actors, governance context, clock, IDs, RightsConstraint and an
+actor-bound signer provider. The host authenticates callers and retains private
+keys securely across restarts; this composition does not generate or store them.
+Use `sync.keyProvisioning` and `sync.peerProvisioning` with independently authorized
+operators to provision public keys and sharing policies before exchange.
+
+Each new P10 transition is signed before first persistence. Its sync record names
+the immediately preceding transition as a causal parent. Signature verification
+uses the actor's current SQLite public key, not the supplied signer's self-check.
+The transition, mutation, audit, signed event and sync journal commit together.
+Missing/revoked/mismatched keys or a journal failure roll back the whole stage.
+No network connection is needed to advance a locally configured signed exit.
+
+Peer policies must explicitly allow the origin, actor, direction and exact context
+`Context("core-exit", description = "core:CORE_ID")`. Event payloads contain only
+exit/Core/Person/stage identifiers; portable archive contents are not synchronized.
+These records are historical facts with no entity assertions: receipt of a remote
+exit does not itself revoke local membership or authority.
+
+Restart with the same origin and signer configuration. A signed exit cannot
+silently resume through the unsigned CLI, and an unsigned exit cannot be converted
+mid-flight by rewriting its history. The default local CLI remains unsigned and
+requires no signing setup. Legacy unsigned records already in the same journal
+still fail strict P09 admission; this change does not migrate them. Historical
+verification after key rotation/revocation remains a separate P09 limitation.
+
+`SignedExitTest` verifies all six signed stages, causal parents, two-node production
+admission, lost acknowledgement/restart/retry, remote membership isolation,
+transaction rollback, key failures, mode/origin continuity and peer-context denial.
+
+Full JDK 21 build on 2026-09-28: 115 tests passed, zero failures/errors/skips;
+Detekt and migration verification passed.

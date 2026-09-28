@@ -44,5 +44,6 @@ except where relationship terms lawfully constrain a particular action.
 The durable local self-exit implementation covers the ordered stages in SQLite.
 See [P10 evidence](p10-exit.md) and [ADR-010](adr/ADR-010-exit-protocol.md).
 Unfulfilled obligations are retained, not silently discharged. General contract
-settlement, downstream delegation lineage and signed P09 producer integration
-remain outside this slice. Third-party exit is denied.
+settlement and downstream delegation lineage remain outside this slice. Opt-in
+signed P10 production is covered by SignedExitTest, including P09 recovery after
+a lost acknowledgement and restart; see the P10 guide. Third-party exit is denied.
