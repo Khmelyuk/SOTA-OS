@@ -13,7 +13,7 @@ import sotaos.sync.*
 /** Local composition root. Hosts must authenticate local operators before invoking provisioning. */
 class P09Runtime(
     store: SqlDelightStore,
-    local: LocalSyncIdentity,
+    private val local: LocalSyncIdentity,
     governanceContext: Context,
     clock: Clock,
     ids: IdGenerator,
@@ -23,9 +23,12 @@ class P09Runtime(
     private val peers = SqlDelightPeerTrustRepository(store.database)
     private val codec = JsonSyncRecordCodec()
     val integrity = SyncRecordIntegrity(codec)
-    private val admission = ProductionPeerAdmission(peers, repositories.actorSigningKeys, local, integrity)
+    private val signatures = VerifiedRecordSignatures(repositories.actorSigningKeys,
+        SqlDelightVerifiedRecordRepository(store.database), codec, integrity, clock)
+    private val admission = ProductionPeerAdmission(peers, repositories.actorSigningKeys, local, integrity, signatures)
     private val service = SyncService(
-        local.node, SqlDelightSyncRepository(store.database, codec), codec, admission, ids
+        local.node, SqlDelightSyncRepository(store.database, codec, verifyAppended = signatures::remember),
+        codec, admission, ids
     )
     private val endpoint = SyncEndpoint(service, JsonSyncMessageCodec())
     private val authenticator = RegistryPeerAuthenticator(peers)
@@ -39,7 +42,14 @@ class P09Runtime(
     }
 
     /** Only locally authorized producers may supply records; strict admission applies before export. */
-    fun recordLocal(record: SyncRecord) = service.recordLocal(record)
+    fun recordLocal(record: SyncRecord) = peers.transaction {
+        val event = record.event
+        require(event.actor in local.actors && event.actor !is SubjectRef.Agent)
+        require(event.provenance.author == event.actor && event.provenance.recordedAt == event.timestamp)
+        require(event.provenance.sourceEventId == null || event.provenance.sourceEventId in record.parents)
+        record.assertion?.let { require(it.entity in local.assertionEntities && it.context == event.context) }
+        service.recordLocal(record)
+    }
 
     fun synchronize(peer: SotaId, transport: SyncTransport) = service.synchronize(peer, transport)
 }

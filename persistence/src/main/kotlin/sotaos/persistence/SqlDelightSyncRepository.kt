@@ -11,7 +11,8 @@ import sotaos.persistence.db.SotaOsDatabase
 class SqlDelightSyncRepository(
     private val db: SotaOsDatabase,
     private val codec: SyncRecordCodec,
-    private val events: EventStore = SqlDelightEventStore(db)
+    private val events: EventStore = SqlDelightEventStore(db),
+    private val verifyAppended: (SyncRecord) -> Unit = {}
 ) : SyncRepository {
     override fun <T> transaction(block: () -> T): T = db.transactionWithResult { block() }
 
@@ -24,6 +25,7 @@ class SqlDelightSyncRepository(
         }
         if (existing == null) events.append(record.event)
         db.syncQueries.appendRecord(record.event.id.value, codec.encode(record))
+        verifyAppended(record)
     }
 
     override fun batch(after: Long): SyncBatch {

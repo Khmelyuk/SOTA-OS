@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS verified_sync_record (
+ event_id TEXT NOT NULL PRIMARY KEY REFERENCES event(event_id),
+ canonical_record TEXT NOT NULL,
+ actor_kind TEXT NOT NULL,
+ actor_id TEXT NOT NULL,
+ key_id TEXT NOT NULL,
+ public_key_base64 TEXT NOT NULL,
+ verified_at TEXT NOT NULL
+);
+
+findVerifiedRecord:
+SELECT * FROM verified_sync_record WHERE event_id = ?;
+insertVerifiedRecord:
+INSERT INTO verified_sync_record(event_id, canonical_record, actor_kind, actor_id, key_id,
+ public_key_base64, verified_at) VALUES (?, ?, ?, ?, ?, ?, ?);

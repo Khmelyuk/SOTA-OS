@@ -164,5 +164,14 @@ keys or plaintext peer secrets are stored in these tables.
 
 Strict admission rejects legacy unsigned local events; producers must create
 signed sync-ready records before first persistence. A blocked batch is not
-silently filtered or checkpointed. Full historical-key handling and producer
+silently filtered or checkpointed. Cross-node historical-key recovery and producer
 adoption remain open; see [the AC source mapping](ac-p09-mapping.md).
+
+## Historical signature receipts — 2026-09-29
+
+Production P09 now commits an immutable verification receipt with each newly
+appended signed journal record. Exact prior records remain verifiable after
+rotation/revocation; unknown old-key records, including backdated ones, are denied.
+Current peer/origin/context policy always applies. Receipts are local, not
+transferable credentials. Existing pre-receipt journals are not retroactively
+certified. See [ADR-012](adr/ADR-012-historical-signature-evidence.md).

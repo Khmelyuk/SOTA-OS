@@ -6,7 +6,8 @@ import sotaos.domain.shared.SubjectRef
 
 class EventSignatureAdmission(
     private val delegate: SyncAdmission,
-    private val signerFor: (SubjectRef) -> EventSigner?
+    private val signerFor: (SubjectRef) -> EventSigner?,
+    private val historicalSignerFor: (sotaos.domain.sync.SyncRecord) -> EventSigner? = { null }
 ) : SyncAdmission {
     constructor(delegate: SyncAdmission, actorSigners: Map<SubjectRef, EventSigner>) : this(delegate, actorSigners::get)
     constructor(delegate: SyncAdmission, directory: ActorKeyDirectory) : this(delegate, directory::signerFor)
@@ -16,7 +17,7 @@ class EventSignatureAdmission(
         delegate.check(peer, direction, records)
         records.forEach { record ->
             val event = record.event
-            val signer = signerFor(event.actor)
+            val signer = historicalSignerFor(record) ?: signerFor(event.actor)
             val signature = event.signature
             if (signature == null) {
                 require(signer == null) { "Unsigned event ${event.id.value} requires an actor signature." }

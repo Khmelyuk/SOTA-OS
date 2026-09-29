@@ -65,7 +65,8 @@ class ProductionAdmissionTest : FunSpec({
             val valid = f.runtime.integrity.sign(oldRecord, replacement)
             f.exchange(token, valid).acceptedThrough shouldBe 1
             f.runtime.keyProvisioning.revoke(invocation, authorityId, remoteActor, "remote-key-2")
-            shouldThrow<IllegalArgumentException> { f.exchange(token, valid) }
+            f.exchange(token, valid).acceptedThrough shouldBe 1
+            shouldThrow<IllegalArgumentException> { f.exchange(token, f.record("unknown-after-revoke")) }
         }
     }
     test("bad credentials are rejected before JSON decoding") {

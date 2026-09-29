@@ -70,8 +70,9 @@ Restart with the same origin and signer configuration. A signed exit cannot
 silently resume through the unsigned CLI, and an unsigned exit cannot be converted
 mid-flight by rewriting its history. The default local CLI remains unsigned and
 requires no signing setup. Legacy unsigned records already in the same journal
-still fail strict P09 admission; this change does not migrate them. Historical
-verification after key rotation/revocation remains a separate P09 limitation.
+still fail strict P09 admission; this change does not migrate them. New signed P10 records receive local verification receipts under ADR-012.
+Exact prior records remain verifiable after rotation/revocation; unknown old-key
+records and pre-receipt journal migration remain fail-closed.
 
 `SignedExitTest` verifies all six signed stages, causal parents, two-node production
 admission, lost acknowledgement/restart/retry, remote membership isolation,

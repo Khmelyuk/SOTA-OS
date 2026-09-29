@@ -34,6 +34,7 @@ class SqlDelightStore(private val driver: SqlDriver) : AutoCloseable {
         createSyncSchemaIfMissing(driver)
         createPeerTrustSchemaIfMissing(driver)
         createExitSchemaIfMissing(driver)
+        createVerifiedRecordSchemaIfMissing(driver)
         // Add the structured affected-person set to older decision tables.
         runCatching {
             driver.execute(null, "ALTER TABLE decision ADD COLUMN affected_persons_json TEXT NOT NULL DEFAULT '[]'", 0)

@@ -17,7 +17,8 @@ class ProductionPeerAdmission(
     private val peers: PeerTrustRepository,
     private val keys: ActorSigningKeyRepository,
     private val local: LocalSyncIdentity,
-    private val integrity: SyncRecordIntegrity
+    private val integrity: SyncRecordIntegrity,
+    private val history: VerifiedRecordSignatures
 ) : SyncAdmission {
     override fun check(peer: SotaId, direction: SyncDirection, records: List<SyncRecord>) = peers.transaction {
         val trusted = requireNotNull(peers.find(peer)?.takeIf { it.active }) { "Untrusted peer." }
@@ -25,13 +26,14 @@ class ProductionPeerAdmission(
         require(records.size <= MAX_SYNC_BATCH)
         val directory = ActorKeyDirectory.fromRecords(keys.findAll())
         val policy = SyncAdmission { _, checkedDirection, admitted ->
-            admitted.forEach { record -> checkRecord(trusted.policy, checkedDirection, record, directory) }
+            admitted.forEach { record -> checkRecord(trusted.policy, checkedDirection, record) }
         }
-        EventSignatureAdmission(policy, directory).check(peer, direction, records)
+        EventSignatureAdmission(policy, directory::signerFor, history::historicalSigner)
+            .check(peer, direction, records)
     }
 
     private fun checkRecord(policy: PeerTrustPolicy, direction: SyncDirection,
-        record: SyncRecord, directory: ActorKeyDirectory) {
+        record: SyncRecord) {
         val origins = if (direction == SyncDirection.IMPORT) policy.importOrigins else policy.exportOrigins
         require(record.origin in origins && record.event.context in policy.contexts) { "Sharing scope denied." }
         val origin = if (record.origin == local.node) null else {
@@ -49,7 +51,7 @@ class ProductionPeerAdmission(
             require(assertion.context == event.context && assertion.entity in policy.assertionEntities)
             require(assertion.entity in (origin?.assertionEntities ?: local.assertionEntities))
         }
-        require(event.signature != null && directory.signerFor(event.actor) != null) { "Trusted signature required." }
+        require(event.signature != null) { "Trusted signature required." }
         integrity.check(record)
     }
 }

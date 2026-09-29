@@ -31,7 +31,7 @@ what this repository actually verifies.
 - Integrity: signed canonical records bind content and provenance to origin/parents/assertion.
 - Conflict retention: SyncConflictPreservationTest and SyncAuthorityBoundaryTest
   verify ADR-004/P09 behavior; **they are not a substitute for AC-17**.
-- Actual server deployment, all entity producers and historical signature handling
+- Actual server deployment, all entity producers and cross-node historical signature recovery
   remain deployment/coverage gaps, not reasons to fabricate source criteria.
 
 ## P10 scope from the original protocol
@@ -47,3 +47,11 @@ Unfulfilled obligations are retained, not silently discharged. General contract
 settlement and downstream delegation lineage remain outside this slice. Opt-in
 signed P10 production is covered by SignedExitTest, including P09 recovery after
 a lost acknowledgement and restart; see the P10 guide. Third-party exit is denied.
+
+## Historical P09 recovery evidence — 2026-09-29
+
+HistoricalSignatureTest extends AC-13 evidence: exact locally verified records
+remain usable after actor-key rotation/revocation and restart. Receipts commit
+atomically with the journal. Unknown old-key records cannot be accepted by
+backdating. This does not claim recovery on a node that has never verified the
+record; see [ADR-012](adr/ADR-012-historical-signature-evidence.md).

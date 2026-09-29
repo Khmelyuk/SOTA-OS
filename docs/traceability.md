@@ -48,7 +48,7 @@ broader coverage remains open:
 - [x] `sync/` durable P09 exchange and deterministic causal merge; JSON
       codecs, HTTPS/REST client and server-neutral handler are tested
 - [ ] P09 production hosting; peer admission/credential provisioning is implemented under ADR-011;
-      additional signed entity producers and historical-key verification. See
+      additional signed entity producers and cross-node historical-key recovery. See
       [P09 scope](p09-sync.md) and [original-criteria mapping](ac-p09-mapping.md)
 - [ ] `security/RightsConstraintDecorator` (Protocol Architecture §16)
       has a protocol-neutral request shape and is called for state-changing
@@ -82,7 +82,7 @@ JDK 21 CI already exists and runs full build, Detekt, migrations and tests.
 AC-12/13/17 are mapped to the original MVP Specification §16; see
 [acceptance evidence and limits](ac-p09-mapping.md). This update does not mark the entire
 P09 or Phase 3 complete. Production hosting, legacy producer adoption,
-historical-key verification remain open. Durable local P10 is implemented under ADR-010;
+cross-node historical-key recovery remain open. Durable local P10 is implemented under ADR-010;
 general contract/delegation integration remains open.
 
 ## Durable P10 update — 2026-09-26
@@ -101,4 +101,13 @@ P09 signature profile and causal predecessor. Actor keys are loaded from SQLite;
 exit mutations, event and journal share one transaction. SignedExitTest covers
 production exchange after lost acknowledgement/restart, key and policy denials,
 rollback and immutable legacy history. AC-13 evidence now includes signed P10
-facts; remote termination projection and historical-key verification remain open.
+facts; remote termination projection and cross-node historical-key recovery remain open.
+
+## Historical signature evidence — 2026-09-29
+
+VerifiedRecordSignatures, VerifiedRecordRepository and verified_sync_record
+preserve exact locally verified history across key retirement. Event/journal/receipt
+commit together, including signed P10 transitions. HistoricalSignatureTest maps
+P09/AC-13 recovery to rotation, revocation, restart, replay and rollback without
+trusting sender timestamps. See ADR-012 for local-only receipts, migration and
+cross-node recovery limits. Current peer policy remains mandatory.

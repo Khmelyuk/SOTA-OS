@@ -22,8 +22,9 @@ record falls outside the sharing policy; records are never silently filtered
 because that would change contiguous cursor semantics.
 
 All production-profile records require a trusted Ed25519 actor signature,
-including records whose actor key has been revoked or is unknown (they are
-rejected, never downgraded to unsigned R0/R1). Actor, provenance author and
+including records whose actor key has been revoked or is unknown. Unknown
+old-key records are rejected; exact locally verified history uses ADR-012
+receipts, never an unsigned R0/R1 downgrade. Actor, provenance author and
 origin binding must agree; provenance time must equal event time, and a source
 event reference must be an explicit causal parent. SyncService additionally
 checks parent existence, cycles, immutable replay and conflicting assertions.
@@ -49,10 +50,11 @@ version remains 1; admission selects this strict profile explicitly.
 `SyncRecordIntegrity.sign` is for producers BEFORE Event append. It does not
 upgrade, mutate or re-sign immutable legacy history. Existing unsigned or
 legacy-hash Core Loop events remain locally readable but fail this production
-admission. Full producer adoption and a separately specified historical-key
-verification/migration policy remain open. Active-key rotation/revocation is
-fail-closed: old-key records no longer pass new admissions, while already
-stored history is retained. There is no historical-key fallback.
+admission. Full producer adoption remains open. ADR-012 adds an exact-record
+historical verifier backed by local append-only receipts committed with the
+journal. Unknown old-key records remain fail-closed, including backdated records.
+Receipts are not transferred between nodes or inferred during migration. See
+[historical evidence and limits](ADR-012-historical-signature-evidence.md).
 
 ## Provisioning governance
 
