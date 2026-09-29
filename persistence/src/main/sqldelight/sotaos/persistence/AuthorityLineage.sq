@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS authority_revocation (
+ revocation_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+ authority_id TEXT NOT NULL REFERENCES authority(authority_id),
+ cascade_root TEXT NOT NULL REFERENCES authority(authority_id),
+ actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL,
+ reason TEXT NOT NULL, occurred_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS authority_parent_idx ON authority(parent_authority_id);
+
+selectAuthorityChildren:
+SELECT * FROM authority WHERE parent_authority_id = ? ORDER BY authority_id;
+selectExitAuthorityRoots:
+SELECT * FROM authority WHERE accountable_kind = 'CORE' AND accountable_id = :core
+AND ((subject_kind = 'PERSON' AND subject_id = :person) OR (issuer_kind = 'PERSON' AND issuer_id = :person))
+ORDER BY authority_id;
+insertAuthorityRevocation:
+INSERT INTO authority_revocation(authority_id, cascade_root, actor_kind, actor_id, reason, occurred_at)
+VALUES (?, ?, ?, ?, ?, ?);
+selectAuthorityRevocations:
+SELECT * FROM authority_revocation ORDER BY revocation_id;

@@ -57,6 +57,19 @@ class InMemoryMembershipRepository : MembershipRepository {
 
 class InMemoryAuthorityRepository : AuthorityRepository {
     private val store = mutableMapOf<AuthorityId, Authority>()
+    val revocations = mutableListOf<AuthorityRevocation>()
+    override fun <T> transaction(block: () -> T): T {
+        val before = store.toMap()
+        val audit = revocations.toList()
+        return try { block() } catch (failure: Throwable) {
+            store.clear(); store.putAll(before)
+            revocations.clear(); revocations.addAll(audit)
+            throw failure
+        }
+    }
+    override fun findChildren(parent: AuthorityId): List<Authority> =
+        store.values.filter { it.parentAuthorityId == parent }
+    override fun appendRevocation(record: AuthorityRevocation) { revocations.add(record) }
     override fun save(authority: Authority): Authority { store[authority.id] = authority; return authority }
     override fun findById(id: AuthorityId): Authority? = store[id]
     override fun findActiveFor(subject: SubjectRef, context: Context): List<Authority> =

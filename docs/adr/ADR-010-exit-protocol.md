@@ -26,7 +26,8 @@ allows retries after restart without duplicate transition events. This is not
 one transaction spanning file delivery.
 
 Revoke nonterminal authorities accountable to the selected Core whose direct
-subject or issuer is the leaving Person. Close scoped TRUST/AGREEMENT inventory
+subject or issuer is the leaving Person, plus every recorded descendant under
+ADR-013. Preserve immutable parent links and per-authority revocation audit. Close scoped TRUST/AGREEMENT inventory
 entries. Other Core memberships, authorities and inventory survive. Pending-exit
 SQLite triggers prevent adding/reactivating relevant commitments before completion.
 
@@ -66,8 +67,9 @@ credentials, other Core memberships and immutable history remain intact.
 - Hosts must authenticate invocations. The CLI uses provider-backed authentication
   and exact typed confirmation before requesting exit.
 - Inventory insertion is a trusted local adapter operation. General Trust/Agreement
-  persistence, contract ingestion and arbitrary downstream delegation lineage are
-  not implemented; direct subject/issuer revocation is the supported boundary.
+  persistence and contract ingestion remain open. Recorded downstream delegation
+  chains now cascade under [ADR-013](ADR-013-delegation-lineage.md); unknown
+  legacy ancestry is not inferred.
 - Default CLI P10 events remain local unsigned R0 records. The opt-in
   SignedP10Runtime signs new events and journals them atomically for strict P09;
   legacy history is never rewritten. See [signed producer](../p10-exit.md).

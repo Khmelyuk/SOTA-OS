@@ -53,15 +53,6 @@ insertArchive:
 INSERT INTO exit_archive(exit_id, document_json, sha256) VALUES (?, ?, ?);
 selectArchive:
 SELECT * FROM exit_archive WHERE exit_id = ?;
-revokeExitDelegations:
-UPDATE authority SET state = 'REVOKED'
-WHERE accountable_kind = 'CORE' AND accountable_id = :core
-AND ((subject_kind = 'PERSON' AND subject_id = :person) OR (issuer_kind = 'PERSON' AND issuer_id = :person))
-AND state NOT IN ('REVOKED', 'COMPLETED', 'REJECTED', 'ABORTED', 'FAILED');
-countExitDelegations:
-SELECT count(*) FROM authority WHERE accountable_kind = 'CORE' AND accountable_id = :core
-AND ((subject_kind = 'PERSON' AND subject_id = :person) OR (issuer_kind = 'PERSON' AND issuer_id = :person))
-AND state NOT IN ('REVOKED', 'COMPLETED', 'REJECTED', 'ABORTED', 'FAILED');
 closeExitRelations:
 UPDATE core_exit_relation SET state = 'CLOSED' WHERE person_id = ? AND core_id = ? AND state = 'ACTIVE';
 countExitRelations:

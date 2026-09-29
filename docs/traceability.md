@@ -11,7 +11,7 @@ Per Master Prompt §16. Every row must be answerable; entries left as
 | `domain/collective/Collective.kt::Sota` | CORE-11 SOTA as Autonomous Unit | §24 SOTA | P08, P11(stub) | — | `architecture_invariants/NonOwnershipTest` |
 | `domain/relation/Relation.kt::Trust` | CORE-05 Trust-based Coordination | §19 TRUST | P02 | MVP-04 | `architecture_invariants/TrustNotScoreTest` |
 | `domain/relation/Relation.kt::Competence` | CORE-06 Competence-based Authority | §12 COMPETENCE | P03 | MVP-04 | `architecture_invariants/CompetenceEvidenceTest` |
-| `domain/relation/Relation.kt::Authority` | CORE-07 Authority is Delegated | §14 AUTHORITY | P04 | MVP-04, AC-05, AC-06 | `architecture_invariants/AuthorityScopedRevocableTest` |
+| `domain/relation/Relation.kt::Authority` | CORE-07 Authority is Delegated | §14 AUTHORITY | P04 | MVP-04, AC-05, AC-06 | `acceptance/DelegationBoundsTest`, `DelegationCascadeTest`, `DelegationEnforcementTest`; ADR-013 |
 | `domain/agency/Agency.kt::Action` | CORE-03, CORE-17 Decision Traceability | §16 ACTION | P05 | MVP-05, AC-15 | `architecture_invariants/NoActionWithoutAuthorityTest` |
 | `security/RightsConstraintDecorator` + `application/ports/RightsConstraint` | CORE-02 Human Dignity Constraint | RIGHT §8-9; Rights Layer §15 | Protocol Architecture §16 | MVP §11, AC-07/15 | Protocol-neutral guard evaluated on state-changing service commands P01-P08; explicit RIGHT and purpose/context/scope-bound CONSENT records now have domain and SQLite persistence; consent is not yet consulted by every action affecting a Person |
 | `domain/agency/Agency.kt::Result` | CORE-04 Creation Orientation | §32 RESULT (ACTION != RESULT) | P05 | AC-09 | `unit/ActionResultDistinctTest` |
@@ -83,7 +83,7 @@ AC-12/13/17 are mapped to the original MVP Specification §16; see
 [acceptance evidence and limits](ac-p09-mapping.md). This update does not mark the entire
 P09 or Phase 3 complete. Production hosting, legacy producer adoption,
 cross-node historical-key recovery remain open. Durable local P10 is implemented under ADR-010;
-general contract/delegation integration remains open.
+general contract integration remains open; recorded delegation lineage is implemented under ADR-013.
 
 ## Durable P10 update — 2026-09-26
 
@@ -111,3 +111,14 @@ commit together, including signed P10 transitions. HistoricalSignatureTest maps
 P09/AC-13 recovery to rotation, revocation, restart, replay and rollback without
 trusting sender timestamps. See ADR-012 for local-only receipts, migration and
 cross-node recovery limits. Current peer policy remains mandatory.
+
+## Authority lineage and cascade — 2026-09-29
+
+Authority.parentAuthorityId, AuthorityLineage and AuthorityCascade implement
+P04/CORE-07 explicit delegation bounds and P10/AC-18 subtree cleanup. SQLite
+preserves parents, prevents reparenting, indexes child lookup and audits every
+revocation atomically. Mandatory ancestry checks cover P05/P08/P09/P10 consumers.
+DelegationBoundsTest, DelegationCascadeTest and DelegationEnforcementTest provide
+16 regressions: bounds, cycles, forged issuer, independent branches, Core isolation,
+restart, rollback, audit, migration and consumer enforcement. Contract settlement
+and recovery of genuinely unknown legacy ancestry remain outside ADR-013.

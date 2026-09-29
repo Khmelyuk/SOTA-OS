@@ -37,8 +37,8 @@ enum class CompetenceLevel { DECLARED, DEMONSTRATED, VALIDATED }
 /**
  * AUTHORITY — delegated, scoped, revocable (Architecture Core CORE-07,
  * Security Architecture §11). This is the single most important
- * invariant-bearing type in the model: no field is optional except
- * `until` (see Scope/Validity docs in shared/Common.kt).
+ * invariant-bearing type in the model. parentAuthorityId is absent only
+ * for originating or pre-lineage legacy grants.
  */
 data class Authority(
     val id: AuthorityId,
@@ -49,7 +49,8 @@ data class Authority(
     val basis: AuthorityBasis,
     val validity: Validity,
     val accountabilityTarget: SubjectRef,
-    val state: LifecycleState
+    val state: LifecycleState,
+    val parentAuthorityId: AuthorityId? = null
 )
 
 /** Authority MUST cite what it is based on — never bare ROLE. */
@@ -93,7 +94,8 @@ interface AuthorityProtocol {
         context: Context,
         basis: AuthorityBasis,
         validity: Validity,
-        accountableTo: SubjectRef
+        accountableTo: SubjectRef,
+        parentAuthorityId: AuthorityId? = null
     ): Authority
 
     /** MUST be faster/simpler than grant() per Security Architecture §23. */

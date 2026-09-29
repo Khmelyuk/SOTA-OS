@@ -28,7 +28,7 @@ class ExitService(
 
     override fun revokeActiveDelegations(invocation: ProtocolInvocation, exitId: String): ExitProcess =
         advance(invocation, exitId, ExitStage.REQUESTED, ExitStage.DELEGATIONS_REVOKED) {
-            scope.revokeDelegations(it.target)
+            scope.revokeDelegations(it.target, clock.now(), "P10 exit ${it.id}: ${invocation.purpose}")
         }
 
     override fun closeRelations(invocation: ProtocolInvocation, exitId: String): ExitProcess =

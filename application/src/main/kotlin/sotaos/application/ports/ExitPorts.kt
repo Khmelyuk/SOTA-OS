@@ -29,7 +29,7 @@ interface ExitRepository {
 /** Core-scoped relations only; identities, other memberships and immutable history are never deleted. */
 interface ExitScopeRepository {
     fun hasMembership(target: ExitTarget): Boolean
-    fun revokeDelegations(target: ExitTarget)
+    fun revokeDelegations(target: ExitTarget, at: Instant, reason: String)
     fun hasDelegations(target: ExitTarget): Boolean
     fun closeRelations(target: ExitTarget)
     fun hasRelations(target: ExitTarget): Boolean

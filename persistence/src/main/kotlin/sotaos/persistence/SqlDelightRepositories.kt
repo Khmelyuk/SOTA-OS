@@ -12,7 +12,6 @@ import sotaos.domain.identity.Person as DomainPerson
 import sotaos.domain.memory.Event as DomainEvent
 import sotaos.domain.memory.Experience as DomainExperience
 import sotaos.domain.memory.Knowledge as DomainKnowledge
-import sotaos.domain.relation.Authority as DomainAuthority
 import app.cash.sqldelight.db.SqlDriver
 import sotaos.application.ports.*
 import sotaos.domain.agency.*
@@ -34,6 +33,7 @@ class SqlDelightStore(private val driver: SqlDriver) : AutoCloseable {
         createSyncSchemaIfMissing(driver)
         createPeerTrustSchemaIfMissing(driver)
         createExitSchemaIfMissing(driver)
+        createAuthorityLineageSchemaIfMissing(driver)
         createVerifiedRecordSchemaIfMissing(driver)
         // Add the structured affected-person set to older decision tables.
         runCatching {
@@ -244,53 +244,6 @@ class SqlDelightMembershipRepository(private val db: SotaOsDatabase) : Membershi
             }
     }
 }
-
-class SqlDelightAuthorityRepository(private val db: SotaOsDatabase) : AuthorityRepository {
-    override fun save(authority: DomainAuthority): DomainAuthority {
-        val (issuerKind, issuerId) = ValueJsonMapping.subject(authority.issuer)
-        val (subjectKind, subjectId) = ValueJsonMapping.subject(authority.subject)
-        val (accountableKind, accountableId) = ValueJsonMapping.subject(authority.accountabilityTarget)
-        if (db.schemaQueries.selectAuthorityById(authority.id.value).executeAsOneOrNull() == null) {
-            db.schemaQueries.insertAuthority(authority.id.value, issuerKind, issuerId, subjectKind, subjectId,
-                JsonMapping.scope(authority.scope), JsonMapping.context(authority.context),
-                AuthorityBasisJsonMapping.basis(authority.basis), authority.validity.from.toString(),
-                authority.validity.until?.toString(), accountableKind, accountableId, authority.state.name)
-        } else {
-            db.schemaQueries.updateAuthority(issuerKind, issuerId, subjectKind, subjectId,
-                JsonMapping.scope(authority.scope), JsonMapping.context(authority.context),
-                AuthorityBasisJsonMapping.basis(authority.basis), authority.validity.from.toString(),
-                authority.validity.until?.toString(), accountableKind, accountableId,
-                authority.state.name, authority.id.value)
-        }
-        return authority
-    }
-
-    override fun findById(id: AuthorityId): DomainAuthority? = db.schemaQueries.selectAuthorityById(id.value)
-        .executeAsOneOrNull()?.toDomain()?.let(::effectiveState)
-
-    override fun findActiveFor(subject: SubjectRef, context: Context): List<DomainAuthority> {
-        val (kind, id) = ValueJsonMapping.subject(subject)
-        return db.schemaQueries.selectAuthoritiesBySubject(kind, id).executeAsList()
-            .map { effectiveState(it.toDomain()) }
-            .filter { it.state == LifecycleState.ACTIVE && it.context == context }
-    }
-
-    private fun effectiveState(authority: DomainAuthority): DomainAuthority =
-        if (db.syncQueries.hasConflict("AUTHORITY", authority.id.value).executeAsOne() > 0) {
-            authority.copy(state = LifecycleState.CONTESTED)
-        } else {
-            authority
-        }
-}
-
-private fun sotaos.persistence.Authority.toDomain(): DomainAuthority = DomainAuthority(
-    id = AuthorityId(authority_id), issuer = ValueJsonMapping.subject(issuer_kind, issuer_id),
-    subject = ValueJsonMapping.subject(subject_kind, subject_id), scope = JsonMapping.scope(scope_json),
-    context = JsonMapping.context(context_json), basis = AuthorityBasisJsonMapping.basis(basis_json),
-    validity = Validity(Instant.parse(valid_from), valid_until?.let(Instant::parse)),
-    accountabilityTarget = ValueJsonMapping.subject(accountable_kind, accountable_id),
-    state = LifecycleState.valueOf(state)
-)
 
 class SqlDelightMissionRepository(private val db: SotaOsDatabase) : MissionRepository {
     override fun save(mission: DomainMission): DomainMission {

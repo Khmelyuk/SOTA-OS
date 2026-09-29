@@ -64,7 +64,7 @@ class MissionActionService(
         authority: AuthorityId,
         chosen: String,
         affectedPersons: List<PersonId>
-    ): Decision {
+    ): Decision = authorities.transaction {
         require(invocation.actor == subject) { "Decision subject must match the invocation actor." }
         require(affectedPersons.distinct().size == affectedPersons.size) {
             "Affected Person list must not contain duplicates."
@@ -75,7 +75,8 @@ class MissionActionService(
         if (authorityForDecision.context.mission != null && authorityForDecision.context.mission != mission) {
             throw ActionNotAuthorizedException("Authority context does not cover mission ${mission.value}.")
         }
-        if (!authorityCheck(authorityForDecision, requestedScope, clock.now())) {
+        if (!AuthorityLineage(authorities).isValid(authorityForDecision, requestedScope, clock.now()) ||
+            !authorityCheck(authorityForDecision, requestedScope, clock.now())) {
             throw ActionNotAuthorizedException("Authority does not cover decision action $chosen.")
         }
         rightsConstraint.check(invocation, "P05", "decide", subject, authorityForDecision, requestedScope)
@@ -90,10 +91,10 @@ class MissionActionService(
             purpose = invocation.purpose,
             affectedPersons = affectedPersons
         )
-        return decisions.save(decision)
+        decisions.save(decision)
     }
 
-    override fun execute(invocation: ProtocolInvocation, decision: Decision): Action {
+    override fun execute(invocation: ProtocolInvocation, decision: Decision): Action = authorities.transaction {
         checkPersistedDecision(invocation, decision)
         val actor = invocation.actor
         val authority = authorities.findById(decision.authorityRef)
@@ -114,7 +115,8 @@ class MissionActionService(
         }
 
         val requestedScope = personImpactScope(decision.chosenOption, decision.affectedPersons)
-        val ok = authorityCheck(authority, requestedScope, clock.now())
+        val ok = AuthorityLineage(authorities).isValid(authority, requestedScope, clock.now()) &&
+            authorityCheck(authority, requestedScope, clock.now())
         if (!ok) {
             throw ActionNotAuthorizedException(
                 "Authority ${authority.id.value} does not cover action " +
@@ -155,7 +157,7 @@ class MissionActionService(
         // not optional and not a separate call the caller can skip.
         recordActionEvent(saved, authority, rightsDecision.appliedPolicies, decision.affectedPersons, affectedOthers)
 
-        return saved
+        saved
     }
 
     private fun checkPersistedDecision(invocation: ProtocolInvocation, decision: Decision) {

@@ -85,7 +85,7 @@ class CollectiveService(
         invocation: ProtocolInvocation,
         membership: Membership,
         byAuthority: sotaos.domain.shared.AuthorityId
-    ): Membership {
+    ): Membership = authorities.transaction {
         val authority = authorities.findById(byAuthority)
             ?: throw MembershipNotAuthorizedException(
                 "Unknown Authority ${byAuthority.value}; membership removal denied."
@@ -94,9 +94,10 @@ class CollectiveService(
             actions = setOf(MembershipAuthorityScope.REMOVE_ACTION),
             resources = setOf(MembershipAuthorityScope.resourceRef(membership.collective))
         )
+        val valid = AuthorityLineage(authorities).isValid(authority, requestedScope, clock.now()) &&
+            authorityCheck(authority, requestedScope, clock.now())
         if (authority.subject != invocation.actor ||
-            authority.accountabilityTarget != membership.collective ||
-            !authorityCheck(authority, requestedScope, clock.now())
+            authority.accountabilityTarget != membership.collective || !valid
         ) {
             throw MembershipNotAuthorizedException(
                 "Authority ${byAuthority.value} is not active and scoped for this actor and collective."
@@ -107,6 +108,6 @@ class CollectiveService(
             authority = authority, scope = requestedScope
         )
         val removed = membership.copy(state = LifecycleState.REVOKED, end = clock.now())
-        return memberships.save(removed)
+        memberships.save(removed)
     }
 }

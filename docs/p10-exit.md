@@ -24,7 +24,7 @@ human operator with `exit.export`, `core:CORE_ID` and `EVENT:id`, `KNOWLEDGE:id`
 | Protocol step | Implementation | Automated evidence |
 |---|---|---|
 | Request and verify authority | Authenticated CLI; self actor, active membership, RightsConstraint | ExitServiceTest: other actor, incomplete stages, policy denial |
-| Revoke delegations | Scoped authority update and pending-exit guards | ExitServiceTest: Core isolation, regrant denial, rollback |
+| Revoke delegations | Core-scoped authority subtree updates, immutable lineage, pending-ancestor guards | DelegationCascadeTest: descendants, independent branches, Core isolation, restart and atomic audit |
 | Close relations | Scoped TRUST/AGREEMENT inventory | ExitServiceTest: closure, isolation, rollback |
 | Settle obligations | RETAINED responsibility or independently confirmed FULFILLED | ExitServiceTest: retention/rollback; ExitExportTest: authority and evidence |
 | Export allowed data | Approved frozen snapshots, ownership/provenance, durable archive | ExitExportTest: default deny, scoped grants, all artifact kinds, edits/restart, cross-Core/person denial |
@@ -32,8 +32,10 @@ human operator with `exit.export`, `core:CORE_ID` and `EVENT:id`, `KNOWLEDGE:id`
 | Preserve autonomy/history | SQLite stages, additive migration, append-only archives/audit/events | ExitServiceTest: restart, migration, historical guards, unaffected Core |
 
 Coverage establishes the local voluntary-exit slice. Full production protocol
-coverage still needs general relation/contract inventories, downstream delegation
-lineage. Signed P09 event production is available through the opt-in host below.
+coverage still needs general relation/contract inventories. Recorded delegation
+chains now cascade under [ADR-013](adr/ADR-013-delegation-lineage.md); legacy
+unknown ancestry cannot be reconstructed. Signed P09 event production is available
+through the opt-in host below.
 
 ## Verification — 2026-09-26
 
@@ -80,3 +82,11 @@ transaction rollback, key failures, mode/origin continuity and peer-context deni
 
 Full JDK 21 build on 2026-09-28: 115 tests passed, zero failures/errors/skips;
 Detekt and migration verification passed.
+
+## Cascading delegations — 2026-09-29
+
+P10 now revokes every recorded descendant of directly held/issued target-Core
+authorities, with append-only per-authority audit in the exit transaction. Other
+Core chains and independent branches remain active. Pending exits block new
+descendants before revocation executes. See ADR-013 for grants, validity, scope
+ceilings, migration and consumption checks. Full build: 139 tests passed.

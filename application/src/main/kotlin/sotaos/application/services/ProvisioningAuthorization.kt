@@ -21,7 +21,7 @@ class ProvisioningAuthorization(
         require(authority.subject == invocation.actor && authority.issuer != invocation.actor) {
             "Provisioning requires independently delegated, actor-bound authority."
         }
-        require(authority.state == LifecycleState.ACTIVE && authority.validity.isActiveAt(now))
+        require(AuthorityLineage(authorities).isValid(authority, authority.scope, now))
         require(authority.context == context && operation in authority.scope.actions)
         require(target in authority.scope.resources) { "An explicit provisioning target is required." }
         rights.check(invocation, "P09", operation, authority = authority,

@@ -62,8 +62,9 @@ What is **not yet done**:
   and P05 execution checks affected People's consent. Broader
   command-specific authority checks remain open beyond the existing P05
   checks and the scoped P08 removal check recorded in ADR-008.
-- P10 general contract settlement, downstream delegation lineage and third-party
-  exit remain open. Durable local self-exit, governed export, retained obligations
+- P10 general contract settlement and third-party exit remain open.
+  Recorded delegation chains now support cascade revocation and full ancestor
+  checks; see [ADR-013](docs/adr/ADR-013-delegation-lineage.md). Durable local self-exit, governed export, retained obligations
   and CLI delivery are implemented; see [P10 evidence](docs/p10-exit.md).
 
 CI is defined in `.github/workflows/ci.yml` and runs the full JDK 21 build,
@@ -79,7 +80,7 @@ The full build includes Detekt; no checks were excluded. With JDK 21:
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew build --continue --console=plain
 ```
 
-The current suite has **123 test cases**, all passing with zero failures,
+The current suite has **139 test cases**, all passing with zero failures,
 errors, or skipped tests. It covers Core Loop, consent, authentication,
 architecture invariants, P09 merge/persistence/recovery/validation/atomicity/
 HTTPS, actor-key lifecycle, peer admission, authenticated endpoint handling
@@ -89,6 +90,8 @@ retained obligations, private file delivery and migration. Six additional signed
 tests cover atomic journaling, two-node recovery, key/policy denials and mode
 continuity. Eight historical-signature tests cover retirement, exact-record
 replay, backdating rejection, receipt rollback, migration and producer verification.
+Sixteen delegation tests cover scope/time ceilings, recorded ancestry, cascades,
+Core isolation, restart, rollback, audit, migration and consuming services.
 The 24 original production-P09 tests
 cover registry governance, signed relay/sharing policy, recovery and local autonomy.
 
@@ -127,9 +130,9 @@ Follow with:
 
 1. Complete production hosting, signed producer adoption and cross-node historical-key
    recovery using the [source-to-test mapping](docs/ac-p09-mapping.md).
-2. Integrate P10 with general relation/contract inventories, downstream delegation
-   lineage; the durable local AC-18 slice and opt-in SignedP10Runtime producer
-   are implemented. The default CLI remains local and unsigned.
+2. Integrate P10 with general relation/contract inventories and explicit settlement
+   terms; recorded delegation cascades, the durable local AC-18 slice and opt-in
+   SignedP10Runtime producer are implemented. The default CLI remains local and unsigned.
 
 Run the CLI with an explicit database path when needed:
 

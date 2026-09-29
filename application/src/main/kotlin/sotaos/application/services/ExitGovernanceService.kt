@@ -33,7 +33,7 @@ class ExitGovernanceService(
         val authority = requireNotNull(authorities.findById(id))
         require(authority.subject == invocation.actor && authority.issuer != invocation.actor)
         require(authority.accountabilityTarget == SubjectRef.Core(target.core))
-        require(authority.state == LifecycleState.ACTIVE && authority.validity.isActiveAt(clock.now()))
+        require(AuthorityLineage(authorities).isValid(authority, authority.scope, clock.now()))
         require(invocation.context == authority.context && operation in authority.scope.actions)
         val requested = Scope(setOf(operation), setOf("core:${target.core.value}", resource))
         require(authority.scope.resources.containsAll(requested.resources))

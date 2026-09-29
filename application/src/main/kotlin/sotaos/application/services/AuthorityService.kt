@@ -2,7 +2,6 @@ package sotaos.application.services
 
 import sotaos.application.ports.*
 import sotaos.domain.relation.*
-import sotaos.domain.rights.covers
 import sotaos.domain.shared.*
 import java.time.Instant
 
@@ -73,51 +72,48 @@ class AuthorityService(
         context: Context,
         basis: AuthorityBasis,
         validity: Validity,
-        accountableTo: SubjectRef
-    ): Authority {
+        accountableTo: SubjectRef,
+        parentAuthorityId: AuthorityId?
+    ): Authority = authorities.transaction {
         require(invocation.actor == issuer) { "Authority grant must be initiated by its issuer." }
-        // Delegation ceiling check (see class doc): a Core/Sota issuer
-        // grants as an originating principal; a Person/Agent issuer is
-        // always re-delegating and must already hold covering authority.
-        val issuerIsOriginatingPrincipal = issuer is SubjectRef.Core || issuer is SubjectRef.Sota
-        if (!issuerIsOriginatingPrincipal) {
-            val issuerHolds = authorities.findActiveFor(issuer, context)
-            val covering = issuerHolds.any { it.scope.covers(scope) }
-            if (!covering) {
-                throw AuthorityException(
-                    "Delegated Authority ceiling violated: issuer ${issuer} does not hold " +
-                        "authority covering requested scope ${scope.actions} in context $context"
-                )
-            }
-        }
+        require(issuer != subject) { "Self-delegation is forbidden." }
+        validity.until?.let { require(it.isAfter(validity.from)) { "Invalid validity window." } }
+        val requested = Authority(AuthorityId(ids.next()), issuer, subject, scope, context, basis,
+            validity, accountableTo, LifecycleState.ACTIVE, parentAuthorityId)
+        require(authorities.findById(requested.id) == null) { "Authority ID is already in use." }
+        val parent = selectParent(requested)
 
         rightsConstraint.check(invocation, "P04", "grant", subject, scope = scope, context = context)
-        val authority = Authority(
-            id = AuthorityId(ids.next()),
-            issuer = issuer,
-            subject = subject,
-            scope = scope,
-            context = context,
-            basis = basis,
-            validity = validity,
-            accountabilityTarget = accountableTo,
-            state = LifecycleState.ACTIVE
+        authorities.save(requested.copy(parentAuthorityId = parent?.id))
+    }
+
+    private fun selectParent(requested: Authority): Authority? {
+        val explicit = requested.parentAuthorityId
+        if (explicit == null && (requested.issuer is SubjectRef.Core || requested.issuer is SubjectRef.Sota)) {
+            require(requested.accountabilityTarget == requested.issuer) { "Root must be accountable to its issuer." }
+            return null
+        }
+        val candidates = if (explicit == null) authorities.findActiveFor(requested.issuer, requested.context)
+            else listOfNotNull(authorities.findById(explicit))
+        val covering = candidates.filter { parent ->
+            parent.coversDelegation(requested) &&
+                AuthorityLineage(authorities).isValid(parent, requested.scope, clock.now())
+        }
+        if (covering.size != 1) throw AuthorityException(
+            "Delegation requires one valid covering parent; specify parentAuthorityId when ambiguous."
         )
-        return authorities.save(authority)
+        return covering.single()
     }
 
-    override fun revoke(invocation: ProtocolInvocation, authority: Authority, reason: String): Authority {
-        require(invocation.actor == authority.issuer) { "Only the issuer may revoke this authority." }
-        rightsConstraint.check(invocation, "P04", "revoke", authority.subject, authority = authority)
-        // Must be O(1) local — no network/sync dependency in this call
-        // path (Security Architecture §23: revocation faster than grant).
-        val revoked = authority.copy(state = LifecycleState.REVOKED)
-        return authorities.save(revoked)
-    }
+    override fun revoke(invocation: ProtocolInvocation, authority: Authority, reason: String): Authority =
+        authorities.transaction {
+            val stored = requireNotNull(authorities.findById(authority.id)) { "Unknown authority." }
+            require(invocation.actor == stored.issuer) { "Only the stored issuer may revoke this authority." }
+            rightsConstraint.check(invocation, "P04", "revoke", stored.subject, authority = stored)
+            AuthorityCascade(authorities).revoke(listOf(stored), invocation.actor, reason, clock.now())
+            requireNotNull(authorities.findById(stored.id))
+        }
 
-    override fun isValid(authority: Authority, forScope: Scope, at: Instant): Boolean {
-        return authority.state == LifecycleState.ACTIVE &&
-            authority.validity.isActiveAt(at) &&
-            authority.scope.covers(forScope)
-    }
+    override fun isValid(authority: Authority, forScope: Scope, at: Instant): Boolean =
+        AuthorityLineage(authorities).isValid(authority, forScope, at)
 }

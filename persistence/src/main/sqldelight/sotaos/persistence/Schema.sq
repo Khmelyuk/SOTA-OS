@@ -53,7 +53,8 @@ CREATE TABLE authority (
     valid_until      TEXT,
     accountable_kind TEXT NOT NULL,
     accountable_id   TEXT NOT NULL,
-    state            TEXT NOT NULL
+    state            TEXT NOT NULL,
+    parent_authority_id TEXT REFERENCES authority(authority_id)
 );
 
 CREATE TABLE mission (
@@ -281,8 +282,8 @@ INSERT INTO membership(membership_id, person_id, collective_kind, collective_id,
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 insertAuthority:
-INSERT INTO authority(authority_id, issuer_kind, issuer_id, subject_kind, subject_id, scope_json, context_json, basis_json, valid_from, valid_until, accountable_kind, accountable_id, state)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO authority(authority_id, issuer_kind, issuer_id, subject_kind, subject_id, scope_json, context_json, basis_json, valid_from, valid_until, accountable_kind, accountable_id, state, parent_authority_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectAuthorityById:
 SELECT * FROM authority WHERE authority_id = ?;

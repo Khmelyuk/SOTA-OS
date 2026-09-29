@@ -1,17 +1,27 @@
 package sotaos.persistence
 
 import sotaos.application.ports.*
+import sotaos.application.services.AuthorityCascade
+import sotaos.application.services.terminalAuthorityStates
+import sotaos.domain.shared.*
 import sotaos.persistence.db.SotaOsDatabase
 import java.time.Instant
 
 class SqlDelightExitScopeRepository(private val db: SotaOsDatabase) : ExitScopeRepository {
     override fun hasMembership(target: ExitTarget): Boolean = db.schemaQueries
         .selectActiveMembership(target.person.value, "CORE", target.core.value).executeAsOneOrNull() != null
-    override fun revokeDelegations(target: ExitTarget) {
-        db.exitQueries.revokeExitDelegations(target.core.value, target.person.value)
+    private val authorities = SqlDelightAuthorityRepository(db)
+    private val cascade = AuthorityCascade(authorities)
+    private fun roots(target: ExitTarget) = db.authorityLineageQueries
+        .selectExitAuthorityRoots(target.core.value, target.person.value).executeAsList()
+        .map { requireNotNull(authorities.findById(AuthorityId(it.authority_id))) }
+
+    override fun revokeDelegations(target: ExitTarget, at: Instant, reason: String) {
+        cascade.revoke(roots(target), SubjectRef.Person(target.person), reason, at)
     }
-    override fun hasDelegations(target: ExitTarget): Boolean = db.exitQueries
-        .countExitDelegations(target.core.value, target.person.value).executeAsOne() > 0
+    override fun hasDelegations(target: ExitTarget): Boolean = roots(target).any { root ->
+        cascade.family(root).any { it.state !in terminalAuthorityStates }
+    }
     override fun closeRelations(target: ExitTarget) {
         db.exitQueries.closeExitRelations(target.person.value, target.core.value)
     }

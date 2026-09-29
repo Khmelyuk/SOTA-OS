@@ -37,6 +37,9 @@ interface MembershipRepository {
 }
 
 interface AuthorityRepository {
+    fun <T> transaction(block: () -> T): T
+    fun findChildren(parent: AuthorityId): List<Authority>
+    fun appendRevocation(record: AuthorityRevocation)
     fun save(authority: Authority): Authority
     fun findById(id: AuthorityId): Authority?
     fun findActiveFor(subject: SubjectRef, context: Context): List<Authority>
