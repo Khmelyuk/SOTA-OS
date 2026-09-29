@@ -95,3 +95,24 @@ four-tier test discipline are preserved.
 The API composition root now also depends on `sync` to construct P09Runtime.
 This wires existing modules; it does not introduce a listener or transport
 framework. Integration tests depend on `api` to exercise the actual composition.
+
+## CI runtime maintenance — 2026-09-29
+
+CI uses the explicit ubuntu-24.04 hosted image and Temurin JDK 21. This avoids
+the automatic ubuntu-latest major-image migration while retaining hosted image
+patch updates; the OS image is not a byte-for-byte immutable environment.
+
+Checkout, setup-java and setup-gradle use verified v5 commits pinned by full SHA.
+Their action manifests use Node.js 24, removing the deprecated Node.js 20
+action runtime. Major-version comments identify the intended maintenance line;
+future upgrades require reviewing and changing the SHA. Official manifests:
+
+- [checkout](https://github.com/actions/checkout/blob/fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09/action.yml)
+- [setup-java](https://github.com/actions/setup-java/blob/b6effb05e454b25005698d916606bdc6ffcbf961/action.yml)
+- [setup-gradle](https://github.com/gradle/actions/blob/0723195856401067f7a2779048b490ace7a47d7c/setup-gradle/action.yml)
+
+Push and pull-request triggers, read-only contents permission, the 15-minute
+timeout and the complete Gradle build remain in place. Gradle setup continues
+to supply caching and wrapper validation. The workflow runs compilation, Detekt,
+migration verification and all tests; the workflow change is verified by its
+GitHub-hosted CI run rather than by adding application tests for YAML text.

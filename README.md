@@ -68,6 +68,8 @@ What is **not yet done**:
 
 CI is defined in `.github/workflows/ci.yml` and runs the full JDK 21 build,
 Detekt, migration verification and test suite on pushes and pull requests.
+The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
+([toolchain policy](docs/adr/ADR-007-build-test-toolchain.md)).
 
 Verification on 2026-09-29 in `/home/khmelyuk/SOTA-OS-local`:
 **BUILD + TEST PASSED**.
