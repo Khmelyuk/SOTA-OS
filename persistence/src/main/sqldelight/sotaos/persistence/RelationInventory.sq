@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS relation_terms (
+ relation_id TEXT NOT NULL PRIMARY KEY REFERENCES core_exit_relation(relation_id),
+ terms_json TEXT NOT NULL, exit_policy TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS relation_obligation (
+ relation_id TEXT NOT NULL REFERENCES relation_terms(relation_id),
+ obligation_id TEXT NOT NULL UNIQUE REFERENCES exit_obligation(obligation_id),
+ PRIMARY KEY(relation_id, obligation_id));
+
+insertRelationTerms:
+INSERT INTO relation_terms(relation_id, terms_json, exit_policy) VALUES (?, ?, ?);
+insertRelationObligation:
+INSERT INTO relation_obligation(relation_id, obligation_id) VALUES (?, ?);
+selectRelationTerms:
+SELECT r.*, t.terms_json, t.exit_policy FROM core_exit_relation r
+JOIN relation_terms t ON t.relation_id = r.relation_id
+WHERE r.person_id = ? AND r.core_id = ? ORDER BY r.relation_id;
+selectRelationObligations:
+SELECT o.* FROM exit_obligation o JOIN relation_obligation r ON r.obligation_id = o.obligation_id
+WHERE r.relation_id = ? ORDER BY o.obligation_id;
+findObligationRelation:
+SELECT relation_id FROM relation_obligation WHERE obligation_id = ?;

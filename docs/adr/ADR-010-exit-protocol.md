@@ -66,8 +66,9 @@ credentials, other Core memberships and immutable history remain intact.
 
 - Hosts must authenticate invocations. The CLI uses provider-backed authentication
   and exact typed confirmation before requesting exit.
-- Inventory insertion is a trusted local adapter operation. General Trust/Agreement
-  persistence and contract ingestion remain open. Recorded downstream delegation
+- Inventory insertion is a trusted local adapter operation. Typed Trust/Agreement
+  terms and obligation links are persisted under [ADR-014](ADR-014-relation-inventory.md);
+  multiparty consent and alternative contract policies remain open. Recorded downstream delegation
   chains now cascade under [ADR-013](ADR-013-delegation-lineage.md); unknown
   legacy ancestry is not inferred.
 - Default CLI P10 events remain local unsigned R0 records. The opt-in

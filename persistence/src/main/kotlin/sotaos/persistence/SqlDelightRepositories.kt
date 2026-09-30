@@ -33,6 +33,7 @@ class SqlDelightStore(private val driver: SqlDriver) : AutoCloseable {
         createSyncSchemaIfMissing(driver)
         createPeerTrustSchemaIfMissing(driver)
         createExitSchemaIfMissing(driver)
+        createRelationInventorySchemaIfMissing(driver)
         createAuthorityLineageSchemaIfMissing(driver)
         createVerifiedRecordSchemaIfMissing(driver)
         // Add the structured affected-person set to older decision tables.

@@ -25,14 +25,15 @@ human operator with `exit.export`, `core:CORE_ID` and `EVENT:id`, `KNOWLEDGE:id`
 |---|---|---|
 | Request and verify authority | Authenticated CLI; self actor, active membership, RightsConstraint | ExitServiceTest: other actor, incomplete stages, policy denial |
 | Revoke delegations | Core-scoped authority subtree updates, immutable lineage, pending-ancestor guards | DelegationCascadeTest: descendants, independent branches, Core isolation, restart and atomic audit |
-| Close relations | Scoped TRUST/AGREEMENT inventory | ExitServiceTest: closure, isolation, rollback |
+| Close relations | Typed immutable Trust/Agreement terms and Core-scoped participation | RelationInventoryTest: persistence, closure, isolation, rollback |
 | Settle obligations | RETAINED responsibility or independently confirmed FULFILLED | ExitServiceTest: retention/rollback; ExitExportTest: authority and evidence |
 | Export allowed data | Approved frozen snapshots, ownership/provenance, durable archive | ExitExportTest: default deny, scoped grants, all artifact kinds, edits/restart, cross-Core/person denial |
 | Terminate participation | Matching delivered digest then membership revocation | ExitServiceTest: delivery failure, digest mismatch, audit rollback, repeated completion |
 | Preserve autonomy/history | SQLite stages, additive migration, append-only archives/audit/events | ExitServiceTest: restart, migration, historical guards, unaffected Core |
 
 Coverage establishes the local voluntary-exit slice. Full production protocol
-coverage still needs general relation/contract inventories. Recorded delegation
+coverage still needs multiparty consent and additional contract policies. Typed local
+relation inventory is implemented under [ADR-014](adr/ADR-014-relation-inventory.md). Recorded delegation
 chains now cascade under [ADR-013](adr/ADR-013-delegation-lineage.md); legacy
 unknown ancestry cannot be reconstructed. Signed P09 event production is available
 through the opt-in host below.
@@ -90,3 +91,21 @@ authorities, with append-only per-authority audit in the exit transaction. Other
 Core chains and independent branches remain active. Pending exits block new
 descendants before revocation executes. See ADR-013 for grants, validity, scope
 ceilings, migration and consumption checks. Full build: 139 tests passed.
+
+## Typed relation inventory — 2026-09-30
+
+Trusted adapters can use `SqlDelightRelationInventory(store.database)` to import
+established outgoing Trust or Agreement participation. `registerAgreement` requires
+an explicit `AgreementExitPolicy.WITHDRAW_PARTICIPATION_RETAIN_OBLIGATIONS` and a
+list of new Core-scoped obligations. The host verifies agreement consent and policy
+compatibility before import; this infrastructure port is not a public enrollment API.
+
+Terms, inventory and obligations commit atomically. Reads expose immutable original
+terms separately from ACTIVE/CLOSED participation and current obligation states.
+P10 closes participation and retains outstanding duties; independently authorized
+fulfillment remains available through `runtime.governance`. Portable obligations
+include their relation ID without automatically exporting shared terms.
+Legacy rows are preserved without fabricated terms. See ADR-014 for boundaries.
+
+Full JDK 21 build, Detekt and migration verification passed: 147 tests, zero
+failures/errors/skips, including eight typed relation inventory tests.

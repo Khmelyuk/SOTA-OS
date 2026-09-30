@@ -35,6 +35,8 @@ internal class ExitArchiveMapping(private val db: SotaOsDatabase) {
                 .executeAsList().map { obligation ->
                     buildJsonObject {
                         put("id", obligation.obligation_id)
+                        db.relationInventoryQueries.findObligationRelation(obligation.obligation_id)
+                            .executeAsOneOrNull()?.let { put("relationId", it) }
                         put("description", obligation.description)
                         put("state", obligation.state)
                         put("resolution", obligation.resolution)

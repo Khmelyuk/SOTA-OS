@@ -83,7 +83,8 @@ AC-12/13/17 are mapped to the original MVP Specification §16; see
 [acceptance evidence and limits](ac-p09-mapping.md). This update does not mark the entire
 P09 or Phase 3 complete. Production hosting, legacy producer adoption,
 cross-node historical-key recovery remain open. Durable local P10 is implemented under ADR-010;
-general contract integration remains open; recorded delegation lineage is implemented under ADR-013.
+typed local relationship inventory is implemented under ADR-014; broader contract policies
+remain open. Recorded delegation lineage is implemented under ADR-013.
 
 ## Durable P10 update — 2026-09-26
 
@@ -122,3 +123,13 @@ DelegationBoundsTest, DelegationCascadeTest and DelegationEnforcementTest provid
 16 regressions: bounds, cycles, forged issuer, independent branches, Core isolation,
 restart, rollback, audit, migration and consumer enforcement. Contract settlement
 and recovery of genuinely unknown legacy ancestry remain outside ADR-013.
+
+## Typed Trust/Agreement inventory — 2026-09-30
+
+| Source | Implementation | Evidence |
+|---|---|---|
+| Data Model §§19–20: Trust / Agreement | RelationInventory, SqlDelightRelationInventory, immutable typed terms | RelationInventoryTest: round trip, restart, validation, migration |
+| Protocol §13: close relations separately from settlement; AC-18 | Core-scoped participation closure, immutable obligation links, explicit retention policy | RelationInventoryTest: closure, duty retention, Core isolation, rollback, archive relation ID |
+
+ADR-014 distinguishes trusted import from multiparty consent. Textual terms are
+preserved without pretending to execute arbitrary contractual conditions.

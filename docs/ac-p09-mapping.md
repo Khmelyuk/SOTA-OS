@@ -20,7 +20,7 @@ what this repository actually verifies.
 | AC-12 | Працювати offline | `SqlDelightCoreLoopIntegrationTest`: full authorized Core Loop without a network service; `LocalAutonomyAcceptanceTest`: local Core creation before/during outage and after restart | Automated coverage of the local MVP slice; no network authorization dependency |
 | AC-13 | Синхронізувати після відновлення зв'язку | `ProductionRoundTripTest`: signed records recorded offline, failed transport, then authenticated exchange between two SQLite production roots; `SyncRecoveryTest`: lost acknowledgements, retries, pagination and restart; `HttpsSyncTransportTest`: real HTTPS adapter | Covered for signed profile records; general production rollout remains PARTIAL because legacy unsigned/Core Loop hash producers cannot pass strict admission and no hosted listener is supplied |
 | AC-17 | Втрата центрального сервісу не знищує локальний Core | `LocalAutonomyAcceptanceTest`: unavailable service throws IOException; Core and active membership survive SQLite close/reopen; creating another Core remains possible while service is unavailable | Direct automated local-autonomy evidence; independent of conflict detection |
-| AC-18 | Користувач може вийти з Core | `ExitServiceTest` and `ExitExportTest`: durable self-exit, isolation, restart, rollback and governed export | Local voluntary P10 implemented; broader contract/delegation integration open; see [P10 evidence](p10-exit.md) |
+| AC-18 | Користувач може вийти з Core | `ExitServiceTest` and `ExitExportTest`: durable self-exit, isolation, restart, rollback and governed export | Local voluntary P10 implemented; typed participation and recorded delegation cascades implemented; broader contract policies open; see [P10 evidence](p10-exit.md) |
 
 ## P09 implementation trace
 
@@ -43,7 +43,8 @@ except where relationship terms lawfully constrain a particular action.
 
 The durable local self-exit implementation covers the ordered stages in SQLite.
 See [P10 evidence](p10-exit.md) and [ADR-010](adr/ADR-010-exit-protocol.md).
-Unfulfilled obligations are retained, not silently discharged. General contract
+Unfulfilled obligations are retained, not silently discharged. `RelationInventoryTest`
+adds typed terms, obligation links, atomic import and closure evidence under ADR-014. General contract
 settlement remains outside this slice. Recorded downstream delegation chains
 now cascade under ADR-013, with Core isolation and rollback tested. Opt-in
 signed P10 production is covered by SignedExitTest, including P09 recovery after
