@@ -5,11 +5,12 @@ CREATE TABLE IF NOT EXISTS verified_sync_record (
  actor_id TEXT NOT NULL,
  key_id TEXT NOT NULL,
  public_key_base64 TEXT NOT NULL,
- verified_at TEXT NOT NULL
+ verified_at TEXT NOT NULL,
+ historical_approval_target TEXT
 );
 
 findVerifiedRecord:
 SELECT * FROM verified_sync_record WHERE event_id = ?;
 insertVerifiedRecord:
 INSERT INTO verified_sync_record(event_id, canonical_record, actor_kind, actor_id, key_id,
- public_key_base64, verified_at) VALUES (?, ?, ?, ?, ?, ?, ?);
+ public_key_base64, verified_at, historical_approval_target) VALUES (?, ?, ?, ?, ?, ?, ?, ?);

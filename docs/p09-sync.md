@@ -163,8 +163,9 @@ keys or plaintext peer secrets are stored in these tables.
 
 Strict admission rejects legacy unsigned local events; producers must create
 signed sync-ready records before first persistence. A blocked batch is not
-silently filtered or checkpointed. Cross-node historical-key recovery and producer
-adoption remain open; see [the AC source mapping](ac-p09-mapping.md).
+silently filtered or checkpointed. New-node historical recovery can now use an
+explicit local exact-record approval under ADR-016. Automatic historical
+attestations and producer adoption remain open; see [the AC source mapping](ac-p09-mapping.md).
 
 ## Historical signature receipts — 2026-09-29
 
@@ -174,3 +175,19 @@ rotation/revocation; unknown old-key records, including backdated ones, are deni
 Current peer/origin/context policy always applies. Receipts are local, not
 transferable credentials. Existing pre-receipt journals are not retroactively
 certified. See [ADR-012](adr/ADR-012-historical-signature-evidence.md).
+
+## Exact historical approvals — 2026-09-30
+
+A new node can authorize one reviewed old-key record through
+`P09Runtime.historicalApprovals`, without installing the old key as current.
+This requires independently delegated `history.approve` authority for the exact
+`history:CONTENT_HASH` resource, an authenticated local operator and an evidence
+reference. The operator must independently establish the historical actor/key
+binding; the software does not treat peer claims or event timestamps as proof.
+All ordinary peer, origin, signature, context and causal checks still apply.
+
+The approval and revocation audit are immutable. A first successful import creates
+a local receipt linked to that approval in the event/journal transaction. Revocation
+before import removes the exception; it does not erase already committed receipts.
+No approval is accepted over the P09 wire format. See [ADR-016](adr/ADR-016-historical-record-approval.md)
+and the [review/recovery guide](p09-historical-recovery.md).

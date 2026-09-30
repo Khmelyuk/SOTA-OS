@@ -22,9 +22,10 @@ class P09Runtime(
     private val repositories = SqlDelightRepositories(store.database)
     private val peers = SqlDelightPeerTrustRepository(store.database)
     private val codec = JsonSyncRecordCodec()
+    private val approvals = SqlDelightHistoricalApprovalRepository(store.database)
     val integrity = SyncRecordIntegrity(codec)
     private val signatures = VerifiedRecordSignatures(repositories.actorSigningKeys,
-        SqlDelightVerifiedRecordRepository(store.database), codec, integrity, clock)
+        SqlDelightVerifiedRecordRepository(store.database), codec, integrity, clock, approvals)
     private val admission = ProductionPeerAdmission(peers, repositories.actorSigningKeys, local, integrity, signatures)
     private val service = SyncService(
         local.node, SqlDelightSyncRepository(store.database, codec, verifyAppended = signatures::remember),
@@ -33,6 +34,8 @@ class P09Runtime(
     private val endpoint = SyncEndpoint(service, JsonSyncMessageCodec())
     private val authenticator = RegistryPeerAuthenticator(peers)
     private val authorization = ProvisioningAuthorization(repositories.authorities, clock, governanceContext, rights)
+    val historicalApprovals = HistoricalRecordApprovalService(
+        approvals, peers, authorization, codec, integrity, local.node)
     val peerProvisioning = PeerProvisioningService(peers, authorization, local.node)
     val keyProvisioning = ActorKeyProvisioningService(repositories.actorSigningKeys, peers, authorization)
 

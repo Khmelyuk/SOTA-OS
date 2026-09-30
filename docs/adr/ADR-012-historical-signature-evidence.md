@@ -53,7 +53,9 @@ automatically gain retirement-proof verification; after key retirement they fail
 closed. A separate reviewed migration policy would be required to change that.
 
 Receipts are local and never accepted from a sender. A new/offline receiving node
-that has never verified an old-key record cannot import it after retiring that key.
+that has never verified an old-key record cannot import it after retiring that key
+under this default policy. [ADR-016](ADR-016-historical-record-approval.md) later
+adds a separate, independently governed exception for one exact reviewed record.
 Recovery across nodes with different key histories, transferable trusted timestamp
 proofs and retrospective compromise policy remain separate work. Revocation stops
 new old-key records; it does not erase accepted history or assert that all past
@@ -73,3 +75,12 @@ continue to verify origin policies, atomic stages and synchronization recovery.
 
 Full JDK 21 build on 2026-09-29 passed: 123 tests, zero failures/errors/skips,
 Detekt and migration verification included.
+
+## Governed new-node recovery extension — 2026-09-30
+
+ADR-016 preserves the default fail-closed rule and adds local exact-record approvals.
+The append hook can verify against an approved historical key and writes a nullable
+`historicalApprovalTarget` link into the receipt. The local verification time is
+still the actual append-time check, never a backdated claim. Approval revocation
+before append is rechecked; committed receipts retain this ADR's replay semantics.
+No peer-supplied receipt becomes a transferable credential.

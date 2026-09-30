@@ -8,7 +8,8 @@ data class VerifiedRecord(
     val eventId: EventId,
     val canonicalRecord: String,
     val key: ActorSigningKeyRecord,
-    val verifiedAt: Instant
+    val verifiedAt: Instant,
+    val historicalApprovalTarget: String? = null
 )
 
 /** Trusted infrastructure; writes must share the event/journal transaction. */

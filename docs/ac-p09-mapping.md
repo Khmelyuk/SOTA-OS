@@ -31,8 +31,9 @@ what this repository actually verifies.
 - Integrity: signed canonical records bind content and provenance to origin/parents/assertion.
 - Conflict retention: SyncConflictPreservationTest and SyncAuthorityBoundaryTest
   verify ADR-004/P09 behavior; **they are not a substitute for AC-17**.
-- Actual server deployment, all entity producers and cross-node historical signature recovery
-  remain deployment/coverage gaps, not reasons to fabricate source criteria.
+- Public server operations, all entity producers and automatic historical attestations
+  remain deployment/coverage gaps. Exact locally governed historical recovery is
+  implemented under ADR-016; it does not add or rewrite source criteria.
 
 ## P10 scope from the original protocol
 
@@ -66,3 +67,15 @@ lost-response recovery and both stores reopening. CLI `sync serve` and `sync onc
 require explicit node/actor configuration and provisioned stores. No central server
 is needed. This extends transport evidence without claiming public deployment,
 automatic scheduling or authorization of unseen historical old-key records.
+
+## Governed historical import evidence — 2026-09-30
+
+HistoricalApprovalHttpsTest extends AC-13: a receiving node rejects unknown old-key
+history, then recovers over HTTPS after an independently authorized local approval
+and restart. HistoricalApprovalTest verifies exact-record scope, no active-key
+replacement, current policy and governance. HistoricalApprovalDurabilityTest verifies
+transaction rollback, revocation recheck and migration preserving existing receipts.
+
+This is explicit local acceptance based on independently reviewed evidence, not
+proof of signature creation time or transferable peer testimony. Default rejection
+of unknown old-key records remains. See [ADR-016](adr/ADR-016-historical-record-approval.md).

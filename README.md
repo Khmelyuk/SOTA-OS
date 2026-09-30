@@ -50,7 +50,7 @@ What is **not yet done**:
 - `persistence/` has Core Loop and two-node sync integration coverage,
   including restart, additive sync-schema migration and rollback.
   Broader repository and migration coverage is still open.
-- P09 public hosting operations, cross-node historical-key recovery, producer adoption and additional
+- P09 public hosting operations, automatic historical attestations, producer adoption and additional
   entity assertion producers remain open. Credential authentication, trusted
   peer admission, event signatures, durable provisioning governance and
   `api.sync.P09Runtime` are implemented under ADR-011. Explicit HTTPS pilot hosting
@@ -81,7 +81,7 @@ The full build includes Detekt; no checks were excluded. With JDK 21:
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew build --continue --console=plain
 ```
 
-The current suite has **154 test cases**, all passing with zero failures,
+The current suite has **170 test cases**, all passing with zero failures,
 errors, or skipped tests. It covers Core Loop, consent, authentication,
 architecture invariants, P09 merge/persistence/recovery/validation/atomicity/
 HTTPS, actor-key lifecycle, peer admission, authenticated endpoint handling
@@ -129,8 +129,8 @@ provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
 Follow with:
 
-1. Extend the HTTPS pilot with operational hosting/scheduling, signed producer adoption and cross-node historical-key
-   recovery using the [source-to-test mapping](docs/ac-p09-mapping.md).
+1. Extend the HTTPS pilot with operational hosting/scheduling, signed producer adoption and automatic historical
+   attestations using the [source-to-test mapping](docs/ac-p09-mapping.md).
 2. Extend P10 beyond the typed local Trust/Agreement inventory to multiparty consent
    and additional settlement policies ([ADR-014](docs/adr/ADR-014-relation-inventory.md));
    recorded delegation cascades, the durable local AC-18 slice and opt-in
@@ -176,5 +176,8 @@ its exact criteria and concrete tests; deployment and legacy-producer gaps remai
 
 Historical signature handling now preserves exact locally verified records after
 key rotation/revocation through atomic append-only receipts. Unknown old-key
-records remain denied; [ADR-012](docs/adr/ADR-012-historical-signature-evidence.md)
-documents migration and cross-node limits.
+records remain denied by default. [ADR-012](docs/adr/ADR-012-historical-signature-evidence.md)
+documents local receipts; [ADR-016](docs/adr/ADR-016-historical-record-approval.md)
+adds independently governed approval of one exact historical record on a new node.
+It preserves current keys and peer policy, with immutable audit and revocation.
+See the [historical recovery guide](docs/p09-historical-recovery.md).

@@ -111,8 +111,10 @@ header, idle-connection or queued-connection deadline. Public hosting needs thos
 limits, connection/rate limits and operational supervision at the network edge.
 There is no automatic certificate renewal, secret distribution, retry scheduler,
 health/metrics endpoint or Internet deployment in this change. Cross-node trust
-for previously unseen signatures from retired actor keys remains a separate
-ADR-012 follow-up; a TLS connection does not solve that historical trust question.
+for previously unseen signatures from retired actor keys requires an explicit local
+review under [ADR-016](adr/ADR-016-historical-record-approval.md); see the
+[historical recovery guide](p09-historical-recovery.md). A TLS connection alone
+does not solve that historical trust question.
 
 ## Verification result — 2026-09-30
 

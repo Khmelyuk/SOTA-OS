@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS historical_record_approval (
+ event_id TEXT NOT NULL PRIMARY KEY, canonical_record TEXT NOT NULL,
+ actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL, key_id TEXT NOT NULL, public_key_base64 TEXT NOT NULL,
+ target TEXT NOT NULL, operator_kind TEXT NOT NULL, operator_id TEXT NOT NULL, authority_id TEXT NOT NULL,
+ purpose TEXT NOT NULL, approved_at TEXT NOT NULL, evidence_reference TEXT NOT NULL);
+
+CREATE TABLE IF NOT EXISTS historical_record_revocation (
+ event_id TEXT NOT NULL PRIMARY KEY REFERENCES historical_record_approval(event_id),
+ target TEXT NOT NULL, operator_kind TEXT NOT NULL, operator_id TEXT NOT NULL, authority_id TEXT NOT NULL,
+ purpose TEXT NOT NULL, revoked_at TEXT NOT NULL);
+
+findHistoricalApproval:
+SELECT * FROM historical_record_approval WHERE event_id = ?;
+findHistoricalRevocation:
+SELECT * FROM historical_record_revocation WHERE event_id = ?;
+insertHistoricalApproval:
+INSERT INTO historical_record_approval(event_id, canonical_record, actor_kind, actor_id, key_id, public_key_base64,
+ target, operator_kind, operator_id, authority_id, purpose, approved_at, evidence_reference)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+insertHistoricalRevocation:
+INSERT INTO historical_record_revocation(event_id, target, operator_kind, operator_id, authority_id, purpose, revoked_at)
+VALUES (?, ?, ?, ?, ?, ?, ?);

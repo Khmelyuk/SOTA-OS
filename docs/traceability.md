@@ -49,7 +49,7 @@ broader coverage remains open:
       codecs, HTTPS/REST client and server-neutral handler are tested
 - [x] P09 bounded HTTPS pilot host and CLI serve/once under ADR-015
 - [ ] P09 public-hosting operations and scheduler; peer admission/credential provisioning is implemented under ADR-011;
-      additional signed entity producers and cross-node historical-key recovery. See
+      additional signed entity producers and automatic historical attestations. See
       [P09 scope](p09-sync.md) and [original-criteria mapping](ac-p09-mapping.md)
 - [ ] `security/RightsConstraintDecorator` (Protocol Architecture §16)
       has a protocol-neutral request shape and is called for state-changing
@@ -83,7 +83,7 @@ JDK 21 CI already exists and runs full build, Detekt, migrations and tests.
 AC-12/13/17 are mapped to the original MVP Specification §16; see
 [acceptance evidence and limits](ac-p09-mapping.md). This update does not mark the entire
 P09 or Phase 3 complete. Public-hosting operations, legacy producer adoption,
-cross-node historical-key recovery remain open. Durable local P10 is implemented under ADR-010;
+automatic historical attestations remain open. Durable local P10 is implemented under ADR-010;
 typed local relationship inventory is implemented under ADR-014; broader contract policies
 remain open. Recorded delegation lineage is implemented under ADR-013.
 
@@ -103,7 +103,7 @@ P09 signature profile and causal predecessor. Actor keys are loaded from SQLite;
 exit mutations, event and journal share one transaction. SignedExitTest covers
 production exchange after lost acknowledgement/restart, key and policy denials,
 rollback and immutable legacy history. AC-13 evidence now includes signed P10
-facts; remote termination projection and cross-node historical-key recovery remain open.
+facts; remote termination projection remains open. ADR-016 adds locally governed historical recovery.
 
 ## Historical signature evidence — 2026-09-29
 
@@ -144,5 +144,17 @@ preserved without pretending to execute arbitrary contractual conditions.
 | Hosting input boundary, ADR-015 | Bounded body, deadline, explicit PKCS12 keys/trust, serialized handler | P09HttpsBoundaryTest and P09TlsTest |
 
 The [runbook](p09-https-pilot.md) documents CLI commands and the exclusive-store
-pilot lifecycle. Scheduler, public connection controls and cross-node historical
-signature trust remain open.
+pilot lifecycle. Scheduler and public connection controls remain open. ADR-016
+adds local exact-record historical trust decisions, without automatic attestations.
+
+## Governed historical import — 2026-09-30
+
+| Source / decision | Implementation | Evidence |
+|---|---|---|
+| P09 / AC-13, ADR-016 trust decision | HistoricalRecordApprovalService and P09Runtime.historicalApprovals | HistoricalApprovalHttpsTest: unknown old-key rejection, reviewed exact record, HTTPS recovery after restart |
+| Scoped delegated authority and independent governance | ProvisioningAuthorization, digest-specific history.approve/history.revoke, immutable operator audit | HistoricalApprovalTest: scope, self-approval, inactive authority, RightsConstraint, local producer denial |
+| Immutable history, ADR-012/016 | Separate approval/revocation tables and linked verification receipts | HistoricalApprovalDurabilityTest: migration, audit/receipt/export rollback, append-time recheck |
+
+The evidence reference is recorded, not automatically verified against an external
+source. Governance accepts one exact record/key binding; it does not establish a
+trusted timestamp or reactivate a retired key for other records.
