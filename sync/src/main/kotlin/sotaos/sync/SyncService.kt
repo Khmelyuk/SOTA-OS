@@ -29,6 +29,12 @@ class SyncService(
     }
 
     fun synchronize(peer: SotaId, transport: SyncTransport): PeerCheckpoint {
+        val request = prepareExchange(peer)
+        return completeExchange(peer, request, transport.exchange(peer, request))
+    }
+
+    /** Trusted host may serialize local phases while releasing its store lock during network I/O. */
+    fun prepareExchange(peer: SotaId): SyncRequest {
         require(peer != node) { "A node cannot synchronize with itself." }
         captureLocalEvents()
         val request = repository.transaction {
@@ -36,7 +42,12 @@ class SyncService(
             SyncRequest(ids.next(), node, checkpoint.received, repository.batch(checkpoint.sent))
         }
         admission.check(peer, SyncDirection.EXPORT, request.batch.records)
-        val response = transport.exchange(peer, request)
+        return request
+    }
+
+    /** Complete only the request returned by prepareExchange; stale checkpoints fail without partial writes. */
+    fun completeExchange(peer: SotaId, request: SyncRequest, response: SyncResponse): PeerCheckpoint {
+        require(peer != node && request.sender == node)
         require(response.sender == peer && response.requestId == request.id) { "Unexpected sync response." }
         require(response.acceptedThrough == request.batch.through) { "Incomplete acknowledgement." }
         require(response.batch.after == request.receivedThrough) { "Unexpected remote cursor." }

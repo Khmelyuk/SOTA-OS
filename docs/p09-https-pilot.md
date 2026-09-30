@@ -100,16 +100,17 @@ HTTP failures expose generic messages, not credentials or exception details.
 An oversized streaming upload may observe connection termination instead of 413
 when the server rejects it before the client finishes writing; no batch is admitted.
 
-Give the host exclusive use of its runtime/store while running. In this pilot,
-stop the local listener before using that same store for CLI production or outbound
-sync, and restart it afterwards. A concurrent host scheduler and multi-process
-writer coordination have not been added. The automated pilot switches directions
-between listener lifetimes and retains both stores.
+`sync run` now combines the listener and background outbound exchange using a
+shared local-access gate; see [background sync](p09-background-sync.md) and ADR-017.
+P09Runtime serializes local phases and releases the gate during network I/O. Other
+application commands must gate their entire local transaction. Raw repositories and
+separate processes/store instances do not share this gate. The original pilot tests
+still switch directions; P09NodeHostTest additionally exercises simultaneous hosts.
 
 The handler deadline starts after request dispatch. It is not a TLS handshake,
 header, idle-connection or queued-connection deadline. Public hosting needs those
 limits, connection/rate limits and operational supervision at the network edge.
-There is no automatic certificate renewal, secret distribution, retry scheduler,
+There is no automatic certificate renewal, secret distribution,
 health/metrics endpoint or Internet deployment in this change. Cross-node trust
 for previously unseen signatures from retired actor keys requires an explicit local
 review under [ADR-016](adr/ADR-016-historical-record-approval.md); see the

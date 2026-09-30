@@ -118,8 +118,8 @@ Canonical replay comparison alone is not a signature verifier.
 Explicit `sync serve` and `sync once` commands now host already provisioned
 nodes through the strict P09Runtime. The listener defaults to loopback and is
 never started automatically. The [HTTPS pilot](p09-https-pilot.md) documents TLS,
-input bounds, credential handling, shutdown and recovery. Background scheduling
-and public-hosting edge controls remain outside this slice. There is no Ktor or
+input bounds, credential handling, shutdown and recovery. [Background scheduling](p09-background-sync.md) is available through `sync run`;
+public-hosting edge controls remain outside this slice. There is no Ktor or
 new transport-library dependency.
 
 ## Verification
@@ -191,3 +191,11 @@ a local receipt linked to that approval in the event/journal transaction. Revoca
 before import removes the exception; it does not erase already committed receipts.
 No approval is accepted over the P09 wire format. See [ADR-016](adr/ADR-016-historical-record-approval.md)
 and the [review/recovery guide](p09-historical-recovery.md).
+
+## Background hosting — 2026-09-30
+
+ADR-017 adds P09NodeHost and P09SyncLoop. Production runtime phases share a store
+local-access gate, with no database lock held across outbound network I/O. Incoming
+exchanges can advance a checkpoint while a request is in flight; stale responses
+fail and retry without overwriting newer state. See [background sync](p09-background-sync.md)
+for CLI configuration, capped backoff, pagination, status snapshots and shutdown.

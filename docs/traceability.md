@@ -48,7 +48,8 @@ broader coverage remains open:
 - [x] `sync/` durable P09 exchange and deterministic causal merge; JSON
       codecs, HTTPS/REST client and server-neutral handler are tested
 - [x] P09 bounded HTTPS pilot host and CLI serve/once under ADR-015
-- [ ] P09 public-hosting operations and scheduler; peer admission/credential provisioning is implemented under ADR-011;
+- [x] P09 background retry loop and combined node lifecycle under ADR-017
+- [ ] P09 public-hosting operations; peer admission/credential provisioning is implemented under ADR-011;
       additional signed entity producers and automatic historical attestations. See
       [P09 scope](p09-sync.md) and [original-criteria mapping](ac-p09-mapping.md)
 - [ ] `security/RightsConstraintDecorator` (Protocol Architecture §16)
@@ -143,8 +144,8 @@ preserved without pretending to execute arbitrary contractual conditions.
 | Security boundary, ADR-011 | Existing governed registry/key loading behind TLS | HttpsProductionPilotTest: rotated/revoked credentials survive restart |
 | Hosting input boundary, ADR-015 | Bounded body, deadline, explicit PKCS12 keys/trust, serialized handler | P09HttpsBoundaryTest and P09TlsTest |
 
-The [runbook](p09-https-pilot.md) documents CLI commands and the exclusive-store
-pilot lifecycle. Scheduler and public connection controls remain open. ADR-016
+The [runbook](p09-https-pilot.md) documents CLI commands. ADR-017 extends the original exclusive-store pilot with
+combined hosting and shared local access; public connection controls remain open. ADR-016
 adds local exact-record historical trust decisions, without automatic attestations.
 
 ## Governed historical import — 2026-09-30
@@ -158,3 +159,14 @@ adds local exact-record historical trust decisions, without automatic attestatio
 The evidence reference is recorded, not automatically verified against an external
 source. Governance accepts one exact record/key binding; it does not establish a
 trusted timestamp or reactivate a retired key for other records.
+
+## Background sync and lifecycle — 2026-09-30
+
+| Source / decision | Implementation | Evidence |
+|---|---|---|
+| P09 / AC-12/13/17, ADR-017 | P09SyncLoop and P09NodeHost | P09NodeHostTest: simultaneous HTTPS hosts, local recording, offline recovery, lost reply/reopen, pagination |
+| Atomic reconciliation and local autonomy | Store-owned local-access gate, separate prepare/network/complete phases | SyncConcurrencyTest: incoming commit during outgoing wait, stale response cannot regress cursor |
+| Bounded retry and controlled shutdown | One outbound worker, capped backoff, interruption and joined workers | SyncLoopLifecycleTest: settings bounds, revocation before network, stopped retries |
+
+No central scheduler or alternate durable queue is introduced. The SQLite journal
+and peer checkpoints remain authoritative; in-memory loop status resets on restart.

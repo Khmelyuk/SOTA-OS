@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import javax.net.ssl.SSLContext
 
 /**
- * Bounded local pilot host. Give this server exclusive use of its runtime/store while running.
+ * Bounded HTTPS host. Runtime exchanges share the store local-access gate with outgoing sync.
  * Public deployments also need connection, TLS-handshake and header limits at the network edge.
  */
 class P09HttpsServer(

@@ -27,6 +27,14 @@ import java.time.Instant
 
 /** Creates a local SQLite-backed database. Call [close] when the node shuts down. */
 class SqlDelightStore(private val driver: SqlDriver) : AutoCloseable {
+    private val localAccess = java.util.concurrent.locks.ReentrantLock(true)
+
+    /** Serialize host-owned local work. Never hold this gate over a network call. */
+    fun <T> withLocalAccess(block: () -> T): T {
+        localAccess.lockInterruptibly()
+        return try { block() } finally { localAccess.unlock() }
+    }
+
     val database: SotaOsDatabase = SotaOsDatabase(driver)
 
     init {

@@ -97,6 +97,10 @@ private fun printHelp() {
                  --peer ID --endpoint HTTPS_URL --truststore PATH
                  Exchange one batch with an explicitly trusted peer.
                  TLS password: SOTA_P09_TLS_PASSWORD; outbound token: SOTA_P09_PEER_TOKEN.
+          sync run --db PATH --node ID --actor PERSON_ID --governance-context DOMAIN
+                 --keystore PATH --port PORT --peer ID --endpoint HTTPS_URL --truststore PATH
+                 [--bind ADDRESS] [--interval-seconds N] [--max-backoff-seconds N]
+                 Serve HTTPS and retry background sync in one process.
           help   Show this help.
 
         The default database path is ${'$'}XDG_DATA_HOME/sota-os/sota-os.db,

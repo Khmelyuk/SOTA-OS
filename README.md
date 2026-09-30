@@ -54,7 +54,9 @@ What is **not yet done**:
   entity assertion producers remain open. Credential authentication, trusted
   peer admission, event signatures, durable provisioning governance and
   `api.sync.P09Runtime` are implemented under ADR-011. Explicit HTTPS pilot hosting
-  and CLI sync commands are implemented under [ADR-015](docs/adr/ADR-015-p09-https-pilot.md). The
+  and CLI sync commands are implemented under [ADR-015](docs/adr/ADR-015-p09-https-pilot.md).
+  [Background sync](docs/p09-background-sync.md) adds combined hosting, capped retries
+  and coordinated shutdown under ADR-017. The
   general P01-P10 envelope/dispatch layer and `agent/` remain incomplete.
 - The current rule set enforces the known no-Agent-command MVP limit.
   State-changing service commands P01-P08 now carry ProtocolInvocation
@@ -81,7 +83,7 @@ The full build includes Detekt; no checks were excluded. With JDK 21:
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew build --continue --console=plain
 ```
 
-The current suite has **170 test cases**, all passing with zero failures,
+The current suite has **178 test cases**, all passing with zero failures,
 errors, or skipped tests. It covers Core Loop, consent, authentication,
 architecture invariants, P09 merge/persistence/recovery/validation/atomicity/
 HTTPS, actor-key lifecycle, peer admission, authenticated endpoint handling
@@ -129,7 +131,7 @@ provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
 Follow with:
 
-1. Extend the HTTPS pilot with operational hosting/scheduling, signed producer adoption and automatic historical
+1. Extend node operations with metrics/configuration management, signed producer adoption and automatic historical
    attestations using the [source-to-test mapping](docs/ac-p09-mapping.md).
 2. Extend P10 beyond the typed local Trust/Agreement inventory to multiparty consent
    and additional settlement policies ([ADR-014](docs/adr/ADR-014-relation-inventory.md));

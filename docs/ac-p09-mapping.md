@@ -79,3 +79,11 @@ transaction rollback, revocation recheck and migration preserving existing recei
 This is explicit local acceptance based on independently reviewed evidence, not
 proof of signature creation time or transferable peer testimony. Default rejection
 of unknown old-key records remains. See [ADR-016](adr/ADR-016-historical-record-approval.md).
+
+## Background recovery evidence — 2026-09-30
+
+P09NodeHostTest adds automatic offline recovery and lost-response restart evidence
+for AC-13, including journals larger than one page and simultaneous HTTPS hosts.
+Local signed recording remains possible while hosts run (AC-12/17 local autonomy).
+SyncConcurrencyTest preserves a newer incoming checkpoint when an outbound reply
+is stale. ADR-017 does not replace source criteria or claim public deployment.

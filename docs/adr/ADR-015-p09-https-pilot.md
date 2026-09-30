@@ -28,7 +28,8 @@ Bound body reads to 4 MiB plus one detection byte, including chunked bodies. Use
 one worker and a bounded queue; close handled exchanges after a deadline. Shutdown
 stops the listener and executors before closing its store. This pilot grants the
 listener exclusive use of its runtime/store; it does not add concurrent local
-producers or an outbound scheduler.
+producers or an outbound scheduler in this ADR. [ADR-017](ADR-017-background-sync-lifecycle.md)
+later adds shared local access, combined hosting and background retries.
 
 ## Evidence and limits
 

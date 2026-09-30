@@ -12,15 +12,19 @@ import sotaos.sync.*
 
 /** Local composition root. Hosts must authenticate local operators before invoking provisioning. */
 class P09Runtime(
-    store: SqlDelightStore,
+    private val store: SqlDelightStore,
     private val local: LocalSyncIdentity,
     governanceContext: Context,
     clock: Clock,
     ids: IdGenerator,
     rights: RightsConstraint = RightsConstraintDecorator(listOf(NoAgentActionRule))
 ) {
+    val nodeId: SotaId get() = local.node
     private val repositories = SqlDelightRepositories(store.database)
-    private val peers = SqlDelightPeerTrustRepository(store.database)
+    private val peerStore = SqlDelightPeerTrustRepository(store.database)
+    private val peers = object : PeerTrustRepository by peerStore {
+        override fun <T> transaction(block: () -> T): T = store.withLocalAccess { peerStore.transaction(block) }
+    }
     private val codec = JsonSyncRecordCodec()
     private val approvals = SqlDelightHistoricalApprovalRepository(store.database)
     val integrity = SyncRecordIntegrity(codec)
@@ -40,19 +44,23 @@ class P09Runtime(
     val keyProvisioning = ActorKeyProvisioningService(repositories.actorSigningKeys, peers, authorization)
 
     /** Credential, registry, key snapshot, admission and journal commit share the SQLite transaction. */
-    fun exchange(authorizationHeader: String, body: String): String = peers.transaction {
-        endpoint.exchange(authorizationHeader, body, authenticator::authenticate)
+    fun exchange(authorizationHeader: String, body: String): String = store.withLocalAccess {
+        peers.transaction { endpoint.exchange(authorizationHeader, body, authenticator::authenticate) }
     }
 
     /** Only locally authorized producers may supply records; strict admission applies before export. */
-    fun recordLocal(record: SyncRecord) = peers.transaction {
+    fun recordLocal(record: SyncRecord) = store.withLocalAccess { peers.transaction {
         val event = record.event
         require(event.actor in local.actors && event.actor !is SubjectRef.Agent)
         require(event.provenance.author == event.actor && event.provenance.recordedAt == event.timestamp)
         require(event.provenance.sourceEventId == null || event.provenance.sourceEventId in record.parents)
         record.assertion?.let { require(it.entity in local.assertionEntities && it.context == event.context) }
         service.recordLocal(record)
-    }
+    } }
 
-    fun synchronize(peer: SotaId, transport: SyncTransport) = service.synchronize(peer, transport)
+    fun synchronize(peer: SotaId, transport: SyncTransport): sotaos.application.sync.PeerCheckpoint {
+        val request = store.withLocalAccess { service.prepareExchange(peer) }
+        val response = transport.exchange(peer, request)
+        return store.withLocalAccess { service.completeExchange(peer, request, response) }
+    }
 }
