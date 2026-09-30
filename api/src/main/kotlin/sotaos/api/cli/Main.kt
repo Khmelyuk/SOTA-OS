@@ -17,6 +17,7 @@ fun main(args: Array<String>) {
         "consent" -> runConsentCommand(parsed)
         "auth" -> runAuthCommand(parsed)
         "exit" -> runExitCommand(parsed)
+        "sync" -> runSyncCommand(parsed)
         else -> {
             System.err.println("Unknown command: ${parsed.command}")
             printHelp()
@@ -89,6 +90,13 @@ private fun printHelp() {
           auth enroll    Bootstrap a local passphrase for an existing Person identity.
           exit leave --handle HANDLE --core CORE_ID --out PATH [--db PATH]
                  Export allowed data and terminate your membership in one Core.
+          sync serve --db PATH --node ID --actor PERSON_ID --governance-context DOMAIN
+                 --keystore PATH --port PORT [--bind ADDRESS]
+                 Serve an already provisioned node over HTTPS (loopback by default).
+          sync once --db PATH --node ID --actor PERSON_ID --governance-context DOMAIN
+                 --peer ID --endpoint HTTPS_URL --truststore PATH
+                 Exchange one batch with an explicitly trusted peer.
+                 TLS password: SOTA_P09_TLS_PASSWORD; outbound token: SOTA_P09_PEER_TOKEN.
           help   Show this help.
 
         The default database path is ${'$'}XDG_DATA_HOME/sota-os/sota-os.db,

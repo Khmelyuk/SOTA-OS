@@ -109,7 +109,9 @@ and after response; network I/O does not hold a database transaction open.
 The host must authenticate local operators before calling provisioning, protect
 SQLite access, terminate TLS, bound HTTP input, keep its stable local node ID and
 supply outbound peer credentials. Production listener/scheduler and CLI commands
-are not introduced here. `api -> sync` is the additional composition dependency;
+are not introduced by this ADR. The later [ADR-015](ADR-015-p09-https-pilot.md)
+adds a bounded HTTPS pilot and explicit CLI commands; a scheduler remains open.
+`api -> sync` is the additional composition dependency;
 Domain/Application still do not depend on infrastructure.
 
 ## Verification and remaining criteria

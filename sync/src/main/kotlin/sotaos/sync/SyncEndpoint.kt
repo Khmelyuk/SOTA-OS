@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets
 /** The hosting server must derive authenticatedPeer from its authentication middleware. */
 class SyncEndpoint(private val service: SyncService, private val codec: SyncMessageCodec) {
     fun exchange(authorizationHeader: String, body: String, authenticate: (String) -> SotaId?): String {
-        val authenticatedPeer = authenticate(authorizationHeader) ?: error("Peer authentication failed.")
+        val authenticatedPeer = authenticate(authorizationHeader) ?: throw PeerAuthenticationException()
         return exchange(authenticatedPeer, body)
     }
 
@@ -19,3 +19,5 @@ class SyncEndpoint(private val service: SyncService, private val codec: SyncMess
         }
     }
 }
+
+class PeerAuthenticationException : IllegalStateException("Peer authentication failed.")

@@ -18,7 +18,7 @@ what this repository actually verifies.
 | ID | Exact source wording | Executable evidence | Scope and remaining gap |
 |---|---|---|---|
 | AC-12 | Працювати offline | `SqlDelightCoreLoopIntegrationTest`: full authorized Core Loop without a network service; `LocalAutonomyAcceptanceTest`: local Core creation before/during outage and after restart | Automated coverage of the local MVP slice; no network authorization dependency |
-| AC-13 | Синхронізувати після відновлення зв'язку | `ProductionRoundTripTest`: signed records recorded offline, failed transport, then authenticated exchange between two SQLite production roots; `SyncRecoveryTest`: lost acknowledgements, retries, pagination and restart; `HttpsSyncTransportTest`: real HTTPS adapter | Covered for signed profile records; general production rollout remains PARTIAL because legacy unsigned/Core Loop hash producers cannot pass strict admission and no hosted listener is supplied |
+| AC-13 | Синхронізувати після відновлення зв'язку | `ProductionRoundTripTest`: signed records recorded offline, failed transport, then authenticated exchange between two SQLite production roots; `SyncRecoveryTest`: lost acknowledgements, retries, pagination and restart; `HttpsProductionPilotTest`: production HTTPS, both stores reopened after lost reply; `P09HttpsBoundaryTest` / `P09TlsTest`: input limits and TLS trust | Covered for signed profile records; general production rollout remains PARTIAL because legacy unsigned/Core Loop hash producers cannot pass strict admission and public-hosting operations remain open; an explicit bounded HTTPS pilot listener is supplied under ADR-015 |
 | AC-17 | Втрата центрального сервісу не знищує локальний Core | `LocalAutonomyAcceptanceTest`: unavailable service throws IOException; Core and active membership survive SQLite close/reopen; creating another Core remains possible while service is unavailable | Direct automated local-autonomy evidence; independent of conflict detection |
 | AC-18 | Користувач може вийти з Core | `ExitServiceTest` and `ExitExportTest`: durable self-exit, isolation, restart, rollback and governed export | Local voluntary P10 implemented; typed participation and recorded delegation cascades implemented; broader contract policies open; see [P10 evidence](p10-exit.md) |
 
@@ -57,3 +57,12 @@ remain usable after actor-key rotation/revocation and restart. Receipts commit
 atomically with the journal. Unknown old-key records cannot be accepted by
 backdating. This does not claim recovery on a node that has never verified the
 record; see [ADR-012](adr/ADR-012-historical-signature-evidence.md).
+
+## Production HTTPS pilot — 2026-09-30
+
+ADR-015 and the [pilot runbook](p09-https-pilot.md) connect AC-12/13/17 to signed
+records created independently, real TLS transport, durable peer/key configuration,
+lost-response recovery and both stores reopening. CLI `sync serve` and `sync once`
+require explicit node/actor configuration and provisioned stores. No central server
+is needed. This extends transport evidence without claiming public deployment,
+automatic scheduling or authorization of unseen historical old-key records.

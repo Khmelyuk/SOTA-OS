@@ -1,7 +1,7 @@
 # P09 synchronization slice
 
 Implements the reconciliation and conflict-preservation model in ADR-004,
-with JSON and an HTTPS/REST client adapter per ADR-005. This is an event
+with JSON and HTTPS/REST client and pilot host adapters per ADR-005/ADR-015. This is an event
 exchange service, not a remote command execution endpoint.
 
 ## Composition
@@ -32,13 +32,11 @@ stable local node ID and an explicit `SyncAdmission` implementation.
 There is deliberately no default allow-all policy. The permissive policy
 in tests applies only to trusted fixtures.
 
-For deployment, compose `ConfiguredPeerAdmission` with
-`EventSignatureAdmission`: the former allowlists trusted `SotaId` peers and
-can restrict import/export direction, while the latter verifies actor keys.
-`HashedBearerPeerCredentialAuthenticator` can resolve an Authorization
-Bearer header to a peer identity while retaining only SHA-256 hashes. The
-host passes that identity to `SyncEndpoint.exchange`; failed authentication
-must stop before request dispatch.
+For production admission, use `P09Runtime` below, which combines the SQLite
+peer registry, actor keys, signed provenance and exact sharing contexts. The
+older configured-policy adapters remain lower-level building blocks. The HTTPS
+pilot calls the authenticated runtime entry point directly; see
+[the runbook](p09-https-pilot.md).
 
 Call `recordLocal(record)` to record an already-authorized local event
 with explicit causal parents and, when available, a state assertion.
@@ -117,11 +115,12 @@ ADR-003a specifies Ed25519. The strict production profile in
 record digest including sync metadata; it does not upgrade legacy event hashes.
 Canonical replay comparison alone is not a signature verifier.
 
-No listener, background sync scheduler, default peer list, peer credential
-provisioning or CLI sync command is enabled. The HTTPS client and handler
-are exercised by a real local HTTPS server in integration tests. A
-production host still needs authentication middleware and its admission
-policy. There is no Ktor or new transport-library dependency.
+Explicit `sync serve` and `sync once` commands now host already provisioned
+nodes through the strict P09Runtime. The listener defaults to loopback and is
+never started automatically. The [HTTPS pilot](p09-https-pilot.md) documents TLS,
+input bounds, credential handling, shutdown and recovery. Background scheduling
+and public-hosting edge controls remain outside this slice. There is no Ktor or
+new transport-library dependency.
 
 ## Verification
 

@@ -17,5 +17,4 @@ application {
     mainClass.set("sotaos.api.cli.MainKt")
 }
 
-// This first executable is a local CLI. Ktor remains deferred until a
-// network API server is an actual MVP requirement (ADR-007).
+// CLI and bounded JDK HTTPS pilot host; no general web framework is needed yet.

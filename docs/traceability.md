@@ -47,7 +47,8 @@ broader coverage remains open:
       broader adapter and migration coverage still open
 - [x] `sync/` durable P09 exchange and deterministic causal merge; JSON
       codecs, HTTPS/REST client and server-neutral handler are tested
-- [ ] P09 production hosting; peer admission/credential provisioning is implemented under ADR-011;
+- [x] P09 bounded HTTPS pilot host and CLI serve/once under ADR-015
+- [ ] P09 public-hosting operations and scheduler; peer admission/credential provisioning is implemented under ADR-011;
       additional signed entity producers and cross-node historical-key recovery. See
       [P09 scope](p09-sync.md) and [original-criteria mapping](ac-p09-mapping.md)
 - [ ] `security/RightsConstraintDecorator` (Protocol Architecture §16)
@@ -81,7 +82,7 @@ broader coverage remains open:
 JDK 21 CI already exists and runs full build, Detekt, migrations and tests.
 AC-12/13/17 are mapped to the original MVP Specification §16; see
 [acceptance evidence and limits](ac-p09-mapping.md). This update does not mark the entire
-P09 or Phase 3 complete. Production hosting, legacy producer adoption,
+P09 or Phase 3 complete. Public-hosting operations, legacy producer adoption,
 cross-node historical-key recovery remain open. Durable local P10 is implemented under ADR-010;
 typed local relationship inventory is implemented under ADR-014; broader contract policies
 remain open. Recorded delegation lineage is implemented under ADR-013.
@@ -133,3 +134,15 @@ and recovery of genuinely unknown legacy ancestry remain outside ADR-013.
 
 ADR-014 distinguishes trusted import from multiparty consent. Textual terms are
 preserved without pretending to execute arbitrary contractual conditions.
+
+## Production HTTPS pilot — 2026-09-30
+
+| Source | Implementation | Evidence |
+|---|---|---|
+| P09, ADR-005, AC-13 | P09HttpsServer + strict P09Runtime + HttpsSyncTransport | HttpsProductionPilotTest: signed two-node exchange, lost response, both stores reopened, reverse exchange |
+| Security boundary, ADR-011 | Existing governed registry/key loading behind TLS | HttpsProductionPilotTest: rotated/revoked credentials survive restart |
+| Hosting input boundary, ADR-015 | Bounded body, deadline, explicit PKCS12 keys/trust, serialized handler | P09HttpsBoundaryTest and P09TlsTest |
+
+The [runbook](p09-https-pilot.md) documents CLI commands and the exclusive-store
+pilot lifecycle. Scheduler, public connection controls and cross-node historical
+signature trust remain open.

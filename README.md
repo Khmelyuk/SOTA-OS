@@ -35,8 +35,8 @@ What exists and is source-complete:
   last-write-wins, replay protection and `CONTESTED` projections. SQLite
   persists the journal, peer cursors and conflict records atomically.
   Conflicted local authorities cannot be used by P05. `protocol/` provides
-  P09 JSON codecs; an HTTPS client and a server-neutral handler are
-  integration-tested. See [P09 scope and composition](docs/p09-sync.md).
+  P09 JSON codecs; the HTTPS client and bounded production-runtime pilot host
+  are integration-tested ([runbook](docs/p09-https-pilot.md)). See [P09 scope and composition](docs/p09-sync.md).
 - `test/` — executable Kotest tests: the full Core Loop scenario
   (`acceptance/CoreLoopVerticalSliceTest`) plus architecture-invariant
   tests (no action without authority, event append-only, no AI
@@ -50,10 +50,11 @@ What is **not yet done**:
 - `persistence/` has Core Loop and two-node sync integration coverage,
   including restart, additive sync-schema migration and rollback.
   Broader repository and migration coverage is still open.
-- P09 production hosting, cross-node historical-key recovery, producer adoption and additional
+- P09 public hosting operations, cross-node historical-key recovery, producer adoption and additional
   entity assertion producers remain open. Credential authentication, trusted
   peer admission, event signatures, durable provisioning governance and
-  `api.sync.P09Runtime` are implemented under ADR-011; no network listener or CLI sync command is enabled. The
+  `api.sync.P09Runtime` are implemented under ADR-011. Explicit HTTPS pilot hosting
+  and CLI sync commands are implemented under [ADR-015](docs/adr/ADR-015-p09-https-pilot.md). The
   general P01-P10 envelope/dispatch layer and `agent/` remain incomplete.
 - The current rule set enforces the known no-Agent-command MVP limit.
   State-changing service commands P01-P08 now carry ProtocolInvocation
@@ -80,7 +81,7 @@ The full build includes Detekt; no checks were excluded. With JDK 21:
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew build --continue --console=plain
 ```
 
-The current suite has **147 test cases**, all passing with zero failures,
+The current suite has **154 test cases**, all passing with zero failures,
 errors, or skipped tests. It covers Core Loop, consent, authentication,
 architecture invariants, P09 merge/persistence/recovery/validation/atomicity/
 HTTPS, actor-key lifecycle, peer admission, authenticated endpoint handling
@@ -128,7 +129,7 @@ provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
 Follow with:
 
-1. Complete production hosting, signed producer adoption and cross-node historical-key
+1. Extend the HTTPS pilot with operational hosting/scheduling, signed producer adoption and cross-node historical-key
    recovery using the [source-to-test mapping](docs/ac-p09-mapping.md).
 2. Extend P10 beyond the typed local Trust/Agreement inventory to multiparty consent
    and additional settlement policies ([ADR-014](docs/adr/ADR-014-relation-inventory.md));
