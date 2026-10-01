@@ -170,3 +170,13 @@ trusted timestamp or reactivate a retired key for other records.
 
 No central scheduler or alternate durable queue is introduced. The SQLite journal
 and peer checkpoints remain authoritative; in-memory loop status resets on restart.
+
+### P09 operational diagnostics — 2026-10-01
+
+`PeerSyncStatus` exposes attempt phase, observed timestamps, retry schedule and
+safe failure categories through the existing local host snapshot API.
+`SyncDiagnosticsTest` covers wrapped TLS/network failures, timeout, HTTP rejection,
+local validation, unknown failures and in-flight shutdown. `P09NodeHostTest`
+checks that recovery clears the failure and records a successful exchange.
+These diagnostics support AC-13 operations; they add no new admission authority
+and are not evidence of global convergence or inbound health.

@@ -1,9 +1,9 @@
 package sotaos.api.sync
 
-import sotaos.application.sync.PeerCheckpoint
 import sotaos.application.sync.SyncTransport
 import sotaos.domain.shared.SotaId
 import java.time.Duration
+import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -38,13 +38,6 @@ data class SyncLoopSettings(
     }
 }
 
-/** In-memory operational state, never an alternative to the durable SQLite peer checkpoint. */
-data class PeerSyncStatus(
-    val attempts: Long = 0,
-    val consecutiveFailures: Int = 0,
-    val lastCheckpoint: PeerCheckpoint? = null
-)
-
 /** One outbound worker, one scheduled task per configured peer, one bounded batch per attempt. */
 class P09SyncLoop(
     private val runtime: P09Runtime,
@@ -72,23 +65,29 @@ class P09SyncLoop(
         }
     }
 
+    // A failed peer must not terminate the scheduler; expose only a safe category.
+    @Suppress("TooGenericExceptionCaught")
     private fun attempt(peer: SotaId) {
         val previous = states.getValue(peer)
+        val started = previous.copy(attempts = previous.attempts + 1,
+            phase = SyncPhase.RUNNING, lastAttemptAt = Instant.now(), nextAttemptAt = null)
+        states[peer] = started
         val next = try {
-            PeerSyncStatus(previous.attempts + 1, 0, runtime.synchronize(peer, transport))
+            started.copy(consecutiveFailures = 0, lastCheckpoint = runtime.synchronize(peer, transport),
+                lastSuccessAt = Instant.now(), failure = null, phase = SyncPhase.WAITING)
         } catch (_: InterruptedException) {
             Thread.currentThread().interrupt()
             return
-        } catch (_: Exception) {
-            previous.copy(attempts = previous.attempts + 1,
-                consecutiveFailures = (previous.consecutiveFailures + 1).coerceAtMost(MAX_FAILURE_COUNT))
+        } catch (failure: Exception) {
+            started.copy(consecutiveFailures = (previous.consecutiveFailures + 1).coerceAtMost(MAX_FAILURE_COUNT),
+                failure = syncFailure(failure), phase = SyncPhase.BACKOFF)
         }
-        states[peer] = next
         val delay = when {
             next.consecutiveFailures > 0 -> settings.retryDelay(next.consecutiveFailures)
             next.lastCheckpoint != previous.lastCheckpoint -> settings.progressDelay
             else -> settings.interval
         }
+        states[peer] = next.copy(nextAttemptAt = Instant.now().plus(delay))
         schedule(peer, delay)
     }
 
@@ -98,6 +97,7 @@ class P09SyncLoop(
             worker.shutdownNow()
         }
         check(worker.awaitTermination(CLOSE_SECONDS, TimeUnit.SECONDS)) { "P09 outbound worker did not stop." }
+        states.replaceAll { _, state -> state.copy(phase = SyncPhase.STOPPED, nextAttemptAt = null) }
     }
 
     private companion object {

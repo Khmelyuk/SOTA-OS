@@ -43,7 +43,7 @@ HttpClient.newBuilder().sslContext(clientTls).build().use { client ->
 
 The API accepts up to 64 peers; the CLI currently configures one. Each peer has one
 scheduled task, and one worker performs outbound exchanges. Operational snapshots
-are in memory and are not durable cursors or detailed error reports. A nonzero
+are in memory and are not durable cursors. A nonzero
 failure count can reflect unavailable transport, rejected credentials/policy,
 a stale concurrent response or another failed exchange. Correct the underlying
 configuration through the governed local APIs; retries never relax admission.
@@ -78,3 +78,34 @@ failures/errors/skips, including eight background/concurrency/lifecycle tests.
 An assembled-CLI smoke run used temporary SQLite and TLS material to verify
 self-sync startup rejection and cleanup, HTTPS 401/405 responses while `sync run`
 was active, SIGTERM cleanup, same-port restart and no rejected-request journal writes.
+
+## Operational diagnostics
+
+`host.snapshot()` (also `loop.snapshot()`) returns an immutable per-peer value:
+
+- `phase`: WAITING, RUNNING, BACKOFF or STOPPED after successful close;
+- `attempts`: started attempts, including interrupted attempts;
+- `consecutiveFailures`: completed consecutive failures, capped at 30;
+- `lastAttemptAt`, `lastSuccessAt`, `nextAttemptAt`: UTC observations;
+- `lastCheckpoint`: last successful outbound exchange checkpoint;
+- `failure`: TLS, TIMEOUT, NETWORK, HTTP_REJECTED, LOCAL_VALIDATION or UNKNOWN.
+
+Failures retain the last successful checkpoint and success time. A successful
+exchange clears the failure category and resets backoff. RUNNING has no next-attempt
+time; BACKOFF and WAITING show an estimated scheduled time. A busy single worker
+may run later, and wall-clock adjustments can affect displayed times. STOPPED
+clears the schedule. Shutdown interruption is not recorded as a peer failure.
+
+Categories are conservative: LOCAL_VALIDATION means an IllegalArgumentException,
+not proof of a specific policy denial. UNKNOWN includes unclassified local errors.
+HTTP_REJECTED does not distinguish bad credentials from remote server failures.
+Diagnose these through authorized local configuration and server operations;
+never loosen admission automatically. Wrapped async TLS/network failures are
+classified without copying exception messages, server bodies, URLs or credentials.
+
+This is a local host API. No network status endpoint or periodic CLI status output
+is exposed. Snapshots reset on restart and do not establish inbound health,
+remote availability, or complete convergence. SQLite remains authoritative.
+
+Verification — 2026-10-01: 185 tests pass, including seven diagnostic cases and
+recovery assertions in the existing HTTPS host test.

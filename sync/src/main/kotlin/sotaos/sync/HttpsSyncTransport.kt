@@ -39,7 +39,7 @@ class HttpsSyncTransport(
         return try {
             // Bound the complete response, including a body that stalls after successful headers.
             val response = pending.get(TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)
-            check(response.statusCode() == HTTP_OK) { "Sync exchange failed: HTTP ${response.statusCode()}." }
+            if (response.statusCode() != HTTP_OK) throw SyncHttpException(response.statusCode())
             codec.decodeResponse(String(response.body(), StandardCharsets.UTF_8))
         } finally {
             if (!pending.isDone) pending.cancel(true)
@@ -53,3 +53,6 @@ class HttpsSyncTransport(
 }
 
 const val MAX_SYNC_MESSAGE_BYTES = 4 * 1024 * 1024
+
+/** HTTP rejection without retaining response content or credentials. */
+class SyncHttpException(val statusCode: Int) : IllegalStateException("Sync exchange failed: HTTP $statusCode.")

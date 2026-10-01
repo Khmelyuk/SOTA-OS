@@ -116,7 +116,10 @@ class P09NodeHostTest : FunSpec({
                     P09HttpsServer(InetSocketAddress("localhost", 0), tls, b.runtime).use { server ->
                         outbound.endpoint.set(URI("https://localhost:${server.address.port}/p09"))
                         waitForSync { loop.snapshot()[b.id]?.lastCheckpoint == PeerCheckpoint(1, 1) }
-                        loop.snapshot()[b.id]?.consecutiveFailures shouldBe 0
+                        val recovered = loop.snapshot().getValue(b.id)
+                        recovered.consecutiveFailures shouldBe 0
+                        recovered.failure shouldBe null
+                        (recovered.lastSuccessAt != null) shouldBe true
                         ((loop.snapshot()[unknown]?.consecutiveFailures ?: 0) > 0) shouldBe true
                     }
                 }
