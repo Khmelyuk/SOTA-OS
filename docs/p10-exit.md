@@ -71,8 +71,8 @@ exit does not itself revoke local membership or authority.
 
 Restart with the same origin and signer configuration. A signed exit cannot
 silently resume through the unsigned CLI, and an unsigned exit cannot be converted
-mid-flight by rewriting its history. The default local CLI remains unsigned and
-requires no signing setup. Legacy unsigned records already in the same journal
+mid-flight by rewriting its history. The default local CLI remains unsigned and requires no signing setup.
+Explicit signed CLI mode is described below. Legacy unsigned records already in the same journal
 still fail strict P09 admission; this change does not migrate them. New signed P10 records receive local verification receipts under ADR-012.
 Exact prior records remain verifiable after rotation/revocation; unknown old-key
 records and pre-receipt journal migration remain fail-closed.
@@ -109,3 +109,52 @@ Legacy rows are preserved without fabricated terms. See ADR-014 for boundaries.
 
 Full JDK 21 build, Detekt and migration verification passed: 147 tests, zero
 failures/errors/skips, including eight typed relation inventory tests.
+
+## Signed CLI exit
+
+Use an already provisioned database and an actor-owned Ed25519 private key in a
+PKCS12 store. Its active public key must already be enrolled for the authenticated
+Person through governed P09 key provisioning. The certificate is a key container;
+it does not establish identity or authority. CLI startup neither enrolls nor rotates keys.
+
+```bash
+./gradlew :api:run --args='exit leave --db /path/node.db --handle alice --core CORE_ID --out /private/new-exit.json --signing-keystore /private/alice.p12 --signing-alias exit --node node-a --governance-context peer-governance'
+```
+
+Set `SOTA_P10_SIGNING_PASSWORD` securely in the process environment. The PKCS12
+store and key entry use the same password. Local authentication still prompts for
+the Person's passphrase in a terminal and requires the exact exit confirmation.
+The signing password is separate from the login and TLS passwords; do not supply
+private keys or passwords as command-line arguments. Protect the keystore locally.
+
+All four signing options (`signing-keystore`, `signing-alias`, `node`,
+`governance-context`) are required together, with an explicit existing `--db`.
+An Ed25519 key, certificate and matching active SQLite actor key are mandatory.
+Wrong passwords, wrong algorithms, missing or mismatched actor keys fail before
+any exit stage. The password character buffer is cleared after loading; the
+private key exists in JVM memory for the CLI invocation.
+
+Restart with the same database, authenticated Person and origin node, and an
+appropriate currently enrolled signer. A failed archive delivery leaves the exit
+resumable and membership active. Use a fresh output path: existing files are
+never overwritten, and a failure after delivery can leave an archive on disk.
+Signed/unsigned mode and origin cannot be changed for an in-progress exit.
+Each new stage rechecks the current actor key and commits its signed event,
+verification receipt, journal record and exit mutation atomically.
+
+This CLI is a standalone process. Stop `sync run` before opening the same SQLite
+database here, then restart it to send the new events. The in-process store gate
+does not coordinate separate processes. Archive content is not sent over P09;
+only signed stage facts are shared under the configured peer/context policy.
+Legacy unsigned journal entries are not rewritten and may still block strict export.
+
+`P10SigningKeysTest` covers loader binding, password/alias/algorithm rejection,
+reopen/resume and key revocation. `SignedExitTest` retains production P09 recovery
+coverage. `scripts/p10-signed-cli-smoke.py` uses a temporary database and keys to
+test terminal authentication/confirmation, archive collision, restart, mode/origin
+guards, six independently verified signatures, Core isolation and private export.
+Run it from the repo root after `./gradlew :api:distZip` with JDK 21 `JAVA_HOME`,
+Python 3 and OpenSSL available. Direct key insertion in that fixture is test-only.
+
+Verification — 2026-10-01: full JDK 21 build, Detekt and migration checks passed;
+190 tests passed with no failures/errors/skips. Signed CLI smoke passed.

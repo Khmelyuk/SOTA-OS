@@ -26,3 +26,5 @@ jobs:
         run: ./gradlew build --continue --console=plain
       - name: CLI status and shutdown smoke test
         run: python3 scripts/p09-cli-status-smoke.py
+      - name: Signed P10 CLI smoke test
+        run: python3 scripts/p10-signed-cli-smoke.py

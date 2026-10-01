@@ -83,7 +83,7 @@ The full build includes Detekt; no checks were excluded. With JDK 21:
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew build --continue --console=plain
 ```
 
-The current suite has **187 test cases**, all passing with zero failures,
+The current suite has **190 test cases**, all passing with zero failures,
 errors, or skipped tests. It covers Core Loop, consent, authentication,
 architecture invariants, P09 merge/persistence/recovery/validation/atomicity/
 HTTPS, actor-key lifecycle, peer admission, authenticated endpoint handling
@@ -136,7 +136,7 @@ Follow with:
 2. Extend P10 beyond the typed local Trust/Agreement inventory to multiparty consent
    and additional settlement policies ([ADR-014](docs/adr/ADR-014-relation-inventory.md));
    recorded delegation cascades, the durable local AC-18 slice and opt-in
-   SignedP10Runtime producer are implemented. The default CLI remains local and unsigned.
+   SignedP10Runtime producer are implemented. The CLI supports explicit signed exit with a provisioned Ed25519 key; unsigned local mode remains the default.
 
 Run the CLI with an explicit database path when needed:
 

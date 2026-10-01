@@ -188,3 +188,12 @@ and are not evidence of global convergence or inbound health.
 `scripts/p09-cli-status-smoke.py`, also run in JDK 21 CI, verifies argument bounds,
 quiet defaults, periodic status, credential exclusion, SIGTERM and same-port restart.
 No admission or checkpoint semantics change.
+
+### Signed P10 CLI — 2026-10-01
+
+`exit leave` can load explicit Ed25519 PKCS12 signing material bound to the
+authenticated Person's active SQLite key. No provisioning authority is inferred
+from possession of a keystore. `P10SigningKeysTest` covers loader denial and restart;
+`p10-signed-cli-smoke.py` covers terminal confirmation, delivery/restart, immutable
+mode/origin and six signed stages. Existing `SignedExitTest` verifies P09 exchange.
+This extends AC-18 integration, without adding multiparty settlement or rewriting history.
