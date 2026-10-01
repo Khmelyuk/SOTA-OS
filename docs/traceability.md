@@ -197,3 +197,11 @@ from possession of a keystore. `P10SigningKeysTest` covers loader denial and res
 `p10-signed-cli-smoke.py` covers terminal confirmation, delivery/restart, immutable
 mode/origin and six signed stages. Existing `SignedExitTest` verifies P09 exchange.
 This extends AC-18 integration, without adding multiparty settlement or rewriting history.
+
+### P09 node configuration — 2026-10-01
+
+`P09NodeConfiguration` and CLI `--config` provide bounded, versioned non-secret
+settings with strict fields and paths relative to the file. `NodeConfigurationTest`
+covers parsing, modes, invalid endpoints/timers, secret fields and input limits.
+The existing CLI smoke also launches from a config file and rejects overrides.
+This is restart-based configuration, not provisioning authority or live reload.

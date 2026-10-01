@@ -4,6 +4,7 @@ import java.nio.file.Path
 
 fun main(args: Array<String>) {
     val parsed = parseArguments(args)
+    require("config" !in parsed.options || parsed.command == "sync") { "--config is supported only for sync." }
     when (parsed.command) {
         "help", "--help", "-h" -> printHelp()
         "init" -> withStore(parsed.databasePath) { _, path ->
@@ -104,6 +105,8 @@ private fun printHelp() {
                  [--bind ADDRESS] [--interval-seconds N] [--max-backoff-seconds N]
                  [--status-interval-seconds N]
                  Serve HTTPS and retry background sync in one process.
+          sync run|serve|once --config PATH
+                 Load versioned non-secret node settings; no CLI overrides. Secrets remain in environment.
           help   Show this help.
 
         The default database path is ${'$'}XDG_DATA_HOME/sota-os/sota-os.db,

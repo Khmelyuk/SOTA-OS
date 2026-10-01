@@ -50,8 +50,27 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
                                 env=env, capture_output=True, timeout=15)
         assert failed.returncode != 0
         assert b'Status output requires sync run' in failed.stderr
-    for interval in (None, '1', '3600'):
-        configured = command + (['--status-interval-seconds', interval] if interval else [])
+    config = folder/'node.conf'
+    flags = command[len(java)+2:]
+    settings = {key.removeprefix('--'): value for key, value in zip(flags[::2], flags[1::2])}
+    for key in ('db', 'keystore', 'truststore'):
+        settings[key] = Path(settings[key]).name
+    settings['status-interval-seconds'] = '1'
+    config.write_text('version=1\n' + '\n'.join(key+'='+value for key, value in settings.items()))
+    configured_command = java + ['sync', 'run', '--config', str(config)]
+    for extra in (['--node', 'override'], ['--db', str(database)]):
+        failed = subprocess.run(configured_command + extra, env=env, capture_output=True, timeout=15)
+        assert failed.returncode != 0
+        assert b'cannot be combined' in failed.stderr
+    invalid_config = folder/'invalid.conf'
+    invalid_config.write_text(config.read_text() + '\ntoken=fixture-secret-notallowed')
+    failed = subprocess.run(java + ['sync', 'run', '--config', str(invalid_config)],
+                            env=env, capture_output=True, timeout=15)
+    assert failed.returncode != 0
+    assert b'fixture-secret-notallowed' not in failed.stdout + failed.stderr
+    for interval in (None, '1', '3600', 'config'):
+        configured = (configured_command if interval == 'config' else
+                      command + (['--status-interval-seconds', interval] if interval else []))
         with (folder/'host.log').open('w') as log:
             process = subprocess.Popen(configured, env=env, stdout=log, stderr=subprocess.STDOUT)
             try:
@@ -85,7 +104,7 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
                     deadline = time.monotonic() + 10
                     while True:
                         output = (folder/'host.log').read_text()
-                        ready = ('phase=BACKOFF' in output if interval == '1' else 'P09 status:' in output)
+                        ready = ('phase=BACKOFF' in output if interval in ('1', 'config') else 'P09 status:' in output)
                         if ready:
                             break
                         assert time.monotonic() < deadline, 'Missing periodic status'
@@ -112,4 +131,4 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
     import sqlite3
     with sqlite3.connect(database) as db:
         assert db.execute('SELECT count(*) FROM sync_journal').fetchone()[0] == 0
-    print('CLI status smoke passed: validation, periodic output, secrets excluded, SIGTERM, restart, default quiet mode.')
+    print('CLI status smoke passed: validation, periodic output, secrets excluded, SIGTERM, restart, default quiet mode, configuration file.')

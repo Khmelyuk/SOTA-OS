@@ -18,7 +18,8 @@ import java.time.Instant
 import java.util.UUID
 
 /** Node host configuration is trusted local input. Provisioning remains a separate governed operation. */
-internal fun runSyncCommand(arguments: Arguments) {
+internal fun runSyncCommand(input: Arguments) {
+    val arguments = resolveSyncConfiguration(input)
     require(arguments.subcommand in setOf("serve", "once", "run")) { "Use sync serve, sync once or sync run." }
     arguments.options["status-interval-seconds"]?.let {
         require(arguments.subcommand == "run") { "Status output requires sync run." }
@@ -119,3 +120,12 @@ private const val MAX_PORT = 65535
 
 private const val MAX_STATUS_INTERVAL_SECONDS = 3600L
 private const val MILLIS_PER_SECOND = 1000L
+
+private fun resolveSyncConfiguration(input: Arguments): Arguments {
+    val config = input.options["config"] ?: return input
+    require(input.databasePath == null && input.options.keys == setOf("config")) {
+        "--config cannot be combined with other sync options or --db."
+    }
+    val values = P09NodeConfiguration.load(Path.of(config), input.subcommand.orEmpty())
+    return input.copy(databasePath = Path.of(values.getValue("db")), options = values - "db")
+}

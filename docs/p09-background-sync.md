@@ -138,3 +138,51 @@ periodic status, secret exclusion, long-interval SIGTERM and same-port restart.
 
 CLI verification — 2026-10-01: JDK 21 full build, Detekt, migration checks and
 187 tests passed; the assembled CLI status/shutdown smoke check passed.
+
+## Node configuration file
+
+Use `sync run --config /path/node.conf` for a reproducible launch. `sync serve` and
+`sync once` also accept `--config` with only the fields relevant to that mode.
+The format is UTF-8, at most 64 KiB, with `key=value` lines and `version=1`:
+
+```text
+version=1
+db=data/node.db
+node=node-a
+actor=person-a
+governance-context=peer-governance
+keystore=keys/server.p12
+port=8443
+peer=node-b
+endpoint=https://node-b.example:8443/p09
+truststore=keys/trust.p12
+interval-seconds=5
+max-backoff-seconds=60
+status-interval-seconds=5
+```
+
+Paths resolve relative to the configuration file's directory. Blank lines and
+whole-line `#` comments are allowed; whitespace around keys and values is trimmed.
+There are no quotes, escapes, inline comments, includes or environment expansion.
+The first `=` separates the key from its value; subsequent `=` characters remain
+part of the value. Duplicate, unknown, empty and mode-inapplicable fields fail.
+The version and all required fields must be present. Optional defaults match CLI.
+
+`serve` requires db, node, actor, governance-context, keystore and port, with optional
+bind. `once` requires db, node, actor, governance-context, peer, endpoint and truststore.
+`run` requires both sets and permits bind plus the three interval fields shown above.
+Ports are 1–65535; timer values are whole seconds from 1–3600. Self-peer settings and
+non-HTTPS endpoints or embedded URL credentials are rejected before opening SQLite.
+
+Do not combine `--config` with `--db` or any other sync option. This intentionally
+has no implicit override precedence. The file is read once at startup; stop, edit
+and restart to apply changes. It does not provision identity, peers, keys or trust.
+
+Keep `SOTA_P09_TLS_PASSWORD` and `SOTA_P09_PEER_TOKEN` in the process environment.
+The file format has no password/token fields. Protect the configuration as trusted
+local input: it controls database, identity, network binding and peer destination.
+The default bind remains loopback. Live reload, certificate renewal, secret delivery
+and general operational metrics remain separate work.
+
+Configuration verification — 2026-10-01: full JDK 21 build, Detekt and migrations
+passed; 196 tests passed with no failures/errors/skips. Extended CLI smoke passed.
