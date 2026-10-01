@@ -24,3 +24,5 @@ jobs:
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
       - name: Build, lint, and test
         run: ./gradlew build --continue --console=plain
+      - name: CLI status and shutdown smoke test
+        run: python3 scripts/p09-cli-status-smoke.py

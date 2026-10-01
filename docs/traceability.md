@@ -180,3 +180,11 @@ local validation, unknown failures and in-flight shutdown. `P09NodeHostTest`
 checks that recovery clears the failure and records a successful exchange.
 These diagnostics support AC-13 operations; they add no new admission authority
 and are not evidence of global convergence or inbound health.
+
+### P09 CLI diagnostics — 2026-10-01
+
+`sync run --status-interval-seconds N` exposes safe local snapshots on stdout.
+`SyncStatusOutputTest` covers unknown checkpoints and UTC backoff output.
+`scripts/p09-cli-status-smoke.py`, also run in JDK 21 CI, verifies argument bounds,
+quiet defaults, periodic status, credential exclusion, SIGTERM and same-port restart.
+No admission or checkpoint semantics change.

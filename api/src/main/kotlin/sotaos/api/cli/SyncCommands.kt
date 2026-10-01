@@ -20,14 +20,20 @@ import java.util.UUID
 /** Node host configuration is trusted local input. Provisioning remains a separate governed operation. */
 internal fun runSyncCommand(arguments: Arguments) {
     require(arguments.subcommand in setOf("serve", "once", "run")) { "Use sync serve, sync once or sync run." }
+    arguments.options["status-interval-seconds"]?.let {
+        require(arguments.subcommand == "run") { "Status output requires sync run." }
+        require(it.toLongOrNull() in 1L..MAX_STATUS_INTERVAL_SECONDS) {
+            "--status-interval-seconds must be an integer from 1 to 3600."
+        }
+    }
     if (arguments.subcommand == "once") {
-        runConfiguredSync(arguments) {}
+        runConfiguredSync(arguments) { true }
     } else {
         withSyncShutdown { waitForStop -> runConfiguredSync(arguments, waitForStop) }
     }
 }
 
-private fun runConfiguredSync(arguments: Arguments, waitForStop: () -> Unit) {
+private fun runConfiguredSync(arguments: Arguments, waitForStop: (Long) -> Boolean) {
     val database = requireNotNull(arguments.databasePath) { "Sync requires an explicit --db path." }
     require(Files.isRegularFile(database) && Files.size(database) > 0) {
         "Provision the database before starting sync."
@@ -49,15 +55,15 @@ private fun runConfiguredSync(arguments: Arguments, waitForStop: () -> Unit) {
     }
 }
 
-private fun serveSync(arguments: Arguments, runtime: P09Runtime, waitForStop: () -> Unit) {
+private fun serveSync(arguments: Arguments, runtime: P09Runtime, waitForStop: (Long) -> Boolean) {
     val tls = withTlsPassword { P09Tls.server(Path.of(arguments.required("keystore")), it) }
     P09HttpsServer(arguments.listenAddress(), tls, runtime).use { server ->
         println("P09 HTTPS listening on ${server.address}; path /p09. Stop with Ctrl+C.")
-        waitForStop()
+        waitForStop(Long.MAX_VALUE)
     }
 }
 
-private fun runSyncNode(arguments: Arguments, runtime: P09Runtime, waitForStop: () -> Unit) =
+private fun runSyncNode(arguments: Arguments, runtime: P09Runtime, waitForStop: (Long) -> Boolean) =
     withOutboundTransport(arguments) { peer, transport ->
     val tls = withTlsPassword { P09Tls.server(Path.of(arguments.required("keystore")), it) }
     val defaults = SyncLoopSettings()
@@ -65,10 +71,19 @@ private fun runSyncNode(arguments: Arguments, runtime: P09Runtime, waitForStop: 
         interval = arguments.options["interval-seconds"]?.toLong()?.let(Duration::ofSeconds) ?: defaults.interval,
         maxBackoff = arguments.options["max-backoff-seconds"]?.toLong()?.let(Duration::ofSeconds)
             ?: defaults.maxBackoff)
-    P09NodeHost(arguments.listenAddress(), tls, runtime, setOf(peer), transport, settings).use { host ->
+    val statusMillis = arguments.options["status-interval-seconds"]?.toLong()?.times(MILLIS_PER_SECOND)
+    val host = P09NodeHost(arguments.listenAddress(), tls, runtime, setOf(peer), transport, settings)
+    host.use {
         println("P09 node running on ${host.address}; background peer ${peer.value}. Stop with Ctrl+C.")
-        waitForStop()
+        if (statusMillis == null) {
+            waitForStop(Long.MAX_VALUE)
+        } else {
+            do {
+                println(formatSyncStatus(host.snapshot().getValue(peer)))
+            } while (!waitForStop(statusMillis))
+        }
     }
+    if (statusMillis != null) println(formatSyncStatus(host.snapshot().getValue(peer)))
 }
 
 private fun withOutboundTransport(arguments: Arguments, block: (SotaId, SyncTransport) -> Unit) {
@@ -101,3 +116,6 @@ private fun Arguments.required(name: String): String = requireNotNull(options[na
 }
 
 private const val MAX_PORT = 65535
+
+private const val MAX_STATUS_INTERVAL_SECONDS = 3600L
+private const val MILLIS_PER_SECOND = 1000L

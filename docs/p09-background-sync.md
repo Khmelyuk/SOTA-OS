@@ -103,9 +103,38 @@ Diagnose these through authorized local configuration and server operations;
 never loosen admission automatically. Wrapped async TLS/network failures are
 classified without copying exception messages, server bodies, URLs or credentials.
 
-This is a local host API. No network status endpoint or periodic CLI status output
-is exposed. Snapshots reset on restart and do not establish inbound health,
+This is a local host API. No network status endpoint is exposed. Snapshots reset on restart and do not establish inbound health,
 remote availability, or complete convergence. SQLite remains authoritative.
 
 Verification — 2026-10-01: 185 tests pass, including seven diagnostic cases and
 recovery assertions in the existing HTTPS host test.
+
+## CLI status output
+
+Add `--status-interval-seconds 5` to the `sync run` command to print a status line
+immediately and every five seconds. Accepted values are integer seconds from 1
+through 3600. The flag is only valid for `sync run`; omitting it preserves the
+startup-only output. It requires no additional credentials or listener.
+
+```text
+P09 status: phase=BACKOFF attempts=2 failures=2 reason=NETWORK sent=UNKNOWN received=UNKNOWN lastAttempt=2026-10-01T12:00:00Z lastSuccess=NEVER nextAttempt=2026-10-01T12:00:02Z
+```
+
+The line describes the single configured outbound peer. UNKNOWN checkpoints mean
+no successful outbound exchange has been observed in this process, not that the
+SQLite checkpoint is zero. `reason` is the safe failure category described above;
+NONE means no recorded failure. Times are UTC; nextAttempt is an estimate.
+
+Ctrl+C/SIGTERM wakes the wait immediately, regardless of the status interval.
+A final STOPPED line is printed after the loop and listener close successfully.
+Output goes to stdout and contains no endpoint URLs, credentials, server response
+bodies or exception messages. As with other console output, use a consuming log
+sink: blocked stdout can delay the main thread and shutdown cleanup.
+
+Run the assembled CLI smoke check from the repository root with JDK 21:
+`python3 scripts/p09-cli-status-smoke.py` after `./gradlew :api:distZip`.
+It uses temporary SQLite/TLS fixtures and tests validation, default quiet mode,
+periodic status, secret exclusion, long-interval SIGTERM and same-port restart.
+
+CLI verification — 2026-10-01: JDK 21 full build, Detekt, migration checks and
+187 tests passed; the assembled CLI status/shutdown smoke check passed.

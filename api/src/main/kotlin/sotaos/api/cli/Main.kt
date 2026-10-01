@@ -100,6 +100,7 @@ private fun printHelp() {
           sync run --db PATH --node ID --actor PERSON_ID --governance-context DOMAIN
                  --keystore PATH --port PORT --peer ID --endpoint HTTPS_URL --truststore PATH
                  [--bind ADDRESS] [--interval-seconds N] [--max-backoff-seconds N]
+                 [--status-interval-seconds N]
                  Serve HTTPS and retry background sync in one process.
           help   Show this help.
 

@@ -4,7 +4,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /** The JVM hook waits until host, HTTP client and SQLite use-blocks have all finished on the main thread. */
-internal fun withSyncShutdown(run: (() -> Unit) -> Unit) {
+internal fun withSyncShutdown(run: ((Long) -> Boolean) -> Unit) {
     val stopping = CountDownLatch(1)
     val closed = CountDownLatch(1)
     val shutdown = Thread({
@@ -15,7 +15,7 @@ internal fun withSyncShutdown(run: (() -> Unit) -> Unit) {
     }, "p09-shutdown")
     Runtime.getRuntime().addShutdownHook(shutdown)
     try {
-        run { stopping.await() }
+        run { millis -> stopping.await(millis, TimeUnit.MILLISECONDS) }
     } finally {
         closed.countDown()
         try {
