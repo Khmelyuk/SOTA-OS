@@ -68,6 +68,7 @@ class P09SyncLoop(
     // A failed peer must not terminate the scheduler; expose only a safe category.
     @Suppress("TooGenericExceptionCaught")
     private fun attempt(peer: SotaId) {
+        val began = System.nanoTime()
         val previous = states.getValue(peer)
         val started = previous.copy(attempts = previous.attempts + 1,
             phase = SyncPhase.RUNNING, lastAttemptAt = Instant.now(), nextAttemptAt = null)
@@ -76,6 +77,8 @@ class P09SyncLoop(
             started.copy(consecutiveFailures = 0, lastCheckpoint = runtime.synchronize(peer, transport),
                 lastSuccessAt = Instant.now(), failure = null, phase = SyncPhase.WAITING)
         } catch (_: InterruptedException) {
+            states[peer] = started.copy(phase = SyncPhase.STOPPED,
+                metrics = started.metrics.cancelled(System.nanoTime() - began))
             Thread.currentThread().interrupt()
             return
         } catch (failure: Exception) {
@@ -87,7 +90,8 @@ class P09SyncLoop(
             next.lastCheckpoint != previous.lastCheckpoint -> settings.progressDelay
             else -> settings.interval
         }
-        states[peer] = next.copy(nextAttemptAt = Instant.now().plus(delay))
+        states[peer] = next.copy(nextAttemptAt = Instant.now().plus(delay),
+            metrics = next.metrics.completed(System.nanoTime() - began, next.failure))
         schedule(peer, delay)
     }
 

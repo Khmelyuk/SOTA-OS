@@ -22,7 +22,8 @@ data class PeerSyncStatus(
     val lastAttemptAt: Instant? = null,
     val lastSuccessAt: Instant? = null,
     val nextAttemptAt: Instant? = null,
-    val failure: SyncFailure? = null
+    val failure: SyncFailure? = null,
+    val metrics: SyncMetrics = SyncMetrics()
 )
 
 /** Never retain exception messages, response bodies, credentials or endpoint URLs. */

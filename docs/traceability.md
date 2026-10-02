@@ -205,3 +205,11 @@ settings with strict fields and paths relative to the file. `NodeConfigurationTe
 covers parsing, modes, invalid endpoints/timers, secret fields and input limits.
 The existing CLI smoke also launches from a config file and rejects overrides.
 This is restart-based configuration, not provisioning authority or live reload.
+
+### P09 outbound metrics — 2026-10-02
+
+`SyncMetrics` records cumulative outcomes and monotonic attempt durations in the
+existing local snapshots and CLI status output. `SyncMetricsTest` verifies recovery,
+shutdown cancellation, snapshot retention and process-local reset. CLI smoke checks
+metric field presence. Metrics observe AC-13 recovery without altering admission,
+durable checkpoints or asserting inbound/node-wide health.

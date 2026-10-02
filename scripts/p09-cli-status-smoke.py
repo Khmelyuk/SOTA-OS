@@ -126,6 +126,9 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
                     assert 'phase=STOPPED' in output
                     assert output.strip().endswith('nextAttempt=NONE')
                     assert 'sent=UNKNOWN received=UNKNOWN' in output
+                    assert 'successes=0' in output
+                    assert 'failedTotal=' in output
+                    assert 'durationNanosTotal=' in output
                 else:
                     assert 'P09 status:' not in output
     import sqlite3

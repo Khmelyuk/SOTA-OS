@@ -83,7 +83,7 @@ was active, SIGTERM cleanup, same-port restart and no rejected-request journal w
 
 `host.snapshot()` (also `loop.snapshot()`) returns an immutable per-peer value:
 
-- `phase`: WAITING, RUNNING, BACKOFF or STOPPED after successful close;
+- `phase`: WAITING, RUNNING, BACKOFF or STOPPED after close or an interrupted attempt;
 - `attempts`: started attempts, including interrupted attempts;
 - `consecutiveFailures`: completed consecutive failures, capped at 30;
 - `lastAttemptAt`, `lastSuccessAt`, `nextAttemptAt`: UTC observations;
@@ -117,7 +117,7 @@ through 3600. The flag is only valid for `sync run`; omitting it preserves the
 startup-only output. It requires no additional credentials or listener.
 
 ```text
-P09 status: phase=BACKOFF attempts=2 failures=2 reason=NETWORK sent=UNKNOWN received=UNKNOWN lastAttempt=2026-10-01T12:00:00Z lastSuccess=NEVER nextAttempt=2026-10-01T12:00:02Z
+P09 status: phase=BACKOFF attempts=2 failures=2 reason=NETWORK sent=UNKNOWN received=UNKNOWN lastAttempt=2026-10-01T12:00:00Z lastSuccess=NEVER successes=0 failedTotal=2 cancelled=0 durationNanosTotal=2000000 lastDurationNanos=1000000 nextAttempt=2026-10-01T12:00:02Z
 ```
 
 The line describes the single configured outbound peer. UNKNOWN checkpoints mean
@@ -182,7 +182,39 @@ Keep `SOTA_P09_TLS_PASSWORD` and `SOTA_P09_PEER_TOKEN` in the process environmen
 The file format has no password/token fields. Protect the configuration as trusted
 local input: it controls database, identity, network binding and peer destination.
 The default bind remains loopback. Live reload, certificate renewal, secret delivery
-and general operational metrics remain separate work.
+and inbound metrics or external metric export remain separate work.
 
 Configuration verification — 2026-10-01: full JDK 21 build, Detekt and migrations
 passed; 196 tests passed with no failures/errors/skips. Extended CLI smoke passed.
+
+## Outbound operational metrics
+
+Each `PeerSyncStatus.metrics` snapshot now contains process-local cumulative counts
+of `successes`, `failures` and `cancellations`, plus `failuresByCategory` using only
+the fixed `SyncFailure` enum. A successful exchange resets consecutive failure
+backoff but preserves cumulative failure counts. Interrupted attempts count as
+cancellations, not peer failures. Retained snapshots do not change as retries run.
+
+`totalDurationNanos` sums completed attempt durations; `lastDurationNanos` is null
+until an attempt completes. Both use `System.nanoTime`, independent of wall-clock
+adjustments. Duration includes local validation, store-gate waits and transport;
+it is not pure network latency. In-flight time is not added until completion.
+An interrupted attempt records its elapsed duration and stops that peer's loop.
+
+The `attempts` field counts starts. During an active attempt it is one greater than
+successes + failures + cancellations; after normal stop those values balance.
+Metrics reset when a new loop starts and are never persisted as sync checkpoints.
+No identifiers, exception messages, credentials or payloads become metric labels.
+
+CLI status output includes `successes`, `failedTotal`, `cancelled`,
+`durationNanosTotal` and `lastDurationNanos` before `nextAttempt`. Enable it with the
+existing `--status-interval-seconds` flag or its configuration-file field. The
+existing `failures` output field remains the consecutive failure count.
+
+These metrics cover background outbound attempts only: no inbound request counts,
+byte/record transfer counts, latency histogram, global convergence claim or public
+metrics endpoint is added. `SyncMetricsTest` checks failure/recovery, interruption,
+count balance, retained snapshots and reset on a fresh loop.
+
+Metrics verification — 2026-10-02: JDK 21 build, Detekt, migrations and 198 tests
+passed with no failures/errors/skips. CLI status/configuration/shutdown smoke passed.

@@ -8,5 +8,7 @@ fun formatSyncStatus(status: PeerSyncStatus): String = with(status) {
         "reason=${failure ?: "NONE"} sent=${lastCheckpoint?.sent ?: "UNKNOWN"} " +
         "received=${lastCheckpoint?.received ?: "UNKNOWN"} " +
         "lastAttempt=${lastAttemptAt ?: "NEVER"} lastSuccess=${lastSuccessAt ?: "NEVER"} " +
+        "successes=${metrics.successes} failedTotal=${metrics.failures} cancelled=${metrics.cancellations} " +
+        "durationNanosTotal=${metrics.totalDurationNanos} lastDurationNanos=${metrics.lastDurationNanos ?: "NONE"} " +
         "nextAttempt=${nextAttemptAt ?: "NONE"}"
 }
