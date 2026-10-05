@@ -1,4 +1,5 @@
 import http.client
+import json
 import os
 from pathlib import Path
 import socket
@@ -68,11 +69,19 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
                             env=env, capture_output=True, timeout=15)
     assert failed.returncode != 0
     assert b'fixture-secret-notallowed' not in failed.stdout + failed.stderr
-    for interval in (None, '1', '3600', 'config'):
+    json_config = folder/'metrics.conf'
+    json_config.write_text(config.read_text() + '\nmetrics-format=json')
+    for extra in (['--metrics-format', 'json'], ['--metrics-format', 'invalid', '--status-interval-seconds', '1']):
+        failed = subprocess.run(command + extra, env=env, capture_output=True, timeout=15)
+        assert failed.returncode != 0
+        assert b'--metrics-format json requires' in failed.stderr
+    for interval in (None, '1', '3600', 'config', 'json'):
         configured = (configured_command if interval == 'config' else
                       command + (['--status-interval-seconds', interval] if interval else []))
-        with (folder/'host.log').open('w') as log:
-            process = subprocess.Popen(configured, env=env, stdout=log, stderr=subprocess.STDOUT)
+        if interval == 'json':
+            configured = java + ['sync', 'run', '--config', str(json_config)]
+        with (folder/'host.log').open('w') as log, (folder/'host.err').open('w') as errors:
+            process = subprocess.Popen(configured, env=env, stdout=log, stderr=errors)
             try:
                 deadline = time.monotonic() + 30
                 while True:
@@ -105,6 +114,8 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
                     while True:
                         output = (folder/'host.log').read_text()
                         ready = ('phase=BACKOFF' in output if interval in ('1', 'config') else 'P09 status:' in output)
+                        if interval == 'json':
+                            ready = output.count('\n') >= 2 and '"405":1' in output
                         if ready:
                             break
                         assert time.monotonic() < deadline, 'Missing periodic status'
@@ -119,10 +130,21 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
                     raise
                 assert process.returncode in (-15, 143, 0), process.returncode
                 output = (folder/'host.log').read_text()
-                assert 'did not' not in output
-                assert env['SOTA_P09_PEER_TOKEN'] not in output
-                assert env['SOTA_P09_TLS_PASSWORD'] not in output
-                if interval:
+                errors = (folder/'host.err').read_text()
+                assert 'did not' not in output + errors
+                assert env['SOTA_P09_PEER_TOKEN'] not in output + errors
+                assert env['SOTA_P09_TLS_PASSWORD'] not in output + errors
+                if interval == 'json':
+                    samples = [json.loads(line) for line in output.splitlines()]
+                    assert len(samples) >= 2
+                    final = samples[-1]
+                    assert final['version'] == 1
+                    assert final['inbound']['inFlight'] == 0
+                    assert final['inbound']['responses']['401'] >= 1
+                    assert final['inbound']['responses']['405'] == 1
+                    assert final['outbound']['phases']['STOPPED'] == 1
+                    assert 'smoke-peer' not in output
+                elif interval:
                     assert 'phase=STOPPED' in output
                     assert output.strip().endswith('nextAttempt=NONE')
                     assert 'sent=UNKNOWN received=UNKNOWN' in output
@@ -130,8 +152,8 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
                     assert 'failedTotal=' in output
                     assert 'durationNanosTotal=' in output
                 else:
-                    assert 'P09 status:' not in output
+                    assert 'P09 status:' not in output + errors
     import sqlite3
     with sqlite3.connect(database) as db:
         assert db.execute('SELECT count(*) FROM sync_journal').fetchone()[0] == 0
-    print('CLI status smoke passed: validation, periodic output, secrets excluded, SIGTERM, restart, default quiet mode, configuration file.')
+    print('CLI status smoke passed: validation, periodic output, secrets excluded, SIGTERM, restart, default quiet mode, configuration file, inbound JSON metrics.')

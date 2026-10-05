@@ -103,7 +103,7 @@ private fun printHelp() {
           sync run --db PATH --node ID --actor PERSON_ID --governance-context DOMAIN
                  --keystore PATH --port PORT --peer ID --endpoint HTTPS_URL --truststore PATH
                  [--bind ADDRESS] [--interval-seconds N] [--max-backoff-seconds N]
-                 [--status-interval-seconds N]
+                 [--status-interval-seconds N] [--metrics-format json]
                  Serve HTTPS and retry background sync in one process.
           sync run|serve|once --config PATH
                  Load versioned non-secret node settings; no CLI overrides. Secrets remain in environment.

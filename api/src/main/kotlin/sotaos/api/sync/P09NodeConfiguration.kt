@@ -26,6 +26,11 @@ object P09NodeConfiguration {
         }
         require(values.remove("version") == "1") { "Node configuration requires version=1." }
         require(required(mode).all(values::containsKey)) { "Node configuration is missing required fields." }
+        values["metrics-format"]?.let {
+            require(it == "json" && "status-interval-seconds" in values) {
+                "JSON metrics require a status interval."
+            }
+        }
         validate(values)
         val base = path.toAbsolutePath().normalize().parent
         PATH_FIELDS.forEach { key -> values[key]?.let { values[key] = base.resolve(it).normalize().toString() } }
@@ -41,7 +46,7 @@ object P09NodeConfiguration {
 
     private fun fields(mode: String): Set<String> = required(mode) + "version" + when (mode) {
         "serve" -> setOf("bind")
-        "run" -> setOf("bind", "interval-seconds", "max-backoff-seconds", "status-interval-seconds")
+        "run" -> setOf("bind", "interval-seconds", "max-backoff-seconds", "status-interval-seconds", "metrics-format")
         else -> emptySet()
     }
 

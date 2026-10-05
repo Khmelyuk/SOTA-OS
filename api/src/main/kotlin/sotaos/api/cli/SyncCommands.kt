@@ -27,6 +27,11 @@ internal fun runSyncCommand(input: Arguments) {
             "--status-interval-seconds must be an integer from 1 to 3600."
         }
     }
+    arguments.options["metrics-format"]?.let {
+        require(it == "json" && arguments.subcommand == "run" && "status-interval-seconds" in arguments.options) {
+            "--metrics-format json requires sync run with --status-interval-seconds."
+        }
+    }
     if (arguments.subcommand == "once") {
         runConfiguredSync(arguments) { true }
     } else {
@@ -73,18 +78,20 @@ private fun runSyncNode(arguments: Arguments, runtime: P09Runtime, waitForStop: 
         maxBackoff = arguments.options["max-backoff-seconds"]?.toLong()?.let(Duration::ofSeconds)
             ?: defaults.maxBackoff)
     val statusMillis = arguments.options["status-interval-seconds"]?.toLong()?.times(MILLIS_PER_SECOND)
+    val jsonMetrics = arguments.options["metrics-format"] == "json"
     val host = P09NodeHost(arguments.listenAddress(), tls, runtime, setOf(peer), transport, settings)
     host.use {
-        println("P09 node running on ${host.address}; background peer ${peer.value}. Stop with Ctrl+C.")
+        val output = if (jsonMetrics) System.err else System.out
+        output.println("P09 node running on ${host.address}; background peer ${peer.value}. Stop with Ctrl+C.")
         if (statusMillis == null) {
             waitForStop(Long.MAX_VALUE)
         } else {
             do {
-                println(formatSyncStatus(host.snapshot().getValue(peer)))
+                printNodeStatus(host, peer, jsonMetrics)
             } while (!waitForStop(statusMillis))
         }
     }
-    if (statusMillis != null) println(formatSyncStatus(host.snapshot().getValue(peer)))
+    if (statusMillis != null) printNodeStatus(host, peer, jsonMetrics)
 }
 
 private fun withOutboundTransport(arguments: Arguments, block: (SotaId, SyncTransport) -> Unit) {
@@ -128,4 +135,10 @@ private fun resolveSyncConfiguration(input: Arguments): Arguments {
     }
     val values = P09NodeConfiguration.load(Path.of(config), input.subcommand.orEmpty())
     return input.copy(databasePath = Path.of(values.getValue("db")), options = values - "db")
+}
+
+private fun printNodeStatus(host: P09NodeHost, peer: SotaId, json: Boolean) {
+    val snapshot = host.snapshot()
+    println(if (json) formatNodeMetrics(host.inboundMetrics(), snapshot.values)
+        else formatSyncStatus(snapshot.getValue(peer)))
 }

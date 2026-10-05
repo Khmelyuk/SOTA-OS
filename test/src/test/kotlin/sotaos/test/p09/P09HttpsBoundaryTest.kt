@@ -39,7 +39,17 @@ class P09HttpsBoundaryTest : FunSpec({
                     send("not JSON") shouldBe 400
                     send(valid.replace("original", "tampered")) shouldBe 400
                     f.repositories.events.findById(f.record().event.id) shouldBe null
+                    waitForSync { server.inboundMetrics().completed == 6L }
+                    val before = server.inboundMetrics()
                     send(valid) shouldBe 200
+                    waitForSync { server.inboundMetrics().completed == 7L }
+                    val metrics = server.inboundMetrics()
+                    metrics.started shouldBe 7L
+                    metrics.inFlight shouldBe 0L
+                    metrics.aborted shouldBe 0L
+                    metrics.responses shouldBe mapOf(404 to 1L, 405 to 1L, 415 to 1L, 401 to 1L, 400 to 2L, 200 to 1L)
+                    (metrics.totalDurationNanos > 0) shouldBe true
+                    before.completed shouldBe 6L
                 }
             }
         }
@@ -94,6 +104,9 @@ class P09HttpsBoundaryTest : FunSpec({
                     socket.outputStream.flush()
                     socket.inputStream.read() shouldBe -1
                 }
+                waitForSync { server.inboundMetrics().completed == 1L }
+                server.inboundMetrics().aborted shouldBe 1L
+                server.inboundMetrics().responses shouldBe emptyMap()
                 HttpClient.newBuilder().sslContext(tls).build().use { client ->
                     val request = SyncRequest("after-stall", peerId, 0, SyncBatch(0, 1, listOf(f.record())))
                     transport(server, localId, token, client).exchange(localId, request).acceptedThrough shouldBe 1

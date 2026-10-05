@@ -8,6 +8,7 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.UTF_8
 import java.time.Duration
+import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
@@ -15,23 +16,29 @@ import java.util.concurrent.TimeUnit
 internal class P09HttpHandler(
     private val runtime: P09Runtime,
     private val deadlines: ScheduledExecutorService,
-    private val timeout: Duration
+    private val timeout: Duration,
+    private val metrics: InboundMetricsRecorder
 ) : HttpHandler {
     override fun handle(exchange: HttpExchange) {
-        val deadline = deadlines.schedule({ exchange.close() }, timeout.toMillis(), TimeUnit.MILLISECONDS)
+        val began = System.nanoTime()
+        metrics.started()
+        var status: Int? = null
+        var deadline: ScheduledFuture<*>? = null
         try {
-            exchange.use { process(it) }
+            deadline = deadlines.schedule({ exchange.close() }, timeout.toMillis(), TimeUnit.MILLISECONDS)
+            exchange.use { status = process(it) }
         } catch (_: IOException) {
             // The peer disconnected or the body deadline closed the connection; retry uses durable cursors.
             exchange.close()
         } finally {
-            deadline.cancel(false)
+            deadline?.cancel(false)
+            metrics.finished(status, System.nanoTime() - began)
         }
     }
 
-    private fun process(exchange: HttpExchange) {
+    private fun process(exchange: HttpExchange): Int {
         val failure = validateHeaders(exchange)
-        if (failure != null) {
+        return if (failure != null) {
             respond(exchange, failure, "Request rejected")
         } else {
             val result = try {
@@ -71,7 +78,7 @@ internal class P09HttpHandler(
         }
     }
 
-    private fun respond(exchange: HttpExchange, status: Int, body: String) {
+    private fun respond(exchange: HttpExchange, status: Int, body: String): Int {
         val bytes = body.toByteArray(UTF_8)
         val contentType = if (status == OK) "application/json" else "text/plain; charset=utf-8"
         exchange.responseHeaders.set("Content-Type", contentType)
@@ -79,6 +86,7 @@ internal class P09HttpHandler(
         exchange.responseHeaders.set("Connection", "close")
         exchange.sendResponseHeaders(status, bytes.size.toLong())
         exchange.responseBody.use { it.write(bytes) }
+        return status
     }
 
     private companion object {

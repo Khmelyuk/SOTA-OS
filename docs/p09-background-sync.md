@@ -170,7 +170,8 @@ The version and all required fields must be present. Optional defaults match CLI
 
 `serve` requires db, node, actor, governance-context, keystore and port, with optional
 bind. `once` requires db, node, actor, governance-context, peer, endpoint and truststore.
-`run` requires both sets and permits bind plus the three interval fields shown above.
+`run` requires both sets and permits bind, the three interval fields shown above,
+and optional `metrics-format=json` when a status interval is configured.
 Ports are 1–65535; timer values are whole seconds from 1–3600. Self-peer settings and
 non-HTTPS endpoints or embedded URL credentials are rejected before opening SQLite.
 
@@ -211,10 +212,55 @@ CLI status output includes `successes`, `failedTotal`, `cancelled`,
 existing `--status-interval-seconds` flag or its configuration-file field. The
 existing `failures` output field remains the consecutive failure count.
 
-These metrics cover background outbound attempts only: no inbound request counts,
-byte/record transfer counts, latency histogram, global convergence claim or public
-metrics endpoint is added. `SyncMetricsTest` checks failure/recovery, interruption,
+These counters cover background outbound attempts only. For inbound metrics and
+external export see below. Byte/record transfer counts, latency histograms and a
+public metrics endpoint remain outside this implementation. `SyncMetricsTest` checks failure/recovery, interruption,
 count balance, retained snapshots and reset on a fresh loop.
 
 Metrics verification — 2026-10-02: JDK 21 build, Detekt, migrations and 198 tests
 passed with no failures/errors/skips. CLI status/configuration/shutdown smoke passed.
+
+## Inbound observations and external JSON export
+
+`server.inboundMetrics()` and `host.inboundMetrics()` return handler-level snapshots:
+started requests, completed handling, in-flight count, aborted handling, response
+counts by HTTP status and monotonic duration totals/last duration. A completed
+handler has either a fully written response or an aborted exchange; therefore
+`completed = sum(responses) + aborted` and `inFlight = started - completed`.
+
+Response counters mean that response writing completed locally, not that the peer
+received it or acknowledged a transaction. A journal commit followed by a lost
+response can be counted as aborted. Deadline/disconnect exceptions and other
+unfinished responses share this category. TLS handshake failures, rejected queued
+connections and time before handler dispatch are not included. Counts reset when
+the server is recreated. No request-derived labels or response bodies are stored.
+
+For an external collector, add `--metrics-format json --status-interval-seconds 5`
+to `sync run`, or set both fields in its configuration file. JSON format requires
+`sync run` and a status interval. Each stdout line is a complete version-1 JSON
+sample, including the final sample after normal host closure. Startup messages go
+to stderr. For collection use the assembled application's launcher directly;
+Gradle's own output from `:api:run` is not part of this JSON stream.
+
+The top-level fields are `version`, `inbound`, and `outbound`. Inbound includes
+`started`, `completed`, `inFlight`, `aborted`, `durationNanosTotal`, and a `responses`
+object keyed by observed HTTP codes. Outbound aggregates configured peers into
+`configuredPeers`, `attempts`, `successes`, `failures`, `cancellations`,
+`durationNanosTotal`, `phases`, and `failuresByCategory`. All counts and durations
+are integers; durations are nanoseconds. Response codes absent from a sample have
+zero observations. Phase and failure-category keys are fixed enums.
+
+Samples contain no peer/node/actor IDs, endpoints, credentials or request content.
+Inbound values form a coherent snapshot; inbound and outbound are sampled
+separately, not as a distributed or cross-direction transaction. A collector may
+add its own trusted instance labels and scrape time. It must account for counter
+reset after restart. Output is synchronous; a collector must keep consuming
+stdout so it cannot block process cleanup. No new network listener is opened.
+
+`P09HttpsBoundaryTest` verifies response categories, preserved snapshots and an
+aborted stalled body followed by recovery. `NodeMetricsJsonTest` checks the versioned
+numeric schema and aggregation. CLI smoke parses every JSON stdout line, checks
+401/405 counters, final STOPPED state, configuration loading and secret exclusion.
+
+Inbound/export verification — 2026-10-05: full JDK 21 build, Detekt, migrations
+and 200 tests passed with no failures/errors/skips. JSON CLI smoke passed.

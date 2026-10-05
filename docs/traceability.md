@@ -213,3 +213,11 @@ existing local snapshots and CLI status output. `SyncMetricsTest` verifies recov
 shutdown cancellation, snapshot retention and process-local reset. CLI smoke checks
 metric field presence. Metrics observe AC-13 recovery without altering admission,
 durable checkpoints or asserting inbound/node-wide health.
+
+### P09 inbound metrics and JSON export — 2026-10-05
+
+`InboundMetricsRecorder` observes handler starts, completions, response codes and
+aborts without changing admission. HTTPS boundary tests verify rejection/success
+counts and stalled-body recovery. `NodeMetricsJsonTest` and CLI smoke verify
+version-1 aggregate JSON export without request/peer labels or a new listener.
+These are local process observations, not proof of remote receipt or convergence.

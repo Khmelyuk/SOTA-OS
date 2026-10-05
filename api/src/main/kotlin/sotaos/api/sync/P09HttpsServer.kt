@@ -22,6 +22,9 @@ class P09HttpsServer(
     runtime: P09Runtime,
     requestTimeout: Duration = Duration.ofSeconds(DEFAULT_TIMEOUT_SECONDS)
 ) : AutoCloseable {
+    private val metrics = InboundMetricsRecorder()
+    fun inboundMetrics(): InboundMetrics = metrics.snapshot()
+
     private val closed = AtomicBoolean(false)
     private val server = HttpsServer.create(address, BACKLOG)
     private val worker = ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, ArrayBlockingQueue<Runnable>(BACKLOG))
@@ -40,7 +43,7 @@ class P09HttpsServer(
                 }
             }
             server.executor = worker
-            server.createContext("/", P09HttpHandler(runtime, deadlines, requestTimeout))
+            server.createContext("/", P09HttpHandler(runtime, deadlines, requestTimeout, metrics))
             server.start()
             started = true
         } finally {
