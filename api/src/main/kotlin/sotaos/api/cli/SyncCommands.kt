@@ -19,6 +19,13 @@ import java.util.UUID
 
 /** Node host configuration is trusted local input. Provisioning remains a separate governed operation. */
 internal fun runSyncCommand(input: Arguments) {
+    if (input.subcommand == "check") {
+        require(input.databasePath == null && input.options.keys == setOf("config")) {
+            "Use sync check --config PATH with a full sync run configuration."
+        }
+        checkSyncMaterial(resolveSyncConfiguration(input))
+        return
+    }
     val arguments = resolveSyncConfiguration(input)
     require(arguments.subcommand in setOf("serve", "once", "run")) { "Use sync serve, sync once or sync run." }
     arguments.options["status-interval-seconds"]?.let {
@@ -96,12 +103,12 @@ private fun runSyncNode(arguments: Arguments, runtime: P09Runtime, waitForStop: 
 
 private fun withOutboundTransport(arguments: Arguments, block: (SotaId, SyncTransport) -> Unit) {
     val tls = withTlsPassword { P09Tls.client(Path.of(arguments.required("truststore")), it) }
-    val token = requireNotNull(System.getenv("SOTA_P09_PEER_TOKEN")) { "SOTA_P09_PEER_TOKEN is required." }
-    require(token.isNotBlank() && token.none(Char::isWhitespace)) { "Invalid peer credential format." }
+    val secrets = P09Secrets()
+    secrets.peerToken() // Fail startup if the selected source is invalid; do not retain a file token.
     val peer = SotaId(arguments.required("peer"))
     HttpClient.newBuilder().sslContext(tls).followRedirects(HttpClient.Redirect.NEVER).build().use { client ->
         val transport = HttpsSyncTransport(mapOf(peer to URI(arguments.required("endpoint"))),
-            JsonSyncMessageCodec(), client) { "Bearer $token" }
+            JsonSyncMessageCodec(), client) { "Bearer ${secrets.peerToken()}" }
         block(peer, transport)
     }
 }
@@ -113,9 +120,7 @@ private fun Arguments.listenAddress(): InetSocketAddress {
 }
 
 private fun <T> withTlsPassword(block: (CharArray) -> T): T {
-    val password = requireNotNull(System.getenv("SOTA_P09_TLS_PASSWORD")) {
-        "SOTA_P09_TLS_PASSWORD is required."
-    }.toCharArray()
+    val password = P09Secrets().tlsPassword()
     return try { block(password) } finally { password.fill('\u0000') }
 }
 
@@ -133,7 +138,8 @@ private fun resolveSyncConfiguration(input: Arguments): Arguments {
     require(input.databasePath == null && input.options.keys == setOf("config")) {
         "--config cannot be combined with other sync options or --db."
     }
-    val values = P09NodeConfiguration.load(Path.of(config), input.subcommand.orEmpty())
+    val values = P09NodeConfiguration.load(Path.of(config),
+        if (input.subcommand == "check") "run" else input.subcommand.orEmpty())
     return input.copy(databasePath = Path.of(values.getValue("db")), options = values - "db")
 }
 

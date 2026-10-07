@@ -1,3 +1,4 @@
+import hashlib
 import http.client
 import json
 import os
@@ -19,6 +20,8 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
     libraries = folder / 'api-0.1.0-mvp' / 'lib'
     java = [str(java_home / 'bin/java'), '-cp', str(libraries / '*'), 'sotaos.api.cli.MainKt']
     env = dict(os.environ, SOTA_P09_TLS_PASSWORD=uuid.uuid4().hex, SOTA_P09_PEER_TOKEN='smoke-only-unknown')
+    env.pop('SOTA_P09_TLS_PASSWORD_FILE', None)
+    env.pop('SOTA_P09_PEER_TOKEN_FILE', None)
     keystore, certificate, database = folder/'server.p12', folder/'public.pem', folder/'node.db'
     keytool = str(java_home/'bin/keytool')
     subprocess.run([keytool, '-genkeypair', '-alias', 'p09', '-keyalg', 'EC', '-groupname', 'secp256r1',
@@ -75,13 +78,38 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
         failed = subprocess.run(command + extra, env=env, capture_output=True, timeout=15)
         assert failed.returncode != 0
         assert b'--metrics-format json requires' in failed.stderr
-    for interval in (None, '1', '3600', 'config', 'json'):
+    password_file = folder/'tls.password'
+    token_file = folder/'peer.token'
+    password_file.write_text(env['SOTA_P09_TLS_PASSWORD'] + '\n')
+    token_file.write_text(env['SOTA_P09_PEER_TOKEN'] + '\n')
+    password_file.chmod(0o600)
+    token_file.chmod(0o600)
+    file_env = dict(env)
+    del file_env['SOTA_P09_TLS_PASSWORD']
+    del file_env['SOTA_P09_PEER_TOKEN']
+    file_env.update(SOTA_P09_TLS_PASSWORD_FILE=str(password_file), SOTA_P09_PEER_TOKEN_FILE=str(token_file))
+    before = hashlib.sha256(database.read_bytes()).digest()
+    check_command = java + ['sync', 'check', '--config', str(config)]
+    with socket.socket() as occupied:
+        occupied.bind(('127.0.0.1', port))
+        checked = subprocess.run(check_command, env=file_env, capture_output=True, timeout=15)
+        assert checked.returncode == 0, 'Preflight must not bind the occupied listener port'
+    assert hashlib.sha256(database.read_bytes()).digest() == before
+    ambiguous = dict(file_env, SOTA_P09_PEER_TOKEN='must-not-fallback')
+    failed = subprocess.run(check_command, env=ambiguous, capture_output=True, timeout=15)
+    assert failed.returncode != 0
+    assert b'must-not-fallback' not in failed.stdout + failed.stderr
+    assert hashlib.sha256(database.read_bytes()).digest() == before
+    for interval in (None, '1', '3600', 'config', 'json', 'files'):
         configured = (configured_command if interval == 'config' else
                       command + (['--status-interval-seconds', interval] if interval else []))
+        if interval == 'files':
+            configured = configured_command
         if interval == 'json':
             configured = java + ['sync', 'run', '--config', str(json_config)]
         with (folder/'host.log').open('w') as log, (folder/'host.err').open('w') as errors:
-            process = subprocess.Popen(configured, env=env, stdout=log, stderr=errors)
+            process = subprocess.Popen(configured, env=file_env if interval == 'files' else env,
+                                       stdout=log, stderr=errors)
             try:
                 deadline = time.monotonic() + 30
                 while True:
@@ -113,7 +141,7 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
                     deadline = time.monotonic() + 10
                     while True:
                         output = (folder/'host.log').read_text()
-                        ready = ('phase=BACKOFF' in output if interval in ('1', 'config') else 'P09 status:' in output)
+                        ready = ('phase=BACKOFF' in output if interval in ('1', 'config', 'files') else 'P09 status:' in output)
                         if interval == 'json':
                             ready = output.count('\n') >= 2 and '"405":1' in output
                         if ready:
@@ -156,4 +184,4 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
     import sqlite3
     with sqlite3.connect(database) as db:
         assert db.execute('SELECT count(*) FROM sync_journal').fetchone()[0] == 0
-    print('CLI status smoke passed: validation, periodic output, secrets excluded, SIGTERM, restart, default quiet mode, configuration file, inbound JSON metrics.')
+    print('CLI status smoke passed: validation, periodic output, secrets excluded, SIGTERM, restart, default quiet mode, configuration file, inbound JSON metrics, file secrets, read-only preflight.')

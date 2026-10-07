@@ -33,13 +33,16 @@ private fun temporaryKeyStore(password: CharArray): KeyStore {
     }
 }
 
-internal fun generateTestKey(path: Path, password: CharArray) {
+internal fun generateTestKey(path: Path, password: CharArray, startDate: String? = null) {
     val keytool = Path.of(System.getProperty("java.home"), "bin", "keytool").toString()
-    val process = ProcessBuilder(
+    val arguments = mutableListOf(
         keytool, "-genkeypair", "-alias", "sync-test", "-keyalg", "EC", "-groupname", "secp256r1",
         "-validity", "1", "-dname", "CN=localhost", "-ext", "SAN=dns:localhost",
         "-storetype", "PKCS12", "-keystore", path.toString(), "-storepass", String(password), "-noprompt"
-    ).redirectOutput(ProcessBuilder.Redirect.DISCARD).redirectError(ProcessBuilder.Redirect.DISCARD).start()
+    )
+    startDate?.let { arguments.addAll(listOf("-startdate", it)) }
+    val process = ProcessBuilder(arguments)
+        .redirectOutput(ProcessBuilder.Redirect.DISCARD).redirectError(ProcessBuilder.Redirect.DISCARD).start()
     try {
         check(process.waitFor(KEYTOOL_TIMEOUT_SECONDS, TimeUnit.SECONDS)) { "Test key generation timed out." }
         check(process.exitValue() == 0) { "Test key generation failed." }

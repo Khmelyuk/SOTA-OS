@@ -15,6 +15,19 @@ import java.nio.file.Files
 import java.security.KeyStore
 
 class P09TlsTest : FunSpec({
+    test("expired replacement certificate fails local validation before a listener is opened") {
+        val directory = Files.createTempDirectory("p09-expired-")
+        val path = directory.resolve("expired.p12")
+        val password = "fixture-password".toCharArray()
+        try {
+            generateTestKey(path, password, "-2d")
+            shouldThrow<java.security.cert.CertificateExpiredException> { P09Tls.server(path, password) }
+        } finally {
+            password.fill('\u0000')
+            Files.deleteIfExists(path)
+            Files.deleteIfExists(directory)
+        }
+    }
     test("PKCS12 host accepts explicit trust and rejects unknown CA and mismatched hostname") {
         val directory = Files.createTempDirectory("p09-tls-loader-")
         val path = directory.resolve("server.p12")

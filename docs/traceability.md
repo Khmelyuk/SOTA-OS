@@ -221,3 +221,11 @@ aborts without changing admission. HTTPS boundary tests verify rejection/success
 counts and stalled-body recovery. `NodeMetricsJsonTest` and CLI smoke verify
 version-1 aggregate JSON export without request/peer labels or a new listener.
 These are local process observations, not proof of remote receipt or convergence.
+
+### P09 material rotation — 2026-10-07
+
+`P09Secrets` supplies explicit environment/file sources and per-exchange token
+reads. `sync check` validates local candidate material without opening SQLite or
+a listener. HTTPS rotation tests connect AC-13 to governed token replacement,
+old-token denial, peer revocation, TLS replacement and checkpoint-preserving
+restart. Certificate issuance and remote secret distribution are external duties.

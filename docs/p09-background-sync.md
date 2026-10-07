@@ -264,3 +264,11 @@ numeric schema and aggregation. CLI smoke parses every JSON stdout line, checks
 
 Inbound/export verification — 2026-10-05: full JDK 21 build, Detekt, migrations
 and 200 tests passed with no failures/errors/skips. JSON CLI smoke passed.
+
+## TLS and credential updates
+
+Use `sync check --config PATH` to validate a staged full run configuration and
+local material before restarting. Optional `SOTA_P09_TLS_PASSWORD_FILE` and
+`SOTA_P09_PEER_TOKEN_FILE` sources keep values out of configuration; bearer files
+are reread per exchange. See [material rotation](p09-material-rotation.md) for
+governed rotation, atomic delivery, TLS restart order and recovery boundaries.

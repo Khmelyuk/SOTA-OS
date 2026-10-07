@@ -105,6 +105,9 @@ private fun printHelp() {
                  [--bind ADDRESS] [--interval-seconds N] [--max-backoff-seconds N]
                  [--status-interval-seconds N] [--metrics-format json]
                  Serve HTTPS and retry background sync in one process.
+          sync check --config PATH
+                 Validate sync run configuration and local TLS/secret material without opening a listener or SQLite.
+                 Secrets may use SOTA_P09_TLS_PASSWORD_FILE and SOTA_P09_PEER_TOKEN_FILE.
           sync run|serve|once --config PATH
                  Load versioned non-secret node settings; no CLI overrides. Secrets remain in environment.
           help   Show this help.
