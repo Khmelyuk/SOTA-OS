@@ -31,6 +31,9 @@ object P09NodeConfiguration {
                 "JSON metrics require a status interval."
             }
         }
+        values["reload-config"]?.let {
+            require(it == "true" && "status-interval-seconds" in values) { "Reload requires a status interval." }
+        }
         validate(values)
         val base = path.toAbsolutePath().normalize().parent
         PATH_FIELDS.forEach { key -> values[key]?.let { values[key] = base.resolve(it).normalize().toString() } }
@@ -46,7 +49,8 @@ object P09NodeConfiguration {
 
     private fun fields(mode: String): Set<String> = required(mode) + "version" + when (mode) {
         "serve" -> setOf("bind")
-        "run" -> setOf("bind", "interval-seconds", "max-backoff-seconds", "status-interval-seconds", "metrics-format")
+        "run" -> setOf("bind", "interval-seconds", "max-backoff-seconds", "status-interval-seconds", "metrics-format",
+            "reload-config")
         else -> emptySet()
     }
 

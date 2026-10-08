@@ -100,13 +100,18 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
     assert failed.returncode != 0
     assert b'must-not-fallback' not in failed.stdout + failed.stderr
     assert hashlib.sha256(database.read_bytes()).digest() == before
-    for interval in (None, '1', '3600', 'config', 'json', 'files'):
+    reload_config = folder/'reload.conf'
+    reload_base = json_config.read_text() + '\nreload-config=true'
+    reload_config.write_text(reload_base)
+    for interval in (None, '1', '3600', 'config', 'json', 'files', 'reload'):
         configured = (configured_command if interval == 'config' else
                       command + (['--status-interval-seconds', interval] if interval else []))
         if interval == 'files':
             configured = configured_command
         if interval == 'json':
             configured = java + ['sync', 'run', '--config', str(json_config)]
+        if interval == 'reload':
+            configured = java + ['sync', 'run', '--config', str(reload_config)]
         with (folder/'host.log').open('w') as log, (folder/'host.err').open('w') as errors:
             process = subprocess.Popen(configured, env=file_env if interval == 'files' else env,
                                        stdout=log, stderr=errors)
@@ -142,12 +147,28 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
                     while True:
                         output = (folder/'host.log').read_text()
                         ready = ('phase=BACKOFF' in output if interval in ('1', 'config', 'files') else 'P09 status:' in output)
-                        if interval == 'json':
+                        if interval in ('json', 'reload'):
                             ready = output.count('\n') >= 2 and '"405":1' in output
                         if ready:
                             break
                         assert time.monotonic() < deadline, 'Missing periodic status'
                         time.sleep(0.1)
+                if interval == 'reload':
+                    def replace_and_wait(content, message):
+                        staged = folder/'reload.new'
+                        staged.write_text(content)
+                        staged.replace(reload_config)
+                        deadline = time.monotonic() + 10
+                        while message not in (folder/'host.err').read_text():
+                            assert process.poll() is None, 'Reload stopped the host'
+                            assert time.monotonic() < deadline, 'Reload result not observed'
+                            time.sleep(0.1)
+                    replace_and_wait(reload_base.replace('node=smoke-node', 'node=changed-node')
+                                     .replace('\ninterval-seconds=1', '\ninterval-seconds=3'),
+                                     'configuration reload rejected')
+                    replace_and_wait(reload_base.replace('\ninterval-seconds=1', '\ninterval-seconds=3')
+                                     .replace('max-backoff-seconds=2', 'max-backoff-seconds=4'),
+                                     'scheduling configuration applied')
             finally:
                 process.terminate()
                 try:
@@ -162,7 +183,7 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
                 assert 'did not' not in output + errors
                 assert env['SOTA_P09_PEER_TOKEN'] not in output + errors
                 assert env['SOTA_P09_TLS_PASSWORD'] not in output + errors
-                if interval == 'json':
+                if interval in ('json', 'reload'):
                     samples = [json.loads(line) for line in output.splitlines()]
                     assert len(samples) >= 2
                     final = samples[-1]
@@ -184,4 +205,4 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
     import sqlite3
     with sqlite3.connect(database) as db:
         assert db.execute('SELECT count(*) FROM sync_journal').fetchone()[0] == 0
-    print('CLI status smoke passed: validation, periodic output, secrets excluded, SIGTERM, restart, default quiet mode, configuration file, inbound JSON metrics, file secrets, read-only preflight.')
+    print('CLI status smoke passed: validation, periodic output, secrets excluded, SIGTERM, restart, default quiet mode, configuration file, inbound JSON metrics, file secrets, read-only preflight, live scheduling reload.')

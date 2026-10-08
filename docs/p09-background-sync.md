@@ -171,13 +171,13 @@ The version and all required fields must be present. Optional defaults match CLI
 `serve` requires db, node, actor, governance-context, keystore and port, with optional
 bind. `once` requires db, node, actor, governance-context, peer, endpoint and truststore.
 `run` requires both sets and permits bind, the three interval fields shown above,
-and optional `metrics-format=json` when a status interval is configured.
+and optional `metrics-format=json` or `reload-config=true` when a status interval is configured.
 Ports are 1–65535; timer values are whole seconds from 1–3600. Self-peer settings and
 non-HTTPS endpoints or embedded URL credentials are rejected before opening SQLite.
 
 Do not combine `--config` with `--db` or any other sync option. This intentionally
-has no implicit override precedence. The file is read once at startup; stop, edit
-and restart to apply changes. It does not provision identity, peers, keys or trust.
+has no implicit override precedence. By default the file is read only at startup; stop, edit
+and restart to apply changes. Optional scheduling-only reload is described below. It does not provision identity, peers, keys or trust.
 
 Keep `SOTA_P09_TLS_PASSWORD` and `SOTA_P09_PEER_TOKEN` in the process environment.
 The file format has no password/token fields. Protect the configuration as trusted
@@ -272,3 +272,42 @@ local material before restarting. Optional `SOTA_P09_TLS_PASSWORD_FILE` and
 `SOTA_P09_PEER_TOKEN_FILE` sources keep values out of configuration; bearer files
 are reread per exchange. See [material rotation](p09-material-rotation.md) for
 governed rotation, atomic delivery, TLS restart order and recovery boundaries.
+
+## Live scheduling configuration
+
+For `sync run --config PATH`, set both `reload-config=true` and a
+`status-interval-seconds` value in the file before startup. The main thread rereads
+the same regular configuration file at each status tick. It accepts only changes
+to `interval-seconds` and `max-backoff-seconds`; defaults still apply when either
+field is absent. This mode is opt-in and requires a local configuration file.
+
+Replace the file atomically with a complete, valid version. Parsing and comparison
+finish before the scheduler publishes a new immutable settings value. If any
+other field differs from startup (including identity, database, peer, endpoint,
+TLS paths, bind/port, metrics format, status interval or reload flag), the entire
+candidate is rejected. No partial timing changes apply. Such changes still need
+a restart. Existing secret-file token rotation remains independent of this feature.
+
+Missing, unreadable, malformed or invalid files preserve the most recently accepted
+settings. Recovery is automatic when a valid candidate appears. Generic applied/
+rejected messages go to stderr; rejected content and exception messages are not
+printed. Repeated rejections are reported once until the file becomes valid again.
+JSON metrics stdout remains parseable without reload messages.
+
+Updated settings affect the next scheduling decision after an exchange completes.
+An already scheduled wait keeps its deadline, even if the new cap is shorter; an
+in-flight request is not cancelled. The loop does not reset counters, failure streak,
+checkpoint or peer trust. Shutdown prevents further API settings updates. There is
+no file-watcher thread, TLS/context hot swap, new provisioning authority or remote
+configuration API. Keep the local file readable without blocking the owning thread.
+
+Host integrations may call `host.updateSettings(SyncLoopSettings(...))` directly.
+`P09ConfigurationReload` is an owner-thread utility, not a concurrent editor protocol.
+`ConfigurationReloadTest` verifies rejected candidates and valid recovery;
+`SyncSettingsUpdateTest` verifies application after an in-flight attempt, preservation
+of pending retries and denial after close. CLI smoke changes the file while a JSON
+metrics host runs, observes rejection of identity changes and acceptance of timing
+changes, then verifies normal shutdown and no rejected-request journal writes.
+
+Reload verification — 2026-10-08: full JDK 21 build, Detekt, migrations and
+209 tests passed with no failures/errors/skips. Live configuration CLI smoke passed.

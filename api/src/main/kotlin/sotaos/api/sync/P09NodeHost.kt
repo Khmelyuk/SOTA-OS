@@ -28,6 +28,8 @@ class P09NodeHost(
         }
     }
 
+    fun updateSettings(settings: SyncLoopSettings) = loop.updateSettings(settings)
+
     fun inboundMetrics(): InboundMetrics = server.inboundMetrics()
 
     fun snapshot(): Map<SotaId, PeerSyncStatus> = loop.snapshot()

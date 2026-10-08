@@ -13,7 +13,6 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.nio.file.Files
 import java.nio.file.Path
-import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
@@ -38,6 +37,10 @@ internal fun runSyncCommand(input: Arguments) {
         require(it == "json" && arguments.subcommand == "run" && "status-interval-seconds" in arguments.options) {
             "--metrics-format json requires sync run with --status-interval-seconds."
         }
+    }
+    arguments.options["reload-config"]?.let {
+        require(it == "true" && arguments.configurationPath != null && arguments.subcommand == "run" &&
+            "status-interval-seconds" in arguments.options) { "Reload requires a run config file and status interval." }
     }
     if (arguments.subcommand == "once") {
         runConfiguredSync(arguments) { true }
@@ -79,11 +82,8 @@ private fun serveSync(arguments: Arguments, runtime: P09Runtime, waitForStop: (L
 private fun runSyncNode(arguments: Arguments, runtime: P09Runtime, waitForStop: (Long) -> Boolean) =
     withOutboundTransport(arguments) { peer, transport ->
     val tls = withTlsPassword { P09Tls.server(Path.of(arguments.required("keystore")), it) }
-    val defaults = SyncLoopSettings()
-    val settings = defaults.copy(
-        interval = arguments.options["interval-seconds"]?.toLong()?.let(Duration::ofSeconds) ?: defaults.interval,
-        maxBackoff = arguments.options["max-backoff-seconds"]?.toLong()?.let(Duration::ofSeconds)
-            ?: defaults.maxBackoff)
+    val settings = P09ConfigurationReload.loopSettings(arguments.options)
+    val reload = SyncReload(arguments)
     val statusMillis = arguments.options["status-interval-seconds"]?.toLong()?.times(MILLIS_PER_SECOND)
     val jsonMetrics = arguments.options["metrics-format"] == "json"
     val host = P09NodeHost(arguments.listenAddress(), tls, runtime, setOf(peer), transport, settings)
@@ -94,6 +94,7 @@ private fun runSyncNode(arguments: Arguments, runtime: P09Runtime, waitForStop: 
             waitForStop(Long.MAX_VALUE)
         } else {
             do {
+                reload.poll(host)
                 printNodeStatus(host, peer, jsonMetrics)
             } while (!waitForStop(statusMillis))
         }
@@ -140,7 +141,8 @@ private fun resolveSyncConfiguration(input: Arguments): Arguments {
     }
     val values = P09NodeConfiguration.load(Path.of(config),
         if (input.subcommand == "check") "run" else input.subcommand.orEmpty())
-    return input.copy(databasePath = Path.of(values.getValue("db")), options = values - "db")
+    return input.copy(databasePath = Path.of(values.getValue("db")), options = values - "db",
+        configurationPath = Path.of(config).toAbsolutePath().normalize())
 }
 
 private fun printNodeStatus(host: P09NodeHost, peer: SotaId, json: Boolean) {

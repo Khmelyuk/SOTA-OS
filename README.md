@@ -83,7 +83,7 @@ The full build includes Detekt; no checks were excluded. With JDK 21:
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew build --continue --console=plain
 ```
 
-The current suite has **206 test cases**, all passing with zero failures,
+The current suite has **209 test cases**, all passing with zero failures,
 errors, or skipped tests. It covers Core Loop, consent, authentication,
 architecture invariants, P09 merge/persistence/recovery/validation/atomicity/
 HTTPS, actor-key lifecycle, peer admission, authenticated endpoint handling
@@ -136,7 +136,7 @@ provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
 Follow with:
 
-1. Extend node operations with live configuration management and automated certificate renewal, additional signed producer adoption and automatic historical
+1. Extend node operations with automated certificate renewal and broader configuration lifecycle support, additional signed producer adoption and automatic historical
    attestations using the [source-to-test mapping](docs/ac-p09-mapping.md).
 2. Extend P10 beyond the typed local Trust/Agreement inventory to multiparty consent
    and additional settlement policies ([ADR-014](docs/adr/ADR-014-relation-inventory.md));

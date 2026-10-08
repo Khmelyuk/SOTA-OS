@@ -229,3 +229,11 @@ reads. `sync check` validates local candidate material without opening SQLite or
 a listener. HTTPS rotation tests connect AC-13 to governed token replacement,
 old-token denial, peer revocation, TLS replacement and checkpoint-preserving
 restart. Certificate issuance and remote secret distribution are external duties.
+
+### P09 scheduling reload — 2026-10-08
+
+Opt-in local file reload can change idle interval and maximum retry backoff only.
+The full candidate is validated against immutable startup inputs before publication.
+ConfigurationReloadTest, SyncSettingsUpdateTest and CLI smoke cover rejection,
+recovery, an in-flight exchange, pending timer preservation and shutdown. Admission
+and durable checkpoints are unchanged; TLS/identity updates still require restart.

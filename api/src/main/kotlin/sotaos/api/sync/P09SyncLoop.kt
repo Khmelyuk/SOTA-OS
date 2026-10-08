@@ -43,17 +43,25 @@ class P09SyncLoop(
     private val runtime: P09Runtime,
     peers: Set<SotaId>,
     private val transport: SyncTransport,
-    private val settings: SyncLoopSettings = SyncLoopSettings()
+    settings: SyncLoopSettings = SyncLoopSettings()
 ) : AutoCloseable {
     init {
         require(peers.isNotEmpty() && peers.size <= MAX_PEERS && runtime.nodeId !in peers)
     }
+    @Volatile private var activeSettings = settings
     private val stopped = AtomicBoolean(false)
     private val states = ConcurrentHashMap(peers.associateWith { PeerSyncStatus() })
     private val worker = ScheduledThreadPoolExecutor(1).also { it.removeOnCancelPolicy = true }
 
     init {
         peers.forEach { schedule(it, Duration.ZERO) }
+    }
+
+    fun updateSettings(settings: SyncLoopSettings) {
+        synchronized(stopped) {
+            check(!stopped.get()) { "Cannot update a stopped sync loop." }
+            activeSettings = settings
+        }
     }
 
     fun snapshot(): Map<SotaId, PeerSyncStatus> = states.toMap()
@@ -85,6 +93,7 @@ class P09SyncLoop(
             started.copy(consecutiveFailures = (previous.consecutiveFailures + 1).coerceAtMost(MAX_FAILURE_COUNT),
                 failure = syncFailure(failure), phase = SyncPhase.BACKOFF)
         }
+        val settings = activeSettings
         val delay = when {
             next.consecutiveFailures > 0 -> settings.retryDelay(next.consecutiveFailures)
             next.lastCheckpoint != previous.lastCheckpoint -> settings.progressDelay

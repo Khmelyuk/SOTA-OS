@@ -31,7 +31,8 @@ internal data class Arguments(
     val command: String,
     val subcommand: String?,
     val databasePath: Path?,
-    val options: Map<String, String>
+    val options: Map<String, String>,
+    val configurationPath: Path? = null
 )
 
 private fun parseArguments(args: Array<String>): Arguments {
@@ -110,6 +111,7 @@ private fun printHelp() {
                  Secrets may use SOTA_P09_TLS_PASSWORD_FILE and SOTA_P09_PEER_TOKEN_FILE.
           sync run|serve|once --config PATH
                  Load versioned non-secret node settings; no CLI overrides. Secrets remain in environment.
+                 Optional config field reload-config=true reloads scheduling at each status interval.
           help   Show this help.
 
         The default database path is ${'$'}XDG_DATA_HOME/sota-os/sota-os.db,
