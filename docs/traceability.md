@@ -237,3 +237,13 @@ The full candidate is validated against immutable startup inputs before publicat
 ConfigurationReloadTest, SyncSettingsUpdateTest and CLI smoke cover rejection,
 recovery, an in-flight exchange, pending timer preservation and shutdown. Admission
 and durable checkpoints are unchanged; TLS/identity updates still require restart.
+
+### Signed P05 action producer — 2026-10-09
+
+`SignedP05Runtime` connects the authorized P05 action/Event invariant (AC-14/15)
+to strict P09 recording and AC-13 recovery. `SignedActionTest` checks lost replies,
+reopen/replay, current-key binding and atomic action/event/journal/receipt rollback.
+Consent, persisted-decision and authority checks remain enforced. Remote receipt
+does not execute an action. This covers new action facts only; the rest of Core
+Loop producer adoption and unsigned history remain open. See
+[signed P05 scope and host contract](p05-signed-actions.md).

@@ -199,3 +199,7 @@ local-access gate, with no database lock held across outbound network I/O. Incom
 exchanges can advance a checkpoint while a request is in flight; stale responses
 fail and retry without overwriting newer state. See [background sync](p09-background-sync.md)
 for CLI configuration, capped backoff, pagination, status snapshots and shutdown.
+
+New P05 action facts can use [SignedP05Runtime](p05-signed-actions.md) for
+canonical signing and atomic Action/Event/journal/receipt persistence. This opt-in
+host composition preserves P05 checks; other Core Loop producers remain open.

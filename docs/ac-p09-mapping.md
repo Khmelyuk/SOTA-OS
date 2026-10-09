@@ -87,3 +87,12 @@ for AC-13, including journals larger than one page and simultaneous HTTPS hosts.
 Local signed recording remains possible while hosts run (AC-12/17 local autonomy).
 SyncConcurrencyTest preserves a newer incoming checkpoint when an outbound reply
 is stale. ADR-017 does not replace source criteria or claim public deployment.
+
+### Additional Core Loop producer: P05 action facts
+
+`SignedActionTest` adds AC-13 evidence for actual P05 `ACTION_EXECUTED` events:
+strict exchange recovers after a lost reply and both SQLite stores reopening,
+without duplicate facts or remote business execution. Journal/receipt failures
+roll back the local action. This does not close producer adoption for Mission,
+Result, Experience or Knowledge, nor migrate existing unsigned events. See
+[signed P05 composition](p05-signed-actions.md).
