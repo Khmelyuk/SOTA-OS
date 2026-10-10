@@ -28,3 +28,5 @@ jobs:
         run: python3 scripts/p09-cli-status-smoke.py
       - name: Signed P10 CLI smoke test
         run: python3 scripts/p10-signed-cli-smoke.py
+      - name: P01 credential lifecycle CLI smoke test
+        run: python3 scripts/p01-credential-cli-smoke.py

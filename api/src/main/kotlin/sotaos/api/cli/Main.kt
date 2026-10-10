@@ -88,6 +88,8 @@ private fun printHelp() {
           consent grant   Display specific consent terms and record only after exact typed confirmation.
           consent revoke Revoke a previously granted consent after exact typed confirmation.
           consent list   List consent records belonging to a Person.
+          auth rotate    Replace own local passphrase: --handle HANDLE [--unit UNIT] [--db PATH].
+          auth revoke    Revoke own local credential: --handle HANDLE [--unit UNIT] [--db PATH].
           auth create    Create a Person, local identity, and local passphrase.
           auth enroll    Bootstrap a local passphrase for an existing Person identity.
           exit leave --handle HANDLE --core CORE_ID --out PATH [--db PATH]

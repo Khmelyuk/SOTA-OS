@@ -1,5 +1,7 @@
 # SOTA OS — Reference Implementation (MVP)
 
+SOTA OS is a collective governance runtime (MVP): a local SQLite-backed CLI node.
+
 Implements the SOTA OS MVP per `docs/adr/` (Implementation Decisions)
 and the source specifications (Architecture Core, Data Model, Protocol
 Architecture, Security/Trust Architecture, Reference Architecture,
@@ -77,16 +79,15 @@ Detekt, migration verification and test suite on pushes and pull requests.
 The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 ([toolchain policy](docs/adr/ADR-007-build-test-toolchain.md)).
 
-Verification on 2026-09-29 in `/home/khmelyuk/SOTA-OS-local`:
-**BUILD + TEST PASSED**.
+[GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
+current build/test status for each commit.
 The full build includes Detekt; no checks were excluded. With JDK 21:
 
 ```bash
 JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 ./gradlew build --continue --console=plain
 ```
 
-The current suite has **209 test cases**, all passing with zero failures,
-errors, or skipped tests. It covers Core Loop, consent, authentication,
+The suite covers Core Loop, consent, authentication,
 architecture invariants, P09 merge/persistence/recovery/validation/atomicity/
 HTTPS, actor-key lifecycle, peer admission, authenticated endpoint handling
 and durable P10 exit. Fourteen SQLite-backed P10 tests replace the three former
@@ -155,6 +156,9 @@ Run the CLI with an explicit database path when needed:
 ./gradlew :api:run --args='consent list --handle local-handle --db /tmp/sota-os.db'
 ./gradlew :api:run --args='consent revoke --handle local-handle --id CONSENT_ID --db /tmp/sota-os.db'
 ```
+
+For local passphrase rotation and revocation, see the
+[P01 credential lifecycle guide](docs/p01-credential-lifecycle.md).
 
 For an existing Person, a trusted local operator can bootstrap the credential
 with `auth enroll --person PERSON_ID --handle HANDLE`. Person IDs and local

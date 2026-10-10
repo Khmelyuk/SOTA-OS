@@ -15,13 +15,19 @@ data class AuthenticationChallenge(
     val expiresAt: Instant
 )
 
-data class AuthenticatedPrincipal(val providerId: String, val providerSubject: String)
+data class AuthenticatedPrincipal(
+    val providerId: String,
+    val providerSubject: String,
+    val credentialRevision: Long? = null
+)
 
 data class AuthenticatedSession(
     val unit: SotaId,
     val person: PersonId,
     val providerId: String,
-    val authenticatedAt: Instant
+    val authenticatedAt: Instant,
+    val providerSubject: String? = null,
+    val credentialRevision: Long? = null
 )
 
 data class LocalCredentialRecord(
@@ -29,7 +35,9 @@ data class LocalCredentialRecord(
     val hashBase64: String,
     val iterations: Int,
     val failedAttempts: Int,
-    val lockedUntil: Instant?
+    val lockedUntil: Instant?,
+    val revision: Long = 1,
+    val revokedAt: Instant? = null
 )
 
 /** Implemented by one adapter per method: local passphrase, OIDC, Diia, e-signature, etc. */
@@ -54,6 +62,8 @@ interface AuthenticationRepository {
         iterations: Int,
         createdAt: Instant
     )
-    fun recordLocalFailure(unit: SotaId, handle: String, lockedUntil: Instant)
+    fun recordLocalFailure(unit: SotaId, handle: String, revision: Long, lockedUntil: Instant)
     fun clearLocalFailures(unit: SotaId, handle: String)
+    /** Recheck after expensive proof verification; clear failures only for the same active revision. */
+    fun confirmLocalCredential(unit: SotaId, handle: String, revision: Long): Boolean
 }

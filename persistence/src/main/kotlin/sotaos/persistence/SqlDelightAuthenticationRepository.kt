@@ -20,7 +20,8 @@ class SqlDelightAuthenticationRepository(private val db: SotaOsDatabase) : Authe
     override fun findLocalCredential(unit: SotaId, handle: String): LocalCredentialRecord? =
         db.schemaQueries.selectLocalCredential(unit.value, normalizeHandle(handle)).executeAsOneOrNull()?.let { row ->
             LocalCredentialRecord(row.salt_base64, row.hash_base64, row.iterations.toInt(),
-                row.failed_attempts.toInt(), row.locked_until?.let(Instant::parse))
+                row.failed_attempts.toInt(), row.locked_until?.let(Instant::parse),
+                row.revision, row.revoked_at?.let(Instant::parse))
         }
 
     override fun enrollLocalCredential(
@@ -40,17 +41,29 @@ class SqlDelightAuthenticationRepository(private val db: SotaOsDatabase) : Authe
             db.schemaQueries.insertLocalCredential(
                 unit.value, normalized, saltBase64, hashBase64, iterations.toLong(), createdAt.toString()
             )
+            db.localCredentialLifecycleQueries.insertCredentialAudit(unit.value, normalized, 1,
+                "ENROLL", null, createdAt.toString())
         }
     }
 
-    override fun recordLocalFailure(unit: SotaId, handle: String, lockedUntil: Instant) {
+    override fun recordLocalFailure(unit: SotaId, handle: String, revision: Long, lockedUntil: Instant) {
         db.schemaQueries.recordLocalFailure(MAX_FAILED_ATTEMPTS, lockedUntil.toString(), unit.value,
-            normalizeHandle(handle))
+            normalizeHandle(handle), revision)
     }
 
     override fun clearLocalFailures(unit: SotaId, handle: String) {
         db.schemaQueries.clearLocalFailures(unit.value, normalizeHandle(handle))
     }
+
+    override fun confirmLocalCredential(unit: SotaId, handle: String, revision: Long): Boolean =
+        db.transactionWithResult {
+            val current = findLocalCredential(unit, handle)
+            if (current == null || current.revision != revision || current.revokedAt != null) false
+            else {
+                clearLocalFailures(unit, handle)
+                true
+            }
+        }
 
     companion object {
         private const val MAX_FAILED_ATTEMPTS = 5L

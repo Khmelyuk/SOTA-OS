@@ -15,7 +15,7 @@ import sotaos.security.RightsConstraintDecorator
 import java.time.Instant
 
 /**
- * Executable subset of tests/architecture_invariants/InvariantTestPlan.md.
+ * Executable subset of docs/traceability.md.
  * See that file for the full plan; tests here are the ones that can be
  * verified against the domain+application layer alone (T1/T2/T4 tier,
  * no real database required).
@@ -123,25 +123,6 @@ class NoAICanonicalizationTest : FunSpec({
         val validated = svc.validateKnowledge(testInvocation(SubjectRef.Person(PersonId("p-1"))), candidate,
             SubjectRef.Person(PersonId("p-1")))
         validated.status shouldBe KnowledgeStatus.VALIDATED
-    }
-})
-
-class PersonNotAccountTest : FunSpec({
-    test("revokeCredential never touches the PersonRepository") {
-        val clock = FixedClock()
-        val ids = SequentialIdGenerator()
-        val persons = InMemoryPersonRepository()
-        val svc = IdentityService(persons, InMemoryIdentityRepository(), clock, ids, TestRightsConstraint)
-
-        val person = svc.createPerson()
-        val credential = Credential(
-            id = "cred-1", account = AccountId("acct-1"),
-            kind = "keypair", issuedAt = clock.now(), revokedAt = null
-        )
-        svc.revokeCredential(testInvocation(SubjectRef.Person(person.id)), credential)
-
-        // Person must still be fully intact and unaffected.
-        persons.findById(person.id) shouldBe person
     }
 })
 

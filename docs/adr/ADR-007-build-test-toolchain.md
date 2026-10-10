@@ -64,8 +64,8 @@ dependency-graph assertion, see `test/architecture_invariants`).
 ## Consequences
 
 - No module may declare a dependency that violates the table above;
-  this is checked in `test/architecture_invariants/ModuleLayeringTest`
-  (dependency-graph inspection at build-config level, not runtime).
+  this is checked by `./gradlew verifyModuleLayering`
+  (`gradle/module-layering.gradle.kts`, actual production dependency declarations).
 - `./gradlew build` is expected to run: compile → detekt → T1 → T2 → T3
   → T4 → acceptance, in that order (source ADR-007 §16 CI pipeline).
 
@@ -116,3 +116,13 @@ timeout and the complete Gradle build remain in place. Gradle setup continues
 to supply caching and wrapper validation. The workflow runs compilation, Detekt,
 migration verification and all tests; the workflow change is verified by its
 GitHub-hosted CI run rather than by adding application tests for YAML text.
+
+## Verification refinement — 2026-10-10
+
+`verifyModuleLayering` is wired into every module's `check`; it verifies the
+production graph without compiling application code. The previously referenced
+ModuleLayeringTest file did not exist and is superseded by this build-level check.
+Test-only dependencies are excluded. T1/T2/T3 placement above remains the target;
+the current tests are still concentrated in `test/`. Moving them is separate work.
+Gradle schedules tasks by dependencies; the build does not enforce the textual
+compile → detekt → T1 → T2 → T3 → T4 ordering claimed above.

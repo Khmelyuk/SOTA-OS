@@ -27,8 +27,9 @@ class AuthenticationVerificationTest : FunSpec({
         override fun findLocalCredential(unit: SotaId, handle: String): LocalCredentialRecord? = null
         override fun enrollLocalCredential(unit: SotaId, handle: String, person: PersonId, saltBase64: String,
             hashBase64: String, iterations: Int, createdAt: Instant) = Unit
-        override fun recordLocalFailure(unit: SotaId, handle: String, lockedUntil: Instant) = Unit
+        override fun recordLocalFailure(unit: SotaId, handle: String, revision: Long, lockedUntil: Instant) = Unit
         override fun clearLocalFailures(unit: SotaId, handle: String) = Unit
+        override fun confirmLocalCredential(unit: SotaId, handle: String, revision: Long) = false
     }
 
     class LocalIdentityMap : AuthenticationRepository {
@@ -48,12 +49,18 @@ class AuthenticationVerificationTest : FunSpec({
             bind(unit, LocalPassphraseAuthenticationProvider.PROVIDER_ID, handle, person, createdAt)
             credentials[unit to handle] = LocalCredentialRecord(saltBase64, hashBase64, iterations, 0, null)
         }
-        override fun recordLocalFailure(unit: SotaId, handle: String, lockedUntil: Instant) {
+        override fun recordLocalFailure(unit: SotaId, handle: String, revision: Long, lockedUntil: Instant) {
             val old = credentials.getValue(unit to handle)
             credentials[unit to handle] = old.copy(
                 failedAttempts = old.failedAttempts + 1,
                 lockedUntil = if (old.failedAttempts + 1 >= 5) lockedUntil else old.lockedUntil
             )
+        }
+        override fun confirmLocalCredential(unit: SotaId, handle: String, revision: Long): Boolean {
+            val current = credentials[unit to handle]
+            if (current == null || current.revision != revision || current.revokedAt != null) return false
+            clearLocalFailures(unit, handle)
+            return true
         }
         override fun clearLocalFailures(unit: SotaId, handle: String) {
             credentials[unit to handle]?.let { credentials[unit to handle] = it.copy(failedAttempts = 0,

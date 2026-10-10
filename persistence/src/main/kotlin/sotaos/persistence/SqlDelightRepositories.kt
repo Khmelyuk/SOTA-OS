@@ -90,6 +90,7 @@ class SqlDelightStore(private val driver: SqlDriver) : AutoCloseable {
             PRIMARY KEY(unit_id, login_handle),
             FOREIGN KEY(unit_id, provider_id, login_handle)
                 REFERENCES authentication_binding(unit_id, provider_id, provider_subject))""", 0)
+        createLocalCredentialLifecycleSchema(driver)
         driver.execute(null, """CREATE TABLE IF NOT EXISTS actor_signing_key (
             actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL, key_id TEXT NOT NULL,
             public_key_base64 TEXT NOT NULL, PRIMARY KEY (actor_kind, actor_id))""", 0)

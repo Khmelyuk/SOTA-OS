@@ -16,7 +16,7 @@ import javax.crypto.spec.PBEKeySpec
 class LocalPassphraseAuthenticationProvider(
     private val repository: AuthenticationRepository,
     private val random: SecureRandom = SecureRandom()
-) : AuthenticationProvider {
+) : AuthenticationProvider, LocalCredentialEncoder {
     override val providerId: String = PROVIDER_ID
 
     override fun begin(unit: SotaId, subjectHint: String?, now: Instant): AuthenticationChallenge {
@@ -64,34 +64,43 @@ class LocalPassphraseAuthenticationProvider(
         val validHash = MessageDigest.isEqual(actual, expected)
         actual.fill(0); expected.fill(0); salt.fill(0)
 
-        if (credential == null || !validHash) {
-            if (credential != null) repository.recordLocalFailure(unit, handle, now.plus(LOCK_DURATION))
+        if (credential == null || credential.revokedAt != null || !validHash) {
+            if (credential != null && credential.revokedAt == null) {
+                repository.recordLocalFailure(unit, handle, credential.revision, now.plus(LOCK_DURATION))
+            }
             return null
         }
-        repository.clearLocalFailures(unit, handle)
-        return AuthenticatedPrincipal(providerId, handle)
+        return if (repository.confirmLocalCredential(unit, handle, credential.revision)) {
+            AuthenticatedPrincipal(providerId, handle, credential.revision)
+        } else null
     }
 
     /** Bootstrap/link operation for a trusted local operator; callers must verify the Person first. */
     fun enroll(unit: SotaId, handle: String, person: PersonId, passphrase: CharArray, now: Instant) {
-        var salt: ByteArray? = null
-        var hash: ByteArray? = null
         try {
             val normalized = SqlDelightAuthenticationRepository.normalizeHandle(handle)
             require(normalized.isNotBlank() && normalized.length <= MAX_HANDLE_LENGTH &&
-                normalized.none { Character.isISOControl(it) }) {
-                "Login handle is invalid."
-            }
+                normalized.none { Character.isISOControl(it) }) { "Login handle is invalid." }
+            require(repository.findLocalCredential(unit, normalized) == null) { "Local handle is already enrolled." }
+            val material = encode(passphrase)
+            repository.enrollLocalCredential(unit, normalized, person, material.saltBase64,
+                material.hashBase64, material.iterations, now)
+        } finally {
+            passphrase.fill('\u0000')
+        }
+    }
+
+    override fun encode(passphrase: CharArray): LocalCredentialMaterial {
+        var salt: ByteArray? = null
+        var hash: ByteArray? = null
+        try {
             require(passphrase.size in MIN_PASSWORD_LENGTH..MAX_PASSWORD_LENGTH) {
                 "Passphrase must contain 12 to 1024 characters."
             }
-            require(repository.findLocalCredential(unit, normalized) == null) { "Local handle is already enrolled." }
             salt = ByteArray(SALT_BYTES).also(random::nextBytes)
             hash = derive(passphrase, salt, PBKDF2_ITERATIONS)
-            repository.enrollLocalCredential(
-                unit, normalized, person, Base64.getEncoder().encodeToString(salt),
-                Base64.getEncoder().encodeToString(hash), PBKDF2_ITERATIONS, now
-            )
+            return LocalCredentialMaterial(Base64.getEncoder().encodeToString(salt),
+                Base64.getEncoder().encodeToString(hash), PBKDF2_ITERATIONS)
         } finally {
             salt?.fill(0); hash?.fill(0); passphrase.fill('\u0000')
         }

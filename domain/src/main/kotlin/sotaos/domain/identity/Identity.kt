@@ -52,6 +52,5 @@ interface IdentityProtocol {
     /** Legacy fail-closed entry point; provider-backed authentication uses application AuthenticationService. */
     @Deprecated("Use provider-backed AuthenticationService; this method always denies")
     fun authenticate(account: AccountId, credential: Credential): Boolean
-    fun rotateCredential(invocation: ProtocolInvocation, old: Credential): Credential
-    fun revokeCredential(invocation: ProtocolInvocation, credential: Credential)
+    // Credential lifecycle requires fresh provider proof and lives in application LocalCredentialLifecycleService.
 }

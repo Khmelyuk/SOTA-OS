@@ -35,6 +35,10 @@ internal fun authenticateIn(
 }
 
 internal fun runAuthCommand(arguments: Arguments) {
+    if (arguments.subcommand in setOf("rotate", "revoke")) {
+        runCredentialCommand(arguments)
+        return
+    }
     val options = arguments.options
     if (arguments.subcommand == "create") {
         val handle = options["handle"]?.takeIf(String::isNotBlank) ?: error("auth create requires --handle.")

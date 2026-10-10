@@ -5,8 +5,8 @@ Per Master Prompt §16. Every row must be answerable; entries left as
 
 | Code Artifact | Architecture Core | Data Model | Protocol | MVP Req | Test |
 |---|---|---|---|---|---|
-| `domain/identity/Identity.kt::Person` | CORE-01 Human Primacy | §5 PERSON | P01 | MVP-01 | `architecture_invariants/PersonNotAccountTest` |
-| `domain/identity/Identity.kt::Account` | CORE-01 | §7 ACCOUNT | P01 | MVP-01 | same |
+| `domain/identity/Identity.kt::Person` | CORE-01 Human Primacy | §5 PERSON | P01 | MVP-01 | `acceptance/PersonAccountIsolationTest` (local provider lifecycle) |
+| `domain/identity/Identity.kt::Account` | CORE-01 | §7 ACCOUNT | P01 | MVP-01 | Domain type only; general Account persistence remains open |
 | `domain/collective/Collective.kt::Core` | CORE-09/10 Self-Organization / Small Core | §22 CORE | P08 (membership) | MVP-03 | `acceptance/AC02_CoreWithoutAdminTest` |
 | `domain/collective/Collective.kt::Sota` | CORE-11 SOTA as Autonomous Unit | §24 SOTA | P08, P11(stub) | — | `architecture_invariants/NonOwnershipTest` |
 | `domain/relation/Relation.kt::Trust` | CORE-05 Trust-based Coordination | §19 TRUST | P02 | MVP-04 | `architecture_invariants/TrustNotScoreTest` |
@@ -247,3 +247,17 @@ Consent, persisted-decision and authority checks remain enforced. Remote receipt
 does not execute an action. This covers new action facts only; the rest of Core
 Loop producer adoption and unsigned history remain open. See
 [signed P05 scope and host contract](p05-signed-actions.md).
+
+### P01 lifecycle and architecture verification — 2026-10-10
+
+LocalCredentialLifecycleService replaces the former no-op credential methods with
+fresh provider proof and current-revision checks. PersonAccountIsolationTest,
+CredentialRaceTest and CredentialMigrationTest demonstrate real verifier changes,
+Person/Identity preservation, rollback, concurrency denial and durable migration.
+The P01 CLI smoke verifies terminal rotation/revocation and secret exclusion.
+See [scope and compatibility](p01-credential-lifecycle.md); general Account lifecycle
+is not claimed complete.
+
+`verifyModuleLayering` inspects actual Gradle project dependency declarations and
+rejects forbidden production edges, unknown modules and cycles. Every module's
+`check` depends on it. Test placement across the ADR-007 T1–T4 tiers remains open.

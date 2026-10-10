@@ -48,15 +48,4 @@ class IdentityService(
         return false
     }
 
-    override fun rotateCredential(invocation: ProtocolInvocation, old: Credential): Credential {
-        rightsConstraint.check(invocation, "P01", "rotateCredential")
-        return old.copy(id = "${old.id}-rotated")
-    }
-
-    override fun revokeCredential(invocation: ProtocolInvocation, credential: Credential) {
-        rightsConstraint.check(invocation, "P01", "revokeCredential")
-        // Revocation touches Account/Credential state only.
-        // Person.findById(...) is NEVER called from this path — this
-        // absence is itself the enforcement of PersonNotAccountTest.
-    }
 }

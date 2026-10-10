@@ -54,3 +54,4 @@ subprojects {
     }
 }
 
+apply(from = "gradle/module-layering.gradle.kts")

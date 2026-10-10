@@ -46,7 +46,8 @@ class AuthenticationService(
             val principal = authenticatePrincipal(canonical, proof)
             val person = identities.findPerson(unit, principal.providerId, principal.providerSubject)
                 ?: throw AuthenticationDeniedException("Authenticated identity is not linked in this Sota unit.")
-            return AuthenticatedSession(unit, person, principal.providerId, now())
+            return AuthenticatedSession(unit, person, principal.providerId, now(),
+                principal.providerSubject, principal.credentialRevision)
         } finally {
             proof.fill('\u0000')
         }

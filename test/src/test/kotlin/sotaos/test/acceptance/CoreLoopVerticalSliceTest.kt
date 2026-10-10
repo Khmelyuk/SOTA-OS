@@ -20,7 +20,7 @@ import sotaos.security.RightsConstraintDecorator
  *   EXPERIENCE -> KNOWLEDGE
  *
  * Each step is also individually labeled with the AC it satisfies, per
- * tests/acceptance/AcceptanceCriteriaMap.md.
+ * docs/traceability.md.
  *
  * Runs against in-memory fakes (T4/acceptance tier per ADR-007) — this
  * proves domain + application correctness; the same scenario against

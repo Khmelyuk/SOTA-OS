@@ -8,7 +8,7 @@ Level: Implementation Decision (NOT Architecture Core)
 
 Architecture Core v0.1 explicitly does not define a programming language,
 runtime, or platform. It requires only that the implementation preserve
-architectural invariants (see `docs/architecture/01_Architecture_Core.md`).
+architectural invariants (see `docs/traceability.md`).
 A choice is nevertheless required to begin Phase 2/3.
 
 ## Decision
