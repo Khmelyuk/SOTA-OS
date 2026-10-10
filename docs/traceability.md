@@ -261,3 +261,15 @@ is not claimed complete.
 `verifyModuleLayering` inspects actual Gradle project dependency declarations and
 rejects forbidden production edges, unknown modules and cycles. Every module's
 `check` depends on it. Test placement across the ADR-007 T1–T4 tiers remains open.
+
+### Reproducible two-node rehearsal — 2026-10-10
+
+`./scripts/two-node-core-loop.sh` adds integrated evidence for AC-12 (offline action
+and exit), AC-13 (strict HTTPS exchange, lost acknowledgement, store/listener restart
+and replay), AC-17 (two local stores without a central service), and AC-18 (signed
+exit stages, verified private export, revocation, closure and termination).
+The fixture checks seven matching signed records and durable cursors on both nodes;
+remote history does not execute business commands. Initial provisioning trust anchors
+and shared Core state are explicit fixtures. This does not claim general production
+bootstrap, physical multi-host deployment, or all Core Loop producers. See the
+[one-command runbook](getting-started.md). CI runs the rehearsal separately from Kotest.

@@ -18,10 +18,11 @@ Recommendations are review input, not replacement architecture requirements.
 | T-11 rights policies | Broader command authorization remains open. Preserve the existing transactional P05 consent/authority checks during any extraction. |
 | T-12 test tiers | Placement remains concentrated in `test/`; ADR-007 now distinguishes current state from target. |
 | T-13 bootstrap audit | Define actor/provenance semantics before introducing a new system subject or unsigned journal producer. |
-| T-14 independent two-node run | Next milestone: documented Core Loop → strict sync → exit, including an explicit provisioning path. Unsigned `demo` cannot simply be exported through strict P09. |
+| T-14 independent two-node run | [Reproducible rehearsal](getting-started.md): Core Loop → strict HTTPS recovery → signed exit, with governed fixture provisioning and separate CLI listener processes. General production bootstrap and physical multi-host deployment remain outside this fixture. |
 | T-15 secret handling | Existing P09/P10 smokes retained; P01 terminal lifecycle and secret exclusion added to CI. NodeMetricsJsonTest already exercises the restricted JSON shape. |
 
-Execution order: verify local P01 lifecycle and module graph, then deliver an
-independently reproducible two-node scenario, then extend signed Core Loop producers.
+Completed milestones: local P01 lifecycle, module graph verification, and the
+independently reproducible two-node rehearsal. Next: extend signed Core Loop producers
+beyond action facts, starting with Result and its causal link to the action.
 The review's estimates and blanket prohibition on new ADRs were not adopted as
 requirements. Schema/protocol decisions still require the project's usual reasoning.

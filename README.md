@@ -8,6 +8,9 @@ Architecture, Security/Trust Architecture, Reference Architecture,
 Memory & Knowledge Architecture, Agent/AI Architecture, MVP
 Specification, Traceability Matrix, ADR-007).
 
+Run the [two-node Core Loop rehearsal](docs/getting-started.md) with JDK 21:
+`./scripts/two-node-core-loop.sh` verifies signed actions, HTTPS recovery and signed exit.
+
 ## Status: Phase 3 — Core Loop, local CLI and P09 reconciliation slice
 
 What exists and is source-complete:
