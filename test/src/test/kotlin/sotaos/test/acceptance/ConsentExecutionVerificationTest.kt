@@ -69,6 +69,7 @@ class ConsentExecutionVerificationTest : FunSpec({
         val consentService = ConsentService(consentRepo, TestRightsConstraint, clock, ids)
         val service = MissionActionService(
             InMemoryMissionRepository(), decisions, object : ActionRepository {
+                override fun findById(id: ActionId): Action? = actions.find { it.id == id }
                 override fun save(action: Action): Action { actions.add(action); return action }
             }, InMemoryResultRepository(), authorityRepo, object : EventStore {
                 override fun append(event: sotaos.domain.memory.Event): sotaos.domain.memory.Event {

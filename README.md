@@ -42,8 +42,9 @@ What exists and is source-complete:
   Conflicted local authorities cannot be used by P05. `protocol/` provides
   P09 JSON codecs; the HTTPS client and bounded production-runtime pilot host
   are integration-tested ([runbook](docs/p09-https-pilot.md)). See [P09 scope and composition](docs/p09-sync.md).
-- Opt-in [signed P05 actions](docs/p05-signed-actions.md) atomically persist
-  `ACTION_EXECUTED` facts with canonical signatures and P09 verification receipts.
+- Opt-in [signed P05 Actions and Results](docs/p05-signed-actions.md) atomically persist
+  `ACTION_EXECUTED` and causally linked `RESULT_RECORDED` facts with canonical signatures
+  and P09 verification receipts.
 - `test/` — executable Kotest tests: the full Core Loop scenario
   (`acceptance/CoreLoopVerticalSliceTest`) plus architecture-invariant
   tests (no action without authority, event append-only, no AI

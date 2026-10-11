@@ -103,8 +103,18 @@ Result, Experience or Knowledge, nor migrate existing unsigned events. See
 and exit), AC-13 (strict HTTPS exchange, lost acknowledgement, store/listener restart
 and replay), AC-17 (two local stores without a central service), and AC-18 (signed
 exit stages, verified private export, revocation, closure and termination).
-The fixture checks seven matching signed records and durable cursors on both nodes;
+The fixture checks eight matching signed records and durable cursors on both nodes;
 remote history does not execute business commands. Initial provisioning trust anchors
 and shared Core state are explicit fixtures. This does not claim general production
 bootstrap, physical multi-host deployment, or all Core Loop producers. See the
 [one-command runbook](getting-started.md). CI runs the rehearsal separately from Kotest.
+
+### Signed Result producer — 2026-10-11
+
+`SignedResultTest` connects persisted P05 Results to canonical `RESULT_RECORDED`
+events with the signed Action as causal parent (AC-09 traceability and AC-13 recovery).
+It verifies strict sync after lost response/reopen without remote business execution,
+current-key binding after Action-key rotation, exact persisted-Action validation,
+rights enforcement and atomic rollback. The HTTPS rehearsal now exchanges Action,
+Result and six P10 stages. Experience/Knowledge producers and legacy unsigned
+history remain outside this change. See [P05 producer contract](p05-signed-actions.md).

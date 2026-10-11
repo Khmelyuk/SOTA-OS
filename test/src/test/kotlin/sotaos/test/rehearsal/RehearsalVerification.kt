@@ -63,4 +63,4 @@ private fun countRows(statement: java.sql.Statement, table: String): Long =
         rows.getLong(1)
     }
 
-private const val FINAL_RECORDS = 7
+private const val FINAL_RECORDS = 8

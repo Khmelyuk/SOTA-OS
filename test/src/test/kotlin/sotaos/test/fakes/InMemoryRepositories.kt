@@ -90,6 +90,7 @@ class InMemoryDecisionRepository : DecisionRepository {
 
 class InMemoryActionRepository : ActionRepository {
     private val store = mutableListOf<Action>()
+    override fun findById(id: ActionId): Action? = store.lastOrNull { it.id == id }
     override fun save(action: Action): Action { store.add(action); return action }
 }
 

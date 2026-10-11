@@ -309,6 +309,14 @@ class SqlDelightActionRepository(private val db: SotaOsDatabase) : ActionReposit
             action.mode.name, action.target)
         return action
     }
+
+    override fun findById(id: ActionId): DomainAction? = db.schemaQueries.selectActionById(id.value)
+        .executeAsOneOrNull()?.let { row ->
+            DomainAction(ActionId(row.action_id), ValueJsonMapping.subject(row.actor_kind, row.actor_id),
+                AuthorityId(row.authority_ref), row.decision_ref?.let(::DecisionId),
+                JsonMapping.context(row.context_json), Instant.parse(row.timestamp), Mode.valueOf(row.mode), row.target)
+        }
+
 }
 
 class SqlDelightResultRepository(private val db: SotaOsDatabase) : ResultRepository {

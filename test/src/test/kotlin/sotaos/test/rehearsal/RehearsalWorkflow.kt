@@ -60,13 +60,13 @@ internal fun executeCoreLoop(node: RehearsalNode, core: Core): Decision = node.l
     val decision = runtime.decide(invocation, node.actor, mission.id, authority.id, "rehearsal.execute", emptyList())
     val action = runtime.execute(invocation, decision)
     runtime.recordResult(invocation, action, Outcome.SUCCESS, "Offline action succeeded")
-    val event = repositories.events.findByActor(node.actor).single()
+    val event = repositories.events.findByActor(node.actor).single { it.type == "RESULT_RECORDED" }
     val memory = MemoryService(repositories.experiences, repositories.knowledge,
         rehearsalClock, rehearsalIds, rehearsalRights)
     val experience = memory.createExperience(invocation, listOf(event), "Offline result", "Rehearsal only")
     val knowledge = memory.proposeKnowledgeCandidate(invocation, experience, "Signed action recorded offline")
     check(repositories.knowledge.findById(knowledge.id) == knowledge)
-    val record = SqlDelightSyncRepository(store.database, JsonSyncRecordCodec()).records().single()
+    val record = SqlDelightSyncRepository(store.database, JsonSyncRecordCodec()).records().last()
     runtime.sync.integrity.check(record)
     check(node.signer.verify(record.event.contentHash, requireNotNull(record.event.signature)))
     decision

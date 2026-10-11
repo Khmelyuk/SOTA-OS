@@ -57,6 +57,7 @@ interface DecisionRepository {
 
 interface ActionRepository {
     fun save(action: Action): Action
+    fun findById(id: ActionId): Action?
 }
 
 interface ResultRepository {

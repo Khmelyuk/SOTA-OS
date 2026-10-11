@@ -22,7 +22,7 @@ Recommendations are review input, not replacement architecture requirements.
 | T-15 secret handling | Existing P09/P10 smokes retained; P01 terminal lifecycle and secret exclusion added to CI. NodeMetricsJsonTest already exercises the restricted JSON shape. |
 
 Completed milestones: local P01 lifecycle, module graph verification, and the
-independently reproducible two-node rehearsal. Next: extend signed Core Loop producers
-beyond action facts, starting with Result and its causal link to the action.
+independently reproducible two-node rehearsal. Signed Result production and its causal Action link are now implemented and covered
+by the rehearsal. Next: review and extend Experience/Knowledge event producers.
 The review's estimates and blanket prohibition on new ADRs were not adopted as
 requirements. Schema/protocol decisions still require the project's usual reasoning.

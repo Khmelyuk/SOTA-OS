@@ -211,9 +211,11 @@ class MissionActionService(
     }
 
     override fun recordResult(invocation: ProtocolInvocation, action: Action, outcome: Outcome,
-        description: String): Result {
+        description: String): Result = authorities.transaction {
+        require(actions.findById(action.id) == action) { "Result requires the exact persisted Action." }
         require(invocation.actor == action.actor) { "Result author must match action actor." }
-        rightsConstraint.check(invocation, "P05", "recordResult", authority = authorities.findById(action.authority))
+        rightsConstraint.check(invocation.copy(context = action.context), "P05", "recordResult",
+            authority = authorities.findById(action.authority))
         val result = Result(
             id = ResultId(ids.next()),
             action = action.id,
@@ -221,7 +223,7 @@ class MissionActionService(
             outcome = outcome,
             timestamp = clock.now()
         )
-        return results.save(result)
+        results.save(result)
     }
 
     private fun recordActionEvent(

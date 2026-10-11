@@ -23,7 +23,7 @@ fun main() {
     val tokenForB = a.enroll(b, core.id)
     val tokenForA = b.enroll(a, core.id)
     val decision = executeCoreLoop(a, core)
-    println("PASS offline Core Loop: signed action, Result, Experience, Knowledge")
+    println("PASS offline Core Loop: signed action and Result, local Experience and Knowledge")
     RehearsalTls(directory).use { tls ->
         tls.client("b").use { client -> recoverLostReply(a, b, tls, client, tokenForA) }
         val receipt = leaveCore(a, core, decision, directory.resolve("exit.json"))
@@ -44,7 +44,7 @@ fun main() {
     val report = """
         PASS two-node Core Loop -> strict HTTPS P09 -> signed P10 exit
         Wrong bearer rejected; lost acknowledgement recovered after restart.
-        Both journals: 7 identical signed records; both checkpoints: sent=7 received=7.
+        Both journals: 8 identical signed records; both checkpoints: sent=8 received=8.
         Exit export SHA-256 verified; permissions 0600; authority revoked; membership terminated.
         Remote facts did not execute actions or mutate the receiving node's Core membership.
         Fixture-only bootstrap; ephemeral credentials and TLS keys are not retained for reuse.
@@ -78,15 +78,15 @@ private fun recoverLostReply(
         check(SqlDelightSyncRepository(store.database, JsonSyncRecordCodec()).checkpoint(b.id) == PeerCheckpoint())
     }
     b.access { store, _ ->
-        check(SqlDelightSyncRepository(store.database, JsonSyncRecordCodec()).records().size == 1)
+        check(SqlDelightSyncRepository(store.database, JsonSyncRecordCodec()).records().size == 2)
     }
     RehearsalServer(b, tls, client).use { server ->
         repeat(EXCHANGES) {
             a.access { store, _ -> a.runtime(store).synchronize(b.id, transport(b, server, client, token)) }
         }
     }
-    checkJournal(a, b, 1)
-    checkJournal(b, a, 1, sent = 0)
+    checkJournal(a, b, 2)
+    checkJournal(b, a, 2, sent = 0)
     println("PASS strict P09: wrong bearer denied, lost reply recovered after SQLite and listener restart")
 }
 

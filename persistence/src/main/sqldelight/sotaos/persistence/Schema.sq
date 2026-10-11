@@ -402,3 +402,6 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 insertKnowledge:
 INSERT INTO knowledge(knowledge_id, statement, derived_experience_json, evidence_json, context_json, status, version, supersedes, provenance_json, validated_by_kind, validated_by_id)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectActionById:
+SELECT * FROM action WHERE action_id = ?;

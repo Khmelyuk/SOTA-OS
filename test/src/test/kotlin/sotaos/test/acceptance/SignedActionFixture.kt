@@ -46,9 +46,10 @@ internal class SignedActionFixture : AutoCloseable {
     }
 
     fun runtime(node: String = "source", signingKey: EventSigner = signer,
-        actors: Set<SubjectRef> = setOf(actor)) = SignedP05Runtime(store,
+        actors: Set<SubjectRef> = setOf(actor),
+        rights: RightsConstraint = RightsConstraintDecorator(listOf(NoAgentActionRule))) = SignedP05Runtime(store,
         LocalSyncIdentity(SotaId(node), actors), Context("governance"), Clock { now },
-        IdGenerator { UUID.randomUUID().toString() }, { signingKey })
+        IdGenerator { UUID.randomUUID().toString() }, { signingKey }, rights)
 
     fun decision(runtime: SignedP05Runtime, affected: List<PersonId> = emptyList()) = runtime.decide(
         invocation, actor, runtime.formMission(invocation, actor, "Work", Mode.CREATION).id,

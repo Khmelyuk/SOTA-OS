@@ -25,19 +25,21 @@ class SignedP05Runtime(
     private val repositories = SqlDelightRepositories(store.database)
     private val events = object : EventStore by repositories.events {
         override fun append(event: Event): Event {
-            require(event.type == "ACTION_EXECUTED" && event.signature == null)
+            require(event.type in setOf("ACTION_EXECUTED", "RESULT_RECORDED") && event.signature == null)
             require(event.actor in local.actors && event.actor !is SubjectRef.Agent)
             val verifier = requireNotNull(ActorKeyDirectory.fromRecords(repositories.actorSigningKeys.findAll())
-                .signerFor(event.actor)) { "Provision the actor public key before executing a signed action." }
-            val record = sync.integrity.sign(SyncRecord(event, local.node), signers(event.actor))
+                .signerFor(event.actor)) { "Provision the actor public key before recording a signed P05 fact." }
+            val unsigned = SyncRecord(event, local.node, setOfNotNull(event.provenance.sourceEventId))
+            val record = sync.integrity.sign(unsigned, signers(event.actor))
             require(verifier.verify(record.event.contentHash, requireNotNull(record.event.signature))) {
-                "Action signer does not match the current actor key."
+                "P05 signer does not match the current actor key."
             }
-            // Same database and outer P05 transaction: action, event, journal and receipt commit together.
+            // The outer P05 transaction commits the entity, event, journal and receipt together.
             sync.recordLocal(record)
             return record.event
         }
     }
+    private val resultRecording = SignedResultRecording(store, local, events, ids)
     private val service = MissionActionService(
         repositories.missions, repositories.decisions, repositories.actions, repositories.results,
         repositories.authorities, events, AuthorityLineage(repositories.authorities)::isValid,
@@ -66,6 +68,6 @@ class SignedP05Runtime(
 
     override fun recordResult(invocation: ProtocolInvocation, action: Action, outcome: Outcome,
         description: String): Result = store.withLocalAccess {
-        service.recordResult(invocation, action, outcome, description)
+        resultRecording.record(action) { service.recordResult(invocation, action, outcome, description) }
     }
 }
