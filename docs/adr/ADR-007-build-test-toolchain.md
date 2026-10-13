@@ -41,8 +41,8 @@ sota-os/
 ├── persistence/     depends on domain+application (SQLDelight adapters)
 ├── security/        depends on domain+application (Rights/Dignity decorator)
 ├── sync/             depends on domain+application+protocol (P09)
-├── agent/            depends on domain+application (registration only)
-├── api/               composition root; depends on application+protocol+persistence+security+sync
+├── agent/            depends on domain+application (human-invoked research; no AGENT execution)
+├── api/               composition root; depends on application+protocol+persistence+security+sync+agent (ADR-018)
 └── test/               depends on ALL modules (T4 conformance + acceptance)
 ```
 
@@ -126,3 +126,9 @@ Test-only dependencies are excluded. T1/T2/T3 placement above remains the target
 the current tests are still concentrated in `test/`. Moving them is separate work.
 Gradle schedules tasks by dependencies; the build does not enforce the textual
 compile → detekt → T1 → T2 → T3 → T4 ordering claimed above.
+
+## Research composition amendment — ADR-018
+
+The API composition root additionally depends on `agent` for human-invoked
+research CLI commands. No Agent Action runtime is enabled. All other production
+edges and the nine-module layout are unchanged. See ADR-018.

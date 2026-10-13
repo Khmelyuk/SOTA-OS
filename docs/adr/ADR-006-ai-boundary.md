@@ -56,3 +56,11 @@ zero executable capability is granted.
 The stub is intentionally inert; enabling real AGENT execution is a
 Phase 5 decision requiring its own ADR and its own explicit human
 authorization step, not an automatic unlock.
+
+## Human-invoked research composition — ADR-018
+
+The local research workspace is invoked by an authenticated Person with scoped,
+revocable authority. It stores candidate evidence and reviewed drafts only. It does
+not instantiate an AGENT principal, execute Actions, publish externally or validate
+canonical Knowledge. The domain stub and its execution restrictions remain intact.
+See [ADR-018](ADR-018-human-invoked-research-cli.md).

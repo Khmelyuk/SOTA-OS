@@ -198,3 +198,11 @@ documents local receipts; [ADR-016](docs/adr/ADR-016-historical-record-approval.
 adds independently governed approval of one exact historical record on a new node.
 It preserves current keys and peer policy, with immutable audit and revocation.
 See the [historical recovery guide](docs/p09-historical-recovery.md).
+
+## SOTA Research Agent
+
+Local human-invoked candidate knowledge, public discussion ingestion, provenance,
+Ukrainian reports and reviewed drafts are available in the existing `agent` module.
+The local `research` CLI is enabled under ADR-018. See [Research Agent README](agent/README.md)
+for first-run commands, authorization, limits and tests.
+External publication is disabled; A21 remains draft.

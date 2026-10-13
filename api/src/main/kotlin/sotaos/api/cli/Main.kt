@@ -19,6 +19,7 @@ fun main(args: Array<String>) {
         "auth" -> runAuthCommand(parsed)
         "exit" -> runExitCommand(parsed)
         "sync" -> runSyncCommand(parsed)
+        "research" -> runResearchCommand(parsed)
         else -> {
             System.err.println("Unknown command: ${parsed.command}")
             printHelp()
@@ -114,6 +115,10 @@ private fun printHelp() {
           sync run|serve|once --config PATH
                  Load versioned non-secret node settings; no CLI overrides. Secrets remain in environment.
                  Optional config field reload-config=true reloads scheduling at each status interval.
+          research setup --handle HANDLE [--db PATH]
+                 Create a new local research Core and a 24-hour research authority after confirmation.
+          research import|search|argument|report|draft|approve|fetch-moltbook|revoke
+                 --handle HANDLE --authority ID [--db PATH]. See agent/README.md for file formats.
           help   Show this help.
 
         The default database path is ${'$'}XDG_DATA_HOME/sota-os/sota-os.db,

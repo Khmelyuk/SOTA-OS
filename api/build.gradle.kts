@@ -10,6 +10,8 @@ dependencies {
     implementation(project(":persistence"))
     implementation(project(":security"))
     implementation(project(":sync"))
+    implementation(project(":agent"))
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("app.cash.sqldelight:sqlite-driver:2.0.2")
 }
 

@@ -11,7 +11,7 @@ val verifyModuleLayering = tasks.register("verifyModuleLayering") {
             ":security" to setOf(":domain", ":application"),
             ":sync" to setOf(":domain", ":application", ":protocol"),
             ":agent" to setOf(":domain", ":application"),
-            ":api" to setOf(":domain", ":application", ":protocol", ":persistence", ":security", ":sync"),
+            ":api" to setOf(":domain", ":application", ":protocol", ":persistence", ":security", ":sync", ":agent"),
             ":test" to rootProject.subprojects.map { it.path }.toSet() - ":test"
         )
         check(rootProject.subprojects.map { it.path }.toSet() == allowed.keys) {

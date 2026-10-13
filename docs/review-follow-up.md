@@ -12,7 +12,7 @@ Recommendations are review input, not replacement architecture requirements.
 | T-05 credential persistence | Existing local provider now supports real rotate/revoke with revisions and immutable audit. General Account persistence and status lifecycle remain open; no parallel authentication store added. |
 | T-06 Person isolation | No-op-based test removed; SQLite authentication, rotation, revocation and reopen tested in PersonAccountIsolationTest. |
 | T-07 Trust/Competence | Review storage coverage and source rules before changing AuthorityBasis eligibility. Not completed by this change. |
-| T-08 agent module | Keep the explicit deferred/inert status; do not invent registry behavior or remove a binding module without a source decision. |
+| T-08 agent module | ADR-018 adds a human-invoked candidate-only research workspace and CLI. The domain Agent stub, autonomous execution and registry remain deferred under ADR-006. |
 | T-09 action vocabulary | Evaluate separately against extensible action/scope semantics; do not impose an unreviewed closed vocabulary. |
 | T-10 event immutability | SQLite update/delete denial triggers already exist. Further review of direct-SQL/correction coverage remains open. |
 | T-11 rights policies | Broader command authorization remains open. Preserve the existing transactional P05 consent/authority checks during any extraction. |

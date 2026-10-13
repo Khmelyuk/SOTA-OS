@@ -283,3 +283,35 @@ current-key binding after Action-key rotation, exact persisted-Action validation
 rights enforcement and atomic rollback. The HTTPS rehearsal now exchanges Action,
 Result and six P10 stages. Experience/Knowledge producers and legacy unsigned
 history remain outside this change. See [P05 producer contract](p05-signed-actions.md).
+
+### Research workspace — 2026-10-11
+
+`agent/research` is an isolated, human-invoked observe/propose component under
+ADR-006; ADR-018 extends the ADR-007 graph only with api → agent. A01–A20 remain the constitutional
+baseline; A21 remains draft. ResearchAuthorization uses ADR-009 provider proof,
+current actor-bound scoped authority, AuthorityLineage and the required rights
+constraint. ResearchJournal preserves source revisions, provenance and local audit;
+all knowledge remains candidate. Immutable draft approval binds exact SHA-256
+and does not publish or authorize an Action. Moltbook rejects regional blocking
+without alternate routes. `ResearchAgentTest` verifies provider replay/proof clearing,
+revocation/scope/expiry, restart/deduplication, evidence, approval and blocked ingestion.
+The journal is not canonical P06/P09 history; GUI and LLM extraction remain open.
+The local CLI is implemented under ADR-018 below.
+See [research scope and host contract](../agent/README.md).
+
+### Research CLI composition — 2026-10-11
+
+ADR-018 allows only the additional api → agent edge. Research CLI uses fresh
+provider proof, existing RightsConstraint and AuthorityLineage for every command.
+A confirmed new single-founder Core bootstraps a 24-hour bounded grant with a
+human-attributed setup Event. Voluntary own-grant surrender cascades revocation
+and records human audit without changing P04's issuer-only revoke contract.
+Exact draft preview/hash confirmation stays draft-only. The terminal smoke covers
+setup cancellation, credentials, import/deduplication, evidence, private reports,
+review cancellation/approval and durable denial after surrender. No live Moltbook
+or external publication occurs. GUI and LLM extraction remain open.
+
+Research completion checks also cover Sota-unit-scoped grants for the same Person,
+revocation from another SQLite connection during draft confirmation, and a body that stalls after HTTP headers.
+Only fixture/local-loopback transports are exercised; live Moltbook schema remains
+unverified. The research database is separate from the signed P09 rehearsal database.
