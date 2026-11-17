@@ -72,6 +72,9 @@ class MissionActionService(
         val requestedScope = personImpactScope(chosen, affectedPersons)
         val authorityForDecision = authorities.findById(authority)
             ?: throw ActionNotAuthorizedException("No such Authority ${authority.value}.")
+        if (authorityForDecision.subject != subject) {
+            throw ActionNotAuthorizedException("Authority must belong to the decision subject.")
+        }
         if (authorityForDecision.context.mission != null && authorityForDecision.context.mission != mission) {
             throw ActionNotAuthorizedException("Authority context does not cover mission ${mission.value}.")
         }

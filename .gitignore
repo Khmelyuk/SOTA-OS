@@ -2,6 +2,7 @@
 .gradle/
 .kotlin/
 .idea/
+.venv/
 **/build/
 *.iml
 

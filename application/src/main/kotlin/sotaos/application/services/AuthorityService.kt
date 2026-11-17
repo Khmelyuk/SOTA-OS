@@ -82,8 +82,10 @@ class AuthorityService(
             validity, accountableTo, LifecycleState.ACTIVE, parentAuthorityId)
         require(authorities.findById(requested.id) == null) { "Authority ID is already in use." }
         val parent = selectParent(requested)
+        require(validity.until?.isAfter(clock.now()) != false) { "Authority validity has already expired." }
 
-        rightsConstraint.check(invocation, "P04", "grant", subject, scope = scope, context = context)
+        rightsConstraint.check(invocation, "P04", "grant", subject, authority = parent,
+            scope = scope, context = context)
         authorities.save(requested.copy(parentAuthorityId = parent?.id))
     }
 

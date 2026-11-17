@@ -11,7 +11,7 @@ Specification, Traceability Matrix, ADR-007).
 Run the [two-node Core Loop rehearsal](docs/getting-started.md) with JDK 21:
 `./scripts/two-node-core-loop.sh` verifies signed actions, HTTPS recovery and signed exit.
 
-## Status: Phase 3 — Core Loop, local CLI and P09 reconciliation slice
+## Status: Phase 3 — signed Core Loop, P09 node, P10 exit and Research CLI
 
 What exists and is source-complete:
 
@@ -45,6 +45,10 @@ What exists and is source-complete:
 - Opt-in [signed P05 Actions and Results](docs/p05-signed-actions.md) atomically persist
   `ACTION_EXECUTED` and causally linked `RESULT_RECORDED` facts with canonical signatures
   and P09 verification receipts.
+- P04 delegation records and validates the complete ancestor chain, with
+  atomic cascade revocation under [ADR-013](docs/adr/ADR-013-delegation-lineage.md).
+  New grants reject already expired validity windows. P05 decision creation
+  checks that the acting subject holds the referenced authority.
 - `test/` — executable Kotest tests: the full Core Loop scenario
   (`acceptance/CoreLoopVerticalSliceTest`) plus architecture-invariant
   tests (no action without authority, event append-only, no AI
@@ -85,6 +89,13 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
+Local integration verification on 2026-11-17: the full build, Detekt and
+module-layering checks passed with **263 tests** (zero failures, errors or
+skips). P09 status, signed P10, credential lifecycle and Research CLI smoke
+scenarios and the two-node signed Core Loop rehearsal also passed.
+This verifies the integrated local tree; the CI link
+above records the result for each published commit.
+
 The full build includes Detekt; no checks were excluded. With JDK 21:
 
 ```bash
@@ -141,11 +152,15 @@ authentication port and per-Sota provider allowlist are described in
 [ADR-009](docs/adr/ADR-009-provider-based-authentication.md). Only the local
 provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
-Follow with:
+The next increments, reconciled with GitHub `main` on 2026-11-17, are recorded
+in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
+admission, signatures and HTTPS hosting are already implemented. Continue with:
 
-1. Extend node operations with automated certificate renewal and broader configuration lifecycle support, additional signed producer adoption and automatic historical
+1. Add signed Experience/Knowledge event producers with persisted source
+   validation, causal links, atomic journal/receipt writes and two-node tests.
+2. Extend node operations with automated certificate renewal and broader configuration lifecycle support, additional signed producer adoption and automatic historical
    attestations using the [source-to-test mapping](docs/ac-p09-mapping.md).
-2. Extend P10 beyond the typed local Trust/Agreement inventory to multiparty consent
+3. Extend P10 beyond the typed local Trust/Agreement inventory to multiparty consent
    and additional settlement policies ([ADR-014](docs/adr/ADR-014-relation-inventory.md));
    recorded delegation cascades, the durable local AC-18 slice and opt-in
    SignedP10Runtime producer are implemented. The CLI supports explicit signed exit with a provisioned Ed25519 key; unsigned local mode remains the default.

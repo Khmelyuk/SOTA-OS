@@ -34,6 +34,13 @@ parent and every ancestor must currently be ACTIVE and time-valid; an expired,
 future, suspended, contested, missing or cyclic ancestor denies authorization.
 All new IDs must be unused.
 
+Integration hardening on 2026-11-17: all newly issued grants, including roots,
+reject a finite end at or before the current instant as well as empty/reversed
+windows. Future-start grants remain allowed, but cannot be used before their
+start. The selected parent is supplied to the RightsConstraint for delegation.
+P05 checks that the decision subject is the authority holder before policy
+evaluation or persistence, in addition to its existing execution-time check.
+
 AuthorityLineage validates iteratively and reloads stored records, so stale or
 forged snapshots cannot authorize work. P04 grant/isValid, P05 decision/execution,
 P08 removal, P09 provisioning and P10 export/fulfillment governance check lineage.

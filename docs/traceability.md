@@ -1,5 +1,11 @@
 # Traceability Matrix — Code ↔ Specification
 
+Integration review 2026-11-17: `AuthorityGrantBoundaryTest`,
+`AuthorityRevocationBoundaryTest`, `DecisionAuthorityOwnerTest` and
+`SqlDelightAuthorityBoundaryTest` add 14 regressions for validity/accountability,
+stored revocation terms, decision ownership and SQLite reopen. The current
+development order is recorded in [roadmap](roadmap.md).
+
 Per Master Prompt §16. Every row must be answerable; entries left as
 `TBD` block Phase 3 completion for that component.
 
