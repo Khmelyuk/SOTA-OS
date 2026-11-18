@@ -17,6 +17,8 @@ The previous local plan is superseded by this review of the integrated code.
   human validation/deprecation, and a reproducible two-node HTTPS rehearsal.
 - P08 persisted invitations, target-collective issuance, exact-record lifecycle
   checks, scoped removal and atomic Core/founder creation (ADR-020).
+- Opt-in authenticated Core invitation/acceptance with explicit representative
+  mandate, unit/recipient scope, current lineage and atomic human audit (ADR-021).
 - JDK 21 CI with module graph checks, Detekt, tests and CLI smoke scenarios.
 - Local credential lifecycle and a human-invoked, candidate-only Research CLI
   (ADR-018). Research draft approval does not publish externally.
@@ -43,7 +45,7 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 | Order | Increment | Evidence required before completion |
 |---|---|---|
 | Done 2026-11-18 | Signed P07 Experience/Knowledge producers | Exact persisted source checks, full signed snapshots, causal parents, local non-Agent governance, atomic entity/Event/journal/receipt writes; SignedMemory acceptance tests and ten-record HTTPS rehearsal. Host authentication remains required; see ADR-019 |
-| 2 — in progress | Remaining command authorization and source conformance | Command audit and persisted P08 admission implemented under ADR-020. Remaining: authenticated collective mandates/root eligibility, delegated invitations and P05/P07 conformance; no acceptance claim based only on a caller-supplied SubjectRef |
+| 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission and authenticated delegated Core invitation/acceptance implemented under ADR-020/021. Remaining: initial collective mandate/root eligibility, broader representation and P05/P07 conformance |
 | 3 | P09 operational lifecycle | Governed certificate renewal and configuration changes, old/new material recovery, failure diagnostics and deployment runbooks; automated historical attestations only with explicit provenance policy |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
 | 5 | Broader persistence and release acceptance | Versioned migration fixtures, missing conformance tests, review of public API/GUI scope, and recorded CI/rehearsal evidence for the selected release |
@@ -60,5 +62,7 @@ existing source review backlog.
 
 The [command authorization audit](command-authorization.md) maps each command
 group to its actor/authority checks and executable evidence. The next bounded
-review is collective representation/root standing, followed by P05 mission
-admission and P07 validation mandates against the source specifications.
+review is initial collective mandate/root standing and broader representation,
+followed by P05 mission admission and P07 validation mandates. ADR-021 records
+the original Protocol and Security PDF constraints reviewed for the bounded
+admission host; it does not claim to define the missing collective decision protocol.

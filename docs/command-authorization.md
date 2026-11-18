@@ -28,6 +28,7 @@ actor's identity or automatically supply missing authority.
 | P08 createCore | Invoking Person is founder; rights check; Core and founding membership commit together | MembershipAuthorizationTest, Core Loop; founder receives membership, no implicit owner authority |
 | P08 invite | Authenticated target Core/Sota invocation only; rights check; unused membership terms saved as PROPOSED | MembershipLifecycleTest; delegated invitations and collective decision/representation rules remain open |
 | P08 accept | Invited Person; exact persisted PROPOSED record, no end, clock at/after start; rights check | MembershipLifecycleTest, MembershipPersistenceTest; unrecorded invitations must be reissued |
+| P08AdmissionRuntime invite/accept | Fresh local proof, Person derived from unit binding; representative holds current Core/unit/recipient mandate with recorded target-Core root; invitee separately authenticates; mandate rechecked at acceptance; atomic human audit | AuthenticatedAdmissionTest, AdmissionAuthorityTest, AdmissionAtomicityTest; ADR-021 consumes existing mandates, does not issue roots or represent arbitrary collective commands |
 | P08 leave | Member Person; exact persisted ACTIVE record and valid transition; rights check | MembershipLifecycleTest; membership-only transition, not P10 export/settlement or authority revocation |
 | P08 remove | Exact ACTIVE record plus ADR-008 actor-bound, collective-scoped current authority and full lineage; rights check | MembershipAuthorizationTest, DelegationEnforcementTest; no authority inferred from a role |
 | P09 peer/key/historical provisioning | Independent actor-bound authority, configured context, exact operation/resource, current lineage and rights check | ProvisioningGovernanceTest, HistoricalApprovalTest; initial trust anchors remain explicit host setup |
@@ -50,10 +51,16 @@ persisted invitations, direct target-collective issuance, exact current records,
 legal lifecycle transitions and shared SQLite transactions. This does not
 establish a complete collective governance/authentication protocol.
 
+[ADR-021](adr/ADR-021-authenticated-core-admission.md) adds a concrete authenticated
+host for delegated Core invitation and acceptance. It consumes a scoped existing
+mandate and records the human representative rather than accepting a claimed Core
+actor at its public boundary. Original Protocol/Security constraints were reviewed
+and mapped in that ADR; initial root-grant legitimacy remains unresolved.
+
 ## Next review slices
 
-1. Specify and implement authenticated representation of an existing Core/Sota,
-   collective mandate/root eligibility and delegated invitation rules. Reuse the
+1. Specify initial collective mandate/root eligibility and broader representation
+   beyond ADR-021's authenticated delegated Core invitations. Reuse the
    confirmed single-founder Research bootstrap only within its ADR-018 scope.
 2. Review P05 mission existence/participation and P07 validation mandates against
    the original specifications; add concrete source-to-test mappings before

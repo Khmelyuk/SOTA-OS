@@ -55,6 +55,11 @@ invitation cancellation, delegated invitations, collective identity verification
 and complete admission policy remain separate work. Existing stored memberships
 are trusted local data; this change does not reconstruct their historical approval.
 
+[ADR-021](ADR-021-authenticated-core-admission.md) subsequently adds an opt-in host
+with fresh representative/invitee authentication and scoped delegated Core invitations.
+It preserves this lower-level persisted-record contract and leaves initial collective
+mandates and general representation open.
+
 ## Evidence
 
 MembershipLifecycleTest covers fabricated/stale/altered records, issuer and

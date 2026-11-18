@@ -1,5 +1,13 @@
 # Traceability Matrix — Code ↔ Specification
 
+Authenticated admission update 2026-11-18: `P08AdmissionRuntime` connects P01
+provider proof to P04 scoped representation and P08 explicit agreement. Original
+Protocol §7/§11 and Security §§13–14/22/29 constraints, pages and fingerprints are
+mapped in [ADR-021](adr/ADR-021-authenticated-core-admission.md). AuthenticatedAdmissionTest,
+AdmissionAuthorityTest and AdmissionAtomicityTest verify proof/replay boundaries,
+Core/unit/recipient scopes, current lineage, human audit and transactional recovery.
+Initial collective mandates and general representation remain open.
+
 P08 authorization update 2026-11-18: `CollectiveService` now persists invitations,
 requires target-collective issuance and exact current membership records, rejects
 stale transitions, and commits Core/founder creation atomically. MembershipLifecycleTest,

@@ -57,6 +57,11 @@ What exists and is source-complete:
   records for acceptance, leave and authority-checked removal. Core creation and
   founding membership are atomic. The [command authorization audit](docs/command-authorization.md)
   distinguishes these checks from still-open collective mandates and host authentication.
+- Opt-in [authenticated Core admission](docs/p08-authenticated-admission.md) verifies
+  fresh local proofs for the representative and invitee. An explicit Core/unit/recipient
+  mandate and its current lineage are checked before invitation and again at acceptance;
+  membership and human audit commit together. This consumes existing mandates and
+  does not authorize initial root issuance or general collective impersonation.
 - `test/` — executable Kotest tests: the full Core Loop scenario
   (`acceptance/CoreLoopVerticalSliceTest`) plus architecture-invariant
   tests (no action without authority, event append-only, no AI
@@ -99,13 +104,14 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
 Local verification on 2026-11-18: the full build, Detekt, migration and
-module-layering checks passed with **287 tests** (zero failures, errors or
-skips), including 13 new P08 membership tests and the 11 signed-memory tests.
-Research CLI smoke passed after the P08 changes. The two-node HTTPS rehearsal
-passed with ten matching signed records and checkpoints `(10, 10)`.
+module-layering checks passed with **300 tests** (zero failures, errors or
+skips), including 13 new authenticated-admission tests, 13 persisted-membership
+tests and 11 signed-memory tests. The preceding persisted-membership increment
+passed Research CLI smoke and the two-node HTTPS rehearsal with ten matching
+signed records and checkpoints `(10, 10)`.
 P09 status, signed P10 and credential lifecycle smoke scenarios passed during
-integration on 2026-11-17 and remain part of CI. The published P07 baseline
-also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/44376334676).
+integration on 2026-11-17 and remain part of CI. The published persisted-membership
+baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/44379828918).
 This verifies the integrated local tree; the CI link
 above records the result for each published commit.
 
@@ -170,9 +176,9 @@ in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
 admission, signatures and HTTPS hosting are already implemented. Continue with:
 
 1. Extend command-specific authorization and source conformance: explicit
-   authenticated collective representation, root eligibility and delegated invitations.
-   Persisted P08 admission and signed Experience/Knowledge are implemented;
-   broader collective mandates and P05/P07 source conformance remain open.
+   initial collective mandate/root eligibility and further command conformance.
+   Delegated Core invitations now have a fresh-proof host under ADR-021;
+   broader collective representation and P05/P07 source conformance remain open.
    The [authorization audit](docs/command-authorization.md) records the next review slices.
 2. Extend node operations with automated certificate renewal and broader configuration lifecycle support, additional signed producer adoption and automatic historical
    attestations using the [source-to-test mapping](docs/ac-p09-mapping.md).
