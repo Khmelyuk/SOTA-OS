@@ -50,9 +50,18 @@ class InMemoryCoreRepository : CoreRepository {
 
 class InMemoryMembershipRepository : MembershipRepository {
     private val store = mutableListOf<Membership>()
-    override fun save(membership: Membership): Membership { store.add(membership); return membership }
+    override fun save(membership: Membership): Membership {
+        val existing = findRecord(membership)
+        if (existing == null) store.add(membership) else store[store.indexOf(existing)] = membership
+        return membership
+    }
+    override fun findRecord(membership: Membership): Membership? = store.singleOrNull {
+        it.subject == membership.subject && it.collective == membership.collective &&
+            it.role == membership.role && it.start == membership.start
+    }
     override fun findActiveFor(subject: PersonId, collective: SubjectRef): Membership? =
-        store.lastOrNull { it.subject == subject && it.collective == collective && it.state == LifecycleState.ACTIVE }
+        store.filter { it.subject == subject && it.collective == collective && it.state == LifecycleState.ACTIVE }
+            .maxByOrNull { it.start }
 }
 
 class InMemoryAuthorityRepository : AuthorityRepository {

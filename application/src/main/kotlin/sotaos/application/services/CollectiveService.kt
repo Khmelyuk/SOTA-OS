@@ -22,7 +22,7 @@ class CollectiveService(
     private val rightsConstraint: RightsConstraint
 ) : MembershipProtocol {
 
-    fun createCore(invocation: ProtocolInvocation, name: String, founder: PersonId): Core {
+    fun createCore(invocation: ProtocolInvocation, name: String, founder: PersonId): Core = authorities.transaction {
         require(invocation.actor == SubjectRef.Person(founder)) { "Core founder must initiate Core creation." }
         rightsConstraint.check(invocation, "P08", "createCore", SubjectRef.Person(founder))
         val core = Core(
@@ -31,10 +31,10 @@ class CollectiveService(
             createdAt = clock.now(),
             state = LifecycleState.ACTIVE
         )
+        require(cores.findById(core.id) == null) { "Core ID is already in use." }
         cores.save(core)
-        // Founder becomes a member via the same voluntary-association
-        // path as any other invitee (CORE-12 Voluntary Association) —
-        // no privileged "owner" bypass.
+        // The founder explicitly joins while creating this new Core (CORE-12).
+        // This bootstrap creates membership only; it grants no owner role or Authority.
         val founding = Membership(
             subject = founder,
             collective = SubjectRef.Core(core.id),
@@ -44,14 +44,15 @@ class CollectiveService(
             state = LifecycleState.ACTIVE
         )
         memberships.save(founding)
-        return core
+        core
     }
 
     override fun invite(invocation: ProtocolInvocation, subject: PersonId, into: SubjectRef,
-        role: RoleId?): Membership {
+        role: RoleId?): Membership = authorities.transaction {
         MembershipAuthorityScope.resourceRef(into)
+        require(invocation.actor == into) { "Invitation must be issued by the target collective." }
         rightsConstraint.check(invocation, "P08", "invite", into)
-        return Membership(
+        val invitation = Membership(
             subject = subject,
             collective = into,
             role = role,
@@ -59,26 +60,28 @@ class CollectiveService(
             end = null,
             state = LifecycleState.PROPOSED
         )
+        require(memberships.findRecord(invitation) == null) { "Membership terms already exist." }
+        memberships.save(invitation)
     }
 
-    override fun accept(invocation: ProtocolInvocation, invitation: Membership): Membership {
+    override fun accept(invocation: ProtocolInvocation, invitation: Membership): Membership = authorities.transaction {
         require(invocation.actor == SubjectRef.Person(invitation.subject)) {
             "Only the invited Person may accept membership."
         }
-        MembershipAuthorityScope.resourceRef(invitation.collective)
+        requireCurrent(invitation, LifecycleState.PROPOSED)
         rightsConstraint.check(invocation, "P08", "accept", invitation.collective)
         val accepted = invitation.copy(state = LifecycleState.ACTIVE)
-        return memberships.save(accepted)
+        memberships.save(accepted)
     }
 
-    override fun leave(invocation: ProtocolInvocation, membership: Membership): Membership {
+    override fun leave(invocation: ProtocolInvocation, membership: Membership): Membership = authorities.transaction {
         require(invocation.actor == SubjectRef.Person(membership.subject)) {
             "Only the member may leave their membership."
         }
-        MembershipAuthorityScope.resourceRef(membership.collective)
+        requireCurrent(membership, LifecycleState.ACTIVE)
         rightsConstraint.check(invocation, "P08", "leave", membership.collective)
         val ended = membership.copy(state = LifecycleState.REVOKED, end = clock.now())
-        return memberships.save(ended)
+        memberships.save(ended)
     }
 
     override fun remove(
@@ -86,6 +89,7 @@ class CollectiveService(
         membership: Membership,
         byAuthority: sotaos.domain.shared.AuthorityId
     ): Membership = authorities.transaction {
+        requireCurrent(membership, LifecycleState.ACTIVE)
         val authority = authorities.findById(byAuthority)
             ?: throw MembershipNotAuthorizedException(
                 "Unknown Authority ${byAuthority.value}; membership removal denied."
@@ -109,5 +113,12 @@ class CollectiveService(
         )
         val removed = membership.copy(state = LifecycleState.REVOKED, end = clock.now())
         memberships.save(removed)
+    }
+
+    private fun requireCurrent(membership: Membership, state: LifecycleState) {
+        MembershipAuthorityScope.resourceRef(membership.collective)
+        require(memberships.findRecord(membership) == membership) { "Membership differs from its persisted record." }
+        require(membership.state == state && membership.end == null) { "Membership cannot make this transition." }
+        require(!clock.now().isBefore(membership.start)) { "Clock precedes membership start." }
     }
 }

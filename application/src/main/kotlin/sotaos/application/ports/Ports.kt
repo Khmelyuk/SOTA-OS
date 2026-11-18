@@ -33,6 +33,8 @@ interface CoreRepository {
 
 interface MembershipRepository {
     fun save(membership: Membership): Membership
+    /** Lookup by stable subject/collective/role/start terms, without filtering state or end time. */
+    fun findRecord(membership: Membership): Membership?
     fun findActiveFor(subject: PersonId, collective: SubjectRef): Membership?
 }
 

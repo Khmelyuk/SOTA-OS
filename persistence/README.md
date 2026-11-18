@@ -27,7 +27,10 @@ for application-service wiring. JSON columns use explicit mappings in
   their original grant terms and only update the revocation timestamp.
   RIGHT records are inserted once.
 - Membership rows use a deterministic key derived from subject, collective,
-  role, and start time, so state changes update the same membership record.
+  role, and start time. Lookup uses those exact terms, including a nullable role,
+  and lifecycle changes preserve the actual stored ID, including legacy IDs.
+  Ambiguous duplicate terms are rejected. P08 persists invitations and compares
+  the full current record before transitions; see [ADR-020](../docs/adr/ADR-020-persisted-membership-admission.md).
 
 The SQLDelight schema is the current MVP schema. `SqlDelightStore` applies
 idempotent additive table creation for RIGHT and CONSENT so existing database

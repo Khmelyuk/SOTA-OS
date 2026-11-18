@@ -296,6 +296,10 @@ UPDATE authority SET state = ? WHERE authority_id = ?;
 selectMembershipById:
 SELECT * FROM membership WHERE membership_id = ?;
 
+selectMembershipByTerms:
+SELECT * FROM membership
+WHERE person_id = ? AND collective_kind = ? AND collective_id = ? AND role_id IS ? AND start_at = ?;
+
 updateMembership:
 UPDATE membership SET person_id = ?, collective_kind = ?, collective_id = ?, role_id = ?,
 start_at = ?, end_at = ?, state = ? WHERE membership_id = ?;

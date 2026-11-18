@@ -1,5 +1,13 @@
 # Traceability Matrix — Code ↔ Specification
 
+P08 authorization update 2026-11-18: `CollectiveService` now persists invitations,
+requires target-collective issuance and exact current membership records, rejects
+stale transitions, and commits Core/founder creation atomically. MembershipLifecycleTest,
+MembershipAuthorizationTest and MembershipPersistenceTest cover CORE-12 voluntary
+association and the bounded ADR-008/020 admission/removal contract, including
+restart, legacy IDs, denial and rollback. [Command audit](command-authorization.md)
+records remaining collective authentication and source-conformance work.
+
 Signed P07 update 2026-11-18: `SignedP07Runtime` and `JsonMemorySnapshotCodec`
 connect P07/AC-10/11 memory provenance to P09/AC-13 delivery. `SignedMemoryTest`,
 `SignedMemorySafetyTest` and `SignedMemoryAtomicityTest` cover complete snapshots,

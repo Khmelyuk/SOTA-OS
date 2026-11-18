@@ -52,6 +52,11 @@ What exists and is source-complete:
   atomic cascade revocation under [ADR-013](docs/adr/ADR-013-delegation-lineage.md).
   New grants reject already expired validity windows. P05 decision creation
   checks that the acting subject holds the referenced authority.
+- P08 [membership admission](docs/adr/ADR-020-persisted-membership-admission.md)
+  persists invitations issued by the target collective and requires exact current
+  records for acceptance, leave and authority-checked removal. Core creation and
+  founding membership are atomic. The [command authorization audit](docs/command-authorization.md)
+  distinguishes these checks from still-open collective mandates and host authentication.
 - `test/` — executable Kotest tests: the full Core Loop scenario
   (`acceptance/CoreLoopVerticalSliceTest`) plus architecture-invariant
   tests (no action without authority, event append-only, no AI
@@ -79,7 +84,8 @@ What is **not yet done**:
   deliberate unguarded setup path. RIGHT/CONSENT records are persisted,
   and P05 execution checks affected People's consent. Broader
   command-specific authority checks remain open beyond the existing P05
-  checks and the scoped P08 removal check recorded in ADR-008.
+  checks and P08 boundaries recorded in ADR-008/020. See the
+  [command-to-check-to-test mapping](docs/command-authorization.md).
 - P10 general contract settlement and third-party exit remain open.
   Recorded delegation chains now support cascade revocation and full ancestor
   checks; see [ADR-013](docs/adr/ADR-013-delegation-lineage.md). Durable local self-exit, governed export, retained obligations
@@ -93,11 +99,13 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
 Local verification on 2026-11-18: the full build, Detekt, migration and
-module-layering checks passed with **274 tests** (zero failures, errors or
-skips), including 11 new signed-memory tests. The two-node HTTPS rehearsal
+module-layering checks passed with **287 tests** (zero failures, errors or
+skips), including 13 new P08 membership tests and the 11 signed-memory tests.
+Research CLI smoke passed after the P08 changes. The two-node HTTPS rehearsal
 passed with ten matching signed records and checkpoints `(10, 10)`.
-P09 status, signed P10, credential lifecycle and Research CLI smoke
-scenarios passed during integration on 2026-11-17 and remain part of CI.
+P09 status, signed P10 and credential lifecycle smoke scenarios passed during
+integration on 2026-11-17 and remain part of CI. The published P07 baseline
+also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/44376334676).
 This verifies the integrated local tree; the CI link
 above records the result for each published commit.
 
@@ -162,9 +170,10 @@ in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
 admission, signatures and HTTPS hosting are already implemented. Continue with:
 
 1. Extend command-specific authorization and source conformance: explicit
-   collective root/admission rules and authority checks for remaining commands.
-   Signed Experience/Knowledge producers are implemented; host authentication
-   and broader collective mandates remain explicit boundaries.
+   authenticated collective representation, root eligibility and delegated invitations.
+   Persisted P08 admission and signed Experience/Knowledge are implemented;
+   broader collective mandates and P05/P07 source conformance remain open.
+   The [authorization audit](docs/command-authorization.md) records the next review slices.
 2. Extend node operations with automated certificate renewal and broader configuration lifecycle support, additional signed producer adoption and automatic historical
    attestations using the [source-to-test mapping](docs/ac-p09-mapping.md).
 3. Extend P10 beyond the typed local Trust/Agreement inventory to multiparty consent

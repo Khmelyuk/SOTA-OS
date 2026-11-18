@@ -38,3 +38,7 @@ Authority does not override that constraint.
   future migration may choose to narrow them.
 - This decision closes the identifier-only check in `remove()`. Other P08
   commands still require their command-specific authorization rules.
+  [ADR-020](ADR-020-persisted-membership-admission.md) adds persisted invitations,
+  collective issuance and exact current-record transitions; it also requires the
+  removal target to be an existing ACTIVE membership. Collective mandates and
+  delegated invitation rules remain open.

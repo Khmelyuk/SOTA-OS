@@ -15,6 +15,8 @@ The previous local plan is superseded by this review of the integrated code.
   rotation (ADR-003a/011/012/015/016/017).
 - Signed P05 Action/Result and P07 Experience/Knowledge producers, including
   human validation/deprecation, and a reproducible two-node HTTPS rehearsal.
+- P08 persisted invitations, target-collective issuance, exact-record lifecycle
+  checks, scoped removal and atomic Core/founder creation (ADR-020).
 - JDK 21 CI with module graph checks, Detekt, tests and CLI smoke scenarios.
 - Local credential lifecycle and a human-invoked, candidate-only Research CLI
   (ADR-018). Research draft approval does not publish externally.
@@ -41,7 +43,7 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 | Order | Increment | Evidence required before completion |
 |---|---|---|
 | Done 2026-11-18 | Signed P07 Experience/Knowledge producers | Exact persisted source checks, full signed snapshots, causal parents, local non-Agent governance, atomic entity/Event/journal/receipt writes; SignedMemory acceptance tests and ten-record HTTPS rehearsal. Host authentication remains required; see ADR-019 |
-| 2 | Remaining command authorization and source conformance | Explicit collective root/admission rules and authority checks for remaining commands; no acceptance claim based only on a caller-supplied SubjectRef; source-to-test mapping updated |
+| 2 — in progress | Remaining command authorization and source conformance | Command audit and persisted P08 admission implemented under ADR-020. Remaining: authenticated collective mandates/root eligibility, delegated invitations and P05/P07 conformance; no acceptance claim based only on a caller-supplied SubjectRef |
 | 3 | P09 operational lifecycle | Governed certificate renewal and configuration changes, old/new material recovery, failure diagnostics and deployment runbooks; automated historical attestations only with explicit provenance policy |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
 | 5 | Broader persistence and release acceptance | Versioned migration fixtures, missing conformance tests, review of public API/GUI scope, and recorded CI/rehearsal evidence for the selected release |
@@ -55,3 +57,8 @@ The integration closes a bounded authorization increment. It does not claim
 that all Phase 3 command rules, public deployment operations or general contract
 settlement are complete. See [review follow-up](review-follow-up.md) for the
 existing source review backlog.
+
+The [command authorization audit](command-authorization.md) maps each command
+group to its actor/authority checks and executable evidence. The next bounded
+review is collective representation/root standing, followed by P05 mission
+admission and P07 validation mandates against the source specifications.

@@ -232,29 +232,37 @@ class SqlDelightMembershipRepository(private val db: SotaOsDatabase) : Membershi
             membership.role?.value.orEmpty(), membership.start.toString()).joinToString("\u0000")
         val membershipId = MessageDigest.getInstance("SHA-256").digest(key.toByteArray())
             .joinToString("") { "%02x".format(it) }
-        val existing = db.schemaQueries.selectMembershipById(membershipId).executeAsOneOrNull()
+        val existing = record(membership)
         if (existing == null) {
             db.schemaQueries.insertMembership(membershipId, membership.subject.value, kind, collectiveId,
                 membership.role?.value, membership.start.toString(), membership.end?.toString(), membership.state.name)
         } else {
             db.schemaQueries.updateMembership(membership.subject.value, kind, collectiveId,
                 membership.role?.value, membership.start.toString(), membership.end?.toString(),
-                membership.state.name, membershipId)
+                membership.state.name, existing.membership_id)
         }
         return membership
+    }
+
+    override fun findRecord(membership: DomainMembership): DomainMembership? = record(membership)?.toDomain()
+
+    private fun record(membership: DomainMembership): Membership? {
+        val (kind, collectiveId) = ValueJsonMapping.subject(membership.collective)
+        return db.schemaQueries.selectMembershipByTerms(membership.subject.value, kind, collectiveId,
+            membership.role?.value, membership.start.toString()).executeAsOneOrNull()
     }
 
     override fun findActiveFor(subject: PersonId, collective: SubjectRef): DomainMembership? {
         val (kind, collectiveId) = ValueJsonMapping.subject(collective)
         return db.schemaQueries.selectActiveMembership(subject.value, kind, collectiveId)
-            .executeAsOneOrNull()?.let { row ->
-                DomainMembership(PersonId(row.person_id), ValueJsonMapping.subject(row.collective_kind,
-                    row.collective_id),
-                    row.role_id?.let(::RoleId), Instant.parse(row.start_at), row.end_at?.let(Instant::parse),
-                    LifecycleState.valueOf(row.state))
-            }
+            .executeAsOneOrNull()?.toDomain()
     }
 }
+
+private fun Membership.toDomain(): DomainMembership = DomainMembership(
+    PersonId(person_id), ValueJsonMapping.subject(collective_kind, collective_id), role_id?.let(::RoleId),
+    Instant.parse(start_at), end_at?.let(Instant::parse), LifecycleState.valueOf(state)
+)
 
 class SqlDelightMissionRepository(private val db: SotaOsDatabase) : MissionRepository {
     override fun save(mission: DomainMission): DomainMission {

@@ -16,12 +16,12 @@ class AuthorityException(message: String) : RuntimeException(message)
  * Architecture §29 Trust Delegation).
  *
  * MVP rule for "who counts as an originating (root) issuer":
- * a COLLECTIVE (SubjectRef.Core / SubjectRef.Sota) granting authority
- * to one of its own members is treated as an originating grant — the
- * Core/Sota's standing to delegate to its own membership follows
- * directly from CORE-07/CORE-11 and does not require a pre-existing
- * Authority row (there would be none: it is the first grant for that
- * mission). A PERSON or AGENT acting as issuer, by contrast, is always
+ * a COLLECTIVE (SubjectRef.Core / SubjectRef.Sota) is treated as an
+ * originating issuer when the grant is accountable to that collective.
+ * Authentication of that collective and its standing to issue the root
+ * are trusted-host responsibilities under ADR-013; this service does
+ * not verify the recipient's membership or a collective mandate.
+ * A PERSON or AGENT acting as issuer, by contrast, is always
  * re-delegating and MUST hold an existing ACTIVE Authority of
  * equal-or-wider scope in the same context — this is what prevents
  * uncontrolled escalation (Agent/AI Architecture §21, §22 No
