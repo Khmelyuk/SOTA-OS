@@ -23,6 +23,8 @@ Recommendations are review input, not replacement architecture requirements.
 
 Completed milestones: local P01 lifecycle, module graph verification, and the
 independently reproducible two-node rehearsal. Signed Result production and its causal Action link are now implemented and covered
-by the rehearsal. Next: review and extend Experience/Knowledge event producers.
+by the rehearsal. Signed Experience/Knowledge producers now follow ADR-019 and
+extend that rehearsal to ten records. Next: remaining command authorization and
+source conformance, as recorded in the [roadmap](roadmap.md).
 The review's estimates and blanket prohibition on new ADRs were not adopted as
 requirements. Schema/protocol decisions still require the project's usual reasoning.

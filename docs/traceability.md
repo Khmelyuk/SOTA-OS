@@ -1,5 +1,14 @@
 # Traceability Matrix — Code ↔ Specification
 
+Signed P07 update 2026-11-18: `SignedP07Runtime` and `JsonMemorySnapshotCodec`
+connect P07/AC-10/11 memory provenance to P09/AC-13 delivery. `SignedMemoryTest`,
+`SignedMemorySafetyTest` and `SignedMemoryAtomicityTest` cover complete snapshots,
+causal parents, local source verification, human transitions, no-Agent validation,
+key rotation, rollback, restart and two-node replay. The HTTPS rehearsal now
+exchanges ten facts without remote business projection. See [ADR-019](adr/ADR-019-signed-memory-producers.md)
+and the [producer limits](p07-signed-memory.md); general collective authorization
+and source conformance remain open.
+
 Integration review 2026-11-17: `AuthorityGrantBoundaryTest`,
 `AuthorityRevocationBoundaryTest`, `DecisionAuthorityOwnerTest` and
 `SqlDelightAuthorityBoundaryTest` add 14 regressions for validity/accountability,

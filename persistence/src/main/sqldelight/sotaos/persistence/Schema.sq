@@ -337,6 +337,9 @@ WHERE unit_id = ? AND login_handle = ?;
 selectKnowledgeById:
 SELECT * FROM knowledge WHERE knowledge_id = ?;
 
+selectExperienceById:
+SELECT * FROM experience WHERE experience_id = ?;
+
 selectRightById:
 SELECT * FROM right_record WHERE right_id = ?;
 

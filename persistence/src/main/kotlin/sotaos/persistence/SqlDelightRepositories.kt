@@ -410,6 +410,14 @@ private fun sotaos.persistence.Event.toDomain(): DomainEvent = DomainEvent(
 )
 
 class SqlDelightExperienceRepository(private val db: SotaOsDatabase) : ExperienceRepository {
+    override fun findById(id: ExperienceId): DomainExperience? = db.schemaQueries.selectExperienceById(id.value)
+        .executeAsOneOrNull()?.let {
+            DomainExperience(ExperienceId(it.experience_id),
+                ValueJsonMapping.strings(it.derived_events_json).map(::EventId), JsonMapping.context(it.context_json),
+                it.what_was_tried, it.outcome, it.conclusion, it.applicability, Confidence.valueOf(it.confidence),
+                JsonMapping.provenance(it.provenance_json))
+        }
+
     override fun save(experience: DomainExperience): DomainExperience {
         db.schemaQueries.insertExperience(experience.id.value,
             ValueJsonMapping.strings(experience.derivedFromEvents.map { it.value }),

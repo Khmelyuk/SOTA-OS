@@ -77,6 +77,7 @@ interface EventStore {
 
 interface ExperienceRepository {
     fun save(experience: Experience): Experience
+    fun findById(id: ExperienceId): Experience?
 }
 
 typealias RightsRepository = sotaos.domain.rights.RightsRepository

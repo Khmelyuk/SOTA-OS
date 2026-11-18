@@ -28,19 +28,21 @@ assertion or listener startup makes the command exit unsuccessfully.
    the local passphrase provider. Explicit fixture Core authorities allow operators
    to enroll actor keys and peer policies through the governed runtime APIs.
 2. Node A creates Mission, Authority, Decision, Action, Result, Experience and
-   Knowledge offline. `SignedP05Runtime` writes the Action and Result signed events atomically with their respective entities.
+   Knowledge offline. `SignedP05Runtime` and `SignedP07Runtime` write Action,
+   Result, Experience and Knowledge proposal facts atomically with their entities.
 3. Node B serves strict P09 over HTTPS with an ephemeral certificate trusted explicitly
    by A. A wrong bearer is denied. A valid exchange commits on B, then the caller
    deliberately discards the response. A's checkpoint remains zero while B retains
-   the two facts. After closing both stores and restarting B's listener, retry converges
+   the four facts. After closing both stores and restarting B's listener, retry converges
    without duplicate events.
 4. With the listener stopped, A performs signed P10 exit: export, delegation revocation,
    relation closure, obligation retention and membership termination. The export's
    SHA-256 and mode `0600` are checked, and the former action authority is denied.
 5. A now serves HTTPS in a separate JVM; B exchanges in the reverse direction.
    A final outbound exchange from A acknowledges its remaining records. Both stores
-   reopen with eight identical signed records and cursors `(8, 8)`:
-   one Action, its causally linked Result and six P10 stages. Person/Identity and the other member survive.
+   reopen with ten identical signed records and cursors `(10, 10)`:
+   Action, Result, Experience, Knowledge proposal and six P10 stages.
+   Person/Identity and the other member survive.
    B receives facts but does not execute actions or apply remote membership changes.
 
 Expected final output includes:
@@ -64,8 +66,9 @@ not evidence that general production enrollment has been solved. Subsequent peer
 and key enrollment uses normal authorization and audit. Each node owns its store;
 the parent closes it before the listener process opens it.
 
-Action, Result and P10 stages are signed journal producers here. Experience and
-Knowledge remain local persisted records. Received facts are not replicated business commands.
+Action, Result, Experience, Knowledge proposal and P10 stages are signed journal
+producers here. Received facts are not replicated business commands; B does not
+materialize the corresponding Action, Result, Experience or Knowledge entities.
 The scenario does not upgrade unsigned `demo` history. It uses hostname verification
 and explicit certificate trust, without a trust-all TLS client.
 

@@ -80,6 +80,7 @@ class MemoryService(
             supersedes = null,
             provenance = from.provenance
         )
+        require(knowledgeRepo.findById(knowledge.id) == null) { "Knowledge ID is already in use." }
         return knowledgeRepo.save(knowledge)
     }
 

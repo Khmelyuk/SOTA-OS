@@ -117,6 +117,7 @@ class InMemoryEventStore : EventStore {
 class InMemoryExperienceRepository : ExperienceRepository {
     private val store = mutableListOf<Experience>()
     override fun save(experience: Experience): Experience { store.add(experience); return experience }
+    override fun findById(id: ExperienceId): Experience? = store.lastOrNull { it.id == id }
 }
 
 class InMemoryKnowledgeRepository : KnowledgeRepository {

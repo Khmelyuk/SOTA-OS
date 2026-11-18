@@ -2,6 +2,7 @@ package sotaos.test.rehearsal
 
 import sotaos.api.agency.SignedP05Runtime
 import sotaos.api.exit.SignedP10Runtime
+import sotaos.api.memory.SignedP07Runtime
 import sotaos.application.ports.*
 import sotaos.application.services.*
 import sotaos.domain.agency.Decision
@@ -61,8 +62,8 @@ internal fun executeCoreLoop(node: RehearsalNode, core: Core): Decision = node.l
     val action = runtime.execute(invocation, decision)
     runtime.recordResult(invocation, action, Outcome.SUCCESS, "Offline action succeeded")
     val event = repositories.events.findByActor(node.actor).single { it.type == "RESULT_RECORDED" }
-    val memory = MemoryService(repositories.experiences, repositories.knowledge,
-        rehearsalClock, rehearsalIds, rehearsalRights)
+    val memory = SignedP07Runtime(store, node.local, governance,
+        rehearsalClock, rehearsalIds, { node.signer }, rehearsalRights)
     val experience = memory.createExperience(invocation, listOf(event), "Offline result", "Rehearsal only")
     val knowledge = memory.proposeKnowledgeCandidate(invocation, experience, "Signed action recorded offline")
     check(repositories.knowledge.findById(knowledge.id) == knowledge)

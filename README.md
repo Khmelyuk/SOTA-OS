@@ -9,7 +9,7 @@ Memory & Knowledge Architecture, Agent/AI Architecture, MVP
 Specification, Traceability Matrix, ADR-007).
 
 Run the [two-node Core Loop rehearsal](docs/getting-started.md) with JDK 21:
-`./scripts/two-node-core-loop.sh` verifies signed actions, HTTPS recovery and signed exit.
+`./scripts/two-node-core-loop.sh` verifies signed actions and memory, HTTPS recovery and signed exit.
 
 ## Status: Phase 3 — signed Core Loop, P09 node, P10 exit and Research CLI
 
@@ -45,6 +45,9 @@ What exists and is source-complete:
 - Opt-in [signed P05 Actions and Results](docs/p05-signed-actions.md) atomically persist
   `ACTION_EXECUTED` and causally linked `RESULT_RECORDED` facts with canonical signatures
   and P09 verification receipts.
+- Opt-in [signed P07 Experience and Knowledge](docs/p07-signed-memory.md) validate exact
+  persisted sources, sign full snapshots with causal links, and atomically record
+  creation, human validation and deprecation under ADR-019.
 - P04 delegation records and validates the complete ancestor chain, with
   atomic cascade revocation under [ADR-013](docs/adr/ADR-013-delegation-lineage.md).
   New grants reject already expired validity windows. P05 decision creation
@@ -89,10 +92,12 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
-Local integration verification on 2026-11-17: the full build, Detekt and
-module-layering checks passed with **263 tests** (zero failures, errors or
-skips). P09 status, signed P10, credential lifecycle and Research CLI smoke
-scenarios and the two-node signed Core Loop rehearsal also passed.
+Local verification on 2026-11-18: the full build, Detekt, migration and
+module-layering checks passed with **274 tests** (zero failures, errors or
+skips), including 11 new signed-memory tests. The two-node HTTPS rehearsal
+passed with ten matching signed records and checkpoints `(10, 10)`.
+P09 status, signed P10, credential lifecycle and Research CLI smoke
+scenarios passed during integration on 2026-11-17 and remain part of CI.
 This verifies the integrated local tree; the CI link
 above records the result for each published commit.
 
@@ -152,12 +157,14 @@ authentication port and per-Sota provider allowlist are described in
 [ADR-009](docs/adr/ADR-009-provider-based-authentication.md). Only the local
 provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
-The next increments, reconciled with GitHub `main` on 2026-11-17, are recorded
+The next increments, updated after signed P07 on 2026-11-18, are recorded
 in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
 admission, signatures and HTTPS hosting are already implemented. Continue with:
 
-1. Add signed Experience/Knowledge event producers with persisted source
-   validation, causal links, atomic journal/receipt writes and two-node tests.
+1. Extend command-specific authorization and source conformance: explicit
+   collective root/admission rules and authority checks for remaining commands.
+   Signed Experience/Knowledge producers are implemented; host authentication
+   and broader collective mandates remain explicit boundaries.
 2. Extend node operations with automated certificate renewal and broader configuration lifecycle support, additional signed producer adoption and automatic historical
    attestations using the [source-to-test mapping](docs/ac-p09-mapping.md).
 3. Extend P10 beyond the typed local Trust/Agreement inventory to multiparty consent

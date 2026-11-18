@@ -29,8 +29,9 @@ still requires explicit actor, context, origin and sharing policy. Receiving thi
 fact does not execute an Action or create a remote Decision, Mission or Result.
 
 This slice signs newly executed Action facts and newly recorded Results. Mission
-formation, decisions, Experience and Knowledge remain local records without new
-signed event producers. `demo` remains the existing unsigned bootstrap path. Existing unsigned
+formation and decisions remain local records without new signed event producers.
+[Signed P07](p07-signed-memory.md) adds Experience and Knowledge producers.
+`demo` remains the existing unsigned bootstrap path. Existing unsigned
 events are never rewritten or skipped and can still block strict journal export.
 There is no new CLI action command or general remote P05 command dispatcher.
 
@@ -66,7 +67,7 @@ Results; this change does not introduce command idempotency or result replacemen
 `SignedResultTest` checks signing and parent integrity, lost-reply recovery across
 SQLite reopen, atomic rollback for Result/Event/journal/receipt failures, forged
 Actions, wrong author/origin, rights denial, key rotation and unsigned-history denial.
-The [HTTPS rehearsal](getting-started.md) now exchanges eight records: Action,
-Result and six exit stages. Ordinary unsigned `demo` behavior remains unchanged
+The [HTTPS rehearsal](getting-started.md) now exchanges ten records: Action,
+Result, Experience, Knowledge proposal and six exit stages. Ordinary unsigned `demo` behavior remains unchanged
 apart from persisted-Action validation on result recording. No schema migration is
 needed: `selectActionById` is a read query over the existing table.

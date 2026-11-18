@@ -200,6 +200,9 @@ exchanges can advance a checkpoint while a request is in flight; stale responses
 fail and retry without overwriting newer state. See [background sync](p09-background-sync.md)
 for CLI configuration, capped backoff, pagination, status snapshots and shutdown.
 
-New P05 action facts can use [SignedP05Runtime](p05-signed-actions.md) for
-canonical signing and atomic Action/Event/journal/receipt persistence. This opt-in
-host composition preserves P05 checks; other Core Loop producers remain open.
+New P05 Action/Result facts can use [SignedP05Runtime](p05-signed-actions.md) for
+canonical signing and atomic entity/Event/journal/receipt persistence.
+[SignedP07Runtime](p07-signed-memory.md) adds Experience and Knowledge lifecycle
+facts with exact local source validation. These opt-in compositions preserve
+existing service checks; Mission/Decision producers and general remote entity
+projection remain open.

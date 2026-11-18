@@ -1,4 +1,4 @@
-# Development roadmap — reconciled 2026-11-17
+# Development roadmap — updated 2026-11-18
 
 Baseline: GitHub `main` at `1f6d175` (human-invoked Research CLI). The local
 checkout had been based on `ece3ad1` and was missing 26 upstream commits.
@@ -13,7 +13,8 @@ The previous local plan is superseded by this review of the integrated code.
 - Ed25519 signing, governed peer/key admission, exact historical evidence,
   bounded HTTPS hosting, background retry/shutdown, metrics and staged material
   rotation (ADR-003a/011/012/015/016/017).
-- Signed P05 Action/Result producers and a reproducible two-node rehearsal.
+- Signed P05 Action/Result and P07 Experience/Knowledge producers, including
+  human validation/deprecation, and a reproducible two-node HTTPS rehearsal.
 - JDK 21 CI with module graph checks, Detekt, tests and CLI smoke scenarios.
 - Local credential lifecycle and a human-invoked, candidate-only Research CLI
   (ADR-018). Research draft approval does not publish externally.
@@ -39,16 +40,16 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 
 | Order | Increment | Evidence required before completion |
 |---|---|---|
-| 1 | Signed P07 Experience/Knowledge producers | Exact persisted source Events/Experience; authenticated authors and existing human governance; canonical signatures and causal parents; atomic entity/Event/journal/receipt writes; rollback, key rotation, replay and two-node recovery tests |
+| Done 2026-11-18 | Signed P07 Experience/Knowledge producers | Exact persisted source checks, full signed snapshots, causal parents, local non-Agent governance, atomic entity/Event/journal/receipt writes; SignedMemory acceptance tests and ten-record HTTPS rehearsal. Host authentication remains required; see ADR-019 |
 | 2 | Remaining command authorization and source conformance | Explicit collective root/admission rules and authority checks for remaining commands; no acceptance claim based only on a caller-supplied SubjectRef; source-to-test mapping updated |
 | 3 | P09 operational lifecycle | Governed certificate renewal and configuration changes, old/new material recovery, failure diagnostics and deployment runbooks; automated historical attestations only with explicit provenance policy |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
 | 5 | Broader persistence and release acceptance | Versioned migration fixtures, missing conformance tests, review of public API/GUI scope, and recorded CI/rehearsal evidence for the selected release |
 
-For P07, use the existing P05/P10 signed-runtime pattern. Keep the Research
-journal separate from canonical P06/P09 history unless an explicit reviewed
-producer promotes an eligible fact. A received fact must not silently validate
-Knowledge or execute an Action. Preserve the no-Agent-canonicalization rule.
+P07 now uses the existing P05/P10 signed-runtime pattern. Research remains
+separate from canonical P06/P09 history. Receiving a fact does not validate
+Knowledge, materialize remote memory entities or execute an Action. The no-Agent
+rule and exact-source boundary are documented in [signed memory](p07-signed-memory.md).
 
 The integration closes a bounded authorization increment. It does not claim
 that all Phase 3 command rules, public deployment operations or general contract

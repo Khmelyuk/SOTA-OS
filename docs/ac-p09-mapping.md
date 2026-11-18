@@ -118,3 +118,14 @@ current-key binding after Action-key rotation, exact persisted-Action validation
 rights enforcement and atomic rollback. The HTTPS rehearsal now exchanges Action,
 Result and six P10 stages. Experience/Knowledge producers and legacy unsigned
 history remain outside this change. See [P05 producer contract](p05-signed-actions.md).
+
+### Signed P07 producers — 2026-11-18
+
+`SignedP07Runtime` extends AC-10/11 source traceability and AC-13 delivery to
+Experience and Knowledge proposal/validation/deprecation facts. SignedMemory tests
+verify exact persisted snapshots and local receipts, causal links, current-key
+binding, local non-Agent governance, rollback and replay after reopen. The current
+HTTPS rehearsal exchanges ten signed records, including Experience and Knowledge
+proposal, without constructing remote business entities or validating knowledge
+on receipt. Host authentication and broader command authorization remain separate
+requirements. See [the bounded producer contract](p07-signed-memory.md).
