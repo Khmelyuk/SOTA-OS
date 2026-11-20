@@ -40,6 +40,17 @@ SQLite reopen, replay without remote action execution, journal/receipt rollback,
 key/local-actor rejection, persisted-decision protection, consent denial and revoked
 authority. Existing P05 tests retain broader authority and rights coverage.
 
+## Persisted Mission boundary — 2026-11-20
+
+Both ordinary and signed P05 now require the referenced Mission to exist and be
+ACTIVE when creating a Decision and again when executing it. A missing, suspended,
+completed or otherwise inactive Mission cannot produce a new Action even while
+its authority remains valid. The decision rights check receives the stored Mission
+ID rather than relying on invocation context. Existing orphaned decisions remain
+history and are denied at execution. Result reporting for an already executed
+Action remains allowed after Mission closure, subject to its existing checks.
+See [ADR-022](adr/ADR-022-active-mission-boundary.md) and MissionStateBoundaryTest.
+
 ## Result producer — 2026-10-11
 
 `recordResult` now requires the exact persisted Action in both signed and ordinary

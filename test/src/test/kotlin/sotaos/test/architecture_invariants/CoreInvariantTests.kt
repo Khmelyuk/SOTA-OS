@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.assertions.throwables.shouldThrow
 import sotaos.application.services.*
 import sotaos.domain.agency.Outcome
+import sotaos.domain.agency.Mission
 import sotaos.domain.identity.Credential
 import sotaos.domain.memory.KnowledgeStatus
 import sotaos.domain.relation.AuthorityBasis
@@ -25,8 +26,14 @@ class NoActionWithoutAuthorityTest : FunSpec({
         val clock = FixedClock()
         val ids = SequentialIdGenerator()
         val authorityRepo = InMemoryAuthorityRepository()
+        val person = SubjectRef.Person(PersonId("p-1"))
+        val missions = InMemoryMissionRepository().apply {
+            save(Mission(MissionId("m-1"), person, "Work", emptyList(), emptyList(),
+                Mode.CREATION, LifecycleState.ACTIVE))
+        }
+        val decisions = InMemoryDecisionRepository()
         val svc = MissionActionService(
-            InMemoryMissionRepository(), InMemoryDecisionRepository(), InMemoryActionRepository(),
+            missions, decisions, InMemoryActionRepository(),
             InMemoryResultRepository(), authorityRepo, InMemoryEventStore(),
             { auth, scope, at -> auth.state == LifecycleState.ACTIVE && auth.scope.actions.containsAll(scope.actions) },
             RightsConstraintDecorator(listOf(NoAgentActionRule)), clock, ids
@@ -38,26 +45,30 @@ class NoActionWithoutAuthorityTest : FunSpec({
             optionsConsidered = listOf("x"),
             chosenOption = "x",
             authorityRef = AuthorityId("does-not-exist"),
-            timestamp = clock.now()
+            timestamp = clock.now(),
+            purpose = testInvocation(person).purpose
         )
-        shouldThrow<ActionNotAuthorizedException> {
-            svc.execute(testInvocation(SubjectRef.Person(PersonId("p-1"))), ghostDecision)
-        }
+        decisions.save(ghostDecision)
+        val failure = shouldThrow<ActionNotAuthorizedException> { svc.execute(testInvocation(person), ghostDecision) }
+        failure.message?.contains("No such Authority") shouldBe true
     }
 
-    test("execute() rejects when Authority scope does not cover the requested action") {
+    test("decide() rejects when Authority scope does not cover the requested action") {
         val clock = FixedClock()
         val ids = SequentialIdGenerator()
         val authorityRepo = InMemoryAuthorityRepository()
         val authService = AuthorityService(authorityRepo, clock, ids, TestRightsConstraint)
+        val missions = InMemoryMissionRepository()
         val svc = MissionActionService(
-            InMemoryMissionRepository(), InMemoryDecisionRepository(), InMemoryActionRepository(),
+            missions, InMemoryDecisionRepository(), InMemoryActionRepository(),
             InMemoryResultRepository(), authorityRepo, InMemoryEventStore(),
             authService::isValid, RightsConstraintDecorator(listOf(NoAgentActionRule)), clock, ids
         )
         val core = SubjectRef.Core(CoreId("core-1"))
         val person = SubjectRef.Person(PersonId("p-1"))
         val context = Context(domain = "d", mission = MissionId("m-1"))
+        missions.save(Mission(MissionId("m-1"), core, "Read", emptyList(), emptyList(),
+            Mode.CREATION, LifecycleState.ACTIVE))
         val authority = authService.grant(
             testInvocation(core), core, person, Scope(actions = setOf("read-only")), context,
             AuthorityBasis(), Validity(clock.now(), null), core

@@ -1,8 +1,10 @@
-# Development roadmap — updated 2026-11-18
+# Development roadmap — updated 2026-11-20
 
-Baseline: GitHub `main` at `1f6d175` (human-invoked Research CLI). The local
-checkout had been based on `ece3ad1` and was missing 26 upstream commits.
-The previous local plan is superseded by this review of the integrated code.
+Published baseline before this increment: GitHub `main` at `a06f9e4`
+(authenticated Core admission), with successful CI. The earlier integration
+review started at `1f6d175` (human-invoked Research CLI); the local checkout had
+been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
+tracks the integrated implementation and subsequent bounded increments.
 
 ## Implemented baseline
 
@@ -19,6 +21,9 @@ The previous local plan is superseded by this review of the integrated code.
   checks, scoped removal and atomic Core/founder creation (ADR-020).
 - Opt-in authenticated Core invitation/acceptance with explicit representative
   mandate, unit/recipient scope, current lineage and atomic human audit (ADR-021).
+- P05 decisions and execution require a persisted ACTIVE Mission, rechecked at
+  execution; decision policy receives its stored ID (ADR-022). Historical Result
+  reporting remains available after Mission closure.
 - JDK 21 CI with module graph checks, Detekt, tests and CLI smoke scenarios.
 - Local credential lifecycle and a human-invoked, candidate-only Research CLI
   (ADR-018). Research draft approval does not publish externally.
@@ -45,7 +50,7 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 | Order | Increment | Evidence required before completion |
 |---|---|---|
 | Done 2026-11-18 | Signed P07 Experience/Knowledge producers | Exact persisted source checks, full signed snapshots, causal parents, local non-Agent governance, atomic entity/Event/journal/receipt writes; SignedMemory acceptance tests and ten-record HTTPS rehearsal. Host authentication remains required; see ADR-019 |
-| 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission and authenticated delegated Core invitation/acceptance implemented under ADR-020/021. Remaining: initial collective mandate/root eligibility, broader representation and P05/P07 conformance |
+| 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance and active persisted P05 Mission boundary implemented under ADR-020/021/022. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/version/mode rules and P07 validation mandates |
 | 3 | P09 operational lifecycle | Governed certificate renewal and configuration changes, old/new material recovery, failure diagnostics and deployment runbooks; automated historical attestations only with explicit provenance policy |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
 | 5 | Broader persistence and release acceptance | Versioned migration fixtures, missing conformance tests, review of public API/GUI scope, and recorded CI/rehearsal evidence for the selected release |
@@ -63,6 +68,19 @@ existing source review backlog.
 The [command authorization audit](command-authorization.md) maps each command
 group to its actor/authority checks and executable evidence. The next bounded
 review is initial collective mandate/root standing and broader representation,
-followed by P05 mission admission and P07 validation mandates. ADR-021 records
+followed by P05 participation/version/mode rules and P07 validation mandates. ADR-021 records
 the original Protocol and Security PDF constraints reviewed for the bounded
 admission host; it does not claim to define the missing collective decision protocol.
+
+The original specifications do not select who approves an initial mandate in an
+existing Core or its quorum. That policy question is pending the owner's answer;
+no voting rule is inferred. Independent P05 Mission existence/state work is
+implemented under [ADR-022](adr/ADR-022-active-mission-boundary.md), with source
+sections and six SQLite regressions. P07 validation/source review can proceed
+independently of the unresolved root policy.
+
+Next independent slice: ordinary `MemoryService` still accepts caller-supplied
+Event/Experience/Knowledge objects without comparing them to current persisted
+records. Review forged/stale source and lifecycle cases with regression tests,
+using ADR-019's signed boundary as an implementation reference. General validation
+mandates remain a separate policy question; exact-source checks do not grant them.

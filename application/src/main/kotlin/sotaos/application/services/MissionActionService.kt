@@ -75,6 +75,7 @@ class MissionActionService(
         if (authorityForDecision.subject != subject) {
             throw ActionNotAuthorizedException("Authority must belong to the decision subject.")
         }
+        val currentMission = requireActiveMission(mission)
         if (authorityForDecision.context.mission != null && authorityForDecision.context.mission != mission) {
             throw ActionNotAuthorizedException("Authority context does not cover mission ${mission.value}.")
         }
@@ -82,7 +83,19 @@ class MissionActionService(
             !authorityCheck(authorityForDecision, requestedScope, clock.now())) {
             throw ActionNotAuthorizedException("Authority does not cover decision action $chosen.")
         }
-        rightsConstraint.check(invocation, "P05", "decide", subject, authorityForDecision, requestedScope)
+        rightsConstraint.evaluate(
+            RightsConstraintRequest(
+                actor = invocation.actor,
+                protocol = "P05",
+                operation = "decide",
+                purpose = invocation.purpose,
+                mission = currentMission.id,
+                authority = authorityForDecision,
+                context = authorityForDecision.context,
+                scope = requestedScope,
+                target = subject
+            )
+        )
         val decision = Decision(
             id = DecisionId(ids.next()),
             subject = subject,
@@ -111,6 +124,7 @@ class MissionActionService(
                 "Decision and Authority must both belong to the acting subject (AC-15)."
             )
         }
+        requireActiveMission(missionId)
         if (authority.context.mission != null && authority.context.mission != missionId) {
             throw ActionNotAuthorizedException(
                 "Authority context does not cover mission ${missionId.value} (AC-15)."
@@ -161,6 +175,15 @@ class MissionActionService(
         recordActionEvent(saved, authority, rightsDecision.appliedPolicies, decision.affectedPersons, affectedOthers)
 
         saved
+    }
+
+    private fun requireActiveMission(id: MissionId): Mission {
+        val mission = missions.findById(id)
+            ?: throw ActionNotAuthorizedException("Mission ${id.value} is not persisted.")
+        if (mission.state != LifecycleState.ACTIVE) {
+            throw ActionNotAuthorizedException("Mission ${id.value} is not active; decision/action denied.")
+        }
+        return mission
     }
 
     private fun checkPersistedDecision(invocation: ProtocolInvocation, decision: Decision) {

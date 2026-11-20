@@ -7,6 +7,7 @@ import sotaos.application.ports.DecisionRepository
 import sotaos.application.services.ActionNotAuthorizedException
 import sotaos.application.services.MissionActionService
 import sotaos.domain.agency.Decision
+import sotaos.domain.agency.Mission
 import sotaos.domain.shared.*
 import sotaos.test.fakes.*
 
@@ -19,7 +20,11 @@ class DecisionAuthorityOwnerTest : FunSpec({
             override fun save(decision: Decision): Decision { written.add(decision); return decision }
             override fun findById(id: DecisionId): Decision? = written.find { it.id == id }
         }
-        val service = MissionActionService(InMemoryMissionRepository(), decisions, InMemoryActionRepository(),
+        val missions = InMemoryMissionRepository().apply {
+            save(Mission(MissionId("mission"), f.issuer, "Work", emptyList(), emptyList(),
+                Mode.CREATION, LifecycleState.ACTIVE))
+        }
+        val service = MissionActionService(missions, decisions, InMemoryActionRepository(),
             InMemoryResultRepository(), f.repository, InMemoryEventStore(), f.service::isValid, f.rights,
             f.clock, SequentialIdGenerator())
         // Unrestricted resources keep this check independent from scope coverage.

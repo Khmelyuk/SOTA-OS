@@ -34,6 +34,10 @@ class ConsentExecutionVerificationTest : FunSpec({
         val clock = FixedClock(at)
         val ids = SequentialIdGenerator("verify")
         val decisions = InMemoryDecisionRepository()
+        val missions = InMemoryMissionRepository().apply {
+            save(Mission(MissionId("mission-1"), SubjectRef.Core(CoreId("core")), "Coordinate care",
+                emptyList(), emptyList(), Mode.CREATION, LifecycleState.ACTIVE))
+        }
         val actions = mutableListOf<Action>()
         val events = mutableListOf<sotaos.domain.memory.Event>()
         val authorityRepo = InMemoryAuthorityRepository()
@@ -68,7 +72,7 @@ class ConsentExecutionVerificationTest : FunSpec({
         }
         val consentService = ConsentService(consentRepo, TestRightsConstraint, clock, ids)
         val service = MissionActionService(
-            InMemoryMissionRepository(), decisions, object : ActionRepository {
+            missions, decisions, object : ActionRepository {
                 override fun findById(id: ActionId): Action? = actions.find { it.id == id }
                 override fun save(action: Action): Action { actions.add(action); return action }
             }, InMemoryResultRepository(), authorityRepo, object : EventStore {

@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.assertions.throwables.shouldThrow
 import sotaos.application.services.*
 import sotaos.domain.agency.Outcome
+import sotaos.domain.agency.Mission
 import sotaos.domain.relation.AuthorityBasis
 import sotaos.domain.shared.*
 import sotaos.test.fakes.*
@@ -144,8 +145,9 @@ class CoreLoopVerticalSliceTest : FunSpec({
         val ids = SequentialIdGenerator()
         val authorityRepo = InMemoryAuthorityRepository()
         val authorityService = AuthorityService(authorityRepo, clock, ids, TestRightsConstraint)
+        val missions = InMemoryMissionRepository()
         val missionActionService = MissionActionService(
-            InMemoryMissionRepository(), InMemoryDecisionRepository(), InMemoryActionRepository(),
+            missions, InMemoryDecisionRepository(), InMemoryActionRepository(),
             InMemoryResultRepository(), authorityRepo, InMemoryEventStore(),
             authorityService::isValid, RightsConstraintDecorator(listOf(NoAgentActionRule)), clock, ids
         )
@@ -153,6 +155,8 @@ class CoreLoopVerticalSliceTest : FunSpec({
         val core = SubjectRef.Core(CoreId("core-1"))
         val person = SubjectRef.Person(PersonId("person-1"))
         val context = Context(domain = "delivery", mission = MissionId("mission-1"))
+        missions.save(Mission(MissionId("mission-1"), core, "Delivery", emptyList(), emptyList(),
+            Mode.CREATION, LifecycleState.ACTIVE))
 
         val authority = authorityService.grant(
             invocation = testInvocation(core), issuer = core, subject = person,

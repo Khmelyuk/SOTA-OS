@@ -1,5 +1,13 @@
 # Traceability Matrix — Code ↔ Specification
 
+P05 Mission update 2026-11-20: `MissionActionService` loads a persisted ACTIVE
+Mission at decision and execution, and passes its ID to decision rights policy.
+Protocol §8, Data Model §27 and Security §14 sections/pages/fingerprints are mapped
+in [ADR-022](adr/ADR-022-active-mission-boundary.md). `MissionStateBoundaryTest`
+covers missing/inactive Missions, ordinary/signed execution after reopen, no writes
+on denial, actual policy Mission ID and historical Result reporting after closure.
+Participation, version binding and mode propagation remain open.
+
 Authenticated admission update 2026-11-18: `P08AdmissionRuntime` connects P01
 provider proof to P04 scoped representation and P08 explicit agreement. Original
 Protocol §7/§11 and Security §§13–14/22/29 constraints, pages and fingerprints are
