@@ -33,6 +33,12 @@ a nonblank reason. These facts have no state assertions.
 
 ## Governance and atomicity
 
+The shared MemoryService now also enforces exact persisted sources and the bounded
+candidate/validated/deprecated lifecycle in ordinary mode under
+[ADR-023](adr/ADR-023-persisted-memory-boundary.md). It requires an EventStore and
+uses a shared repository transaction. Ordinary mode accepts local unsigned facts;
+the signed checks described above remain additional requirements.
+
 The existing MemoryService rules remain: Experience derives from the invoker's
 own Events, proposals belong to the Experience author, validation requires a
 matching non-Agent validator, and deprecation belongs to the Knowledge author.
@@ -60,8 +66,9 @@ rejected before save, including in the ordinary MemoryService.
 
 Receiving P07 history through P09 neither materializes remote Experience/Knowledge
 entities nor validates knowledge, executes Actions or grants authority. Research
-remains a separate candidate-only journal. Ordinary unsigned `demo` behavior and
-the unsupported generic `recordEvent` entry point remain as before. No new P07 CLI
+remains a separate candidate-only journal. The ordinary unsigned `demo` remains
+supported with persisted sources; the unsupported generic `recordEvent` entry
+point remains as before. No new P07 CLI
 command, remote dispatcher, unsigned-history upgrade or schema migration is added;
 `selectExperienceById` is a query over the existing table.
 

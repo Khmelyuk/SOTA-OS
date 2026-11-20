@@ -64,7 +64,7 @@ class SignedMemorySafetyTest : FunSpec({
             val runtime = f.memory()
             val experience = f.experience(runtime)
             val legacy = MemoryService(f.repos.experiences, f.repos.knowledge, Clock { f.now },
-                IdGenerator { UUID.randomUUID().toString() }, TestRightsConstraint)
+                IdGenerator { UUID.randomUUID().toString() }, TestRightsConstraint, f.repos.events)
             val unsigned = legacy.createExperience(f.invocation,
                 listOf(f.journal.records().first().event), "Unsigned", "Conditions")
             listOf(experience.copy(conclusion = "Forged"), experience.copy(id = ExperienceId("unknown")), unsigned)

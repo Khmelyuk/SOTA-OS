@@ -120,7 +120,8 @@ private fun persistCoreLoop(store: SqlDelightStore, clock: Clock, ids: IdGenerat
     val action = missionActions.execute(personInvocation, decision)
     missionActions.recordResult(personInvocation, action, Outcome.SUCCESS, "SQLite write succeeded")
     val event = repositories.events.findByActor(SubjectRef.Person(person.id)).single()
-    val memoryService = MemoryService(repositories.experiences, repositories.knowledge, clock, ids, testRights)
+    val memoryService = MemoryService(repositories.experiences, repositories.knowledge, clock, ids, testRights,
+        repositories.events)
     val experience = memoryService.createExperience(
         personInvocation, listOf(event), "SQLite-backed action completed", "Local integration verification"
     )

@@ -1,5 +1,13 @@
 # Traceability Matrix — Code ↔ Specification
 
+Ordinary P07 update 2026-11-20: `MemoryService` checks exact persisted sources,
+Event sets and current Knowledge states inside a shared repository transaction.
+`MemorySourceBoundaryTest` maps Protocol §10 and Memory Architecture §§9–10/27/43
+(M-02/M-03) to denial, restart and write rollback. Sources/pages/fingerprints and
+remaining audit/version/mandate limits are in [ADR-023](adr/ADR-023-persisted-memory-boundary.md).
+Ordinary unsigned facts remain local; exact storage equality does not establish
+signed history, canonicality or full M-05/M-10 conformance.
+
 P05 Mission update 2026-11-20: `MissionActionService` loads a persisted ACTIVE
 Mission at decision and execution, and passes its ID to decision rights policy.
 Protocol §8, Data Model §27 and Security §14 sections/pages/fingerprints are mapped

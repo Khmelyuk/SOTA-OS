@@ -438,6 +438,8 @@ class SqlDelightExperienceRepository(private val db: SotaOsDatabase) : Experienc
 }
 
 class SqlDelightKnowledgeRepository(private val db: SotaOsDatabase) : KnowledgeRepository {
+    override fun <T> transaction(block: () -> T): T = db.transactionWithResult { block() }
+
     override fun save(knowledge: DomainKnowledge): DomainKnowledge {
         val derived = ValueJsonMapping.strings(knowledge.derivedFromExperience.map { it.value })
         val evidence = ValueJsonMapping.strings(knowledge.evidence.map { it.value })

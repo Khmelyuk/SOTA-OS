@@ -56,7 +56,7 @@ class CoreLoopVerticalSliceTest : FunSpec({
             ids = ids
         )
         val memoryService = MemoryService(InMemoryExperienceRepository(), InMemoryKnowledgeRepository(), clock, ids,
-            TestRightsConstraint)
+            TestRightsConstraint, events)
 
         // Step 1 (AC-01): PERSON A
         val personA = identityService.createPerson()

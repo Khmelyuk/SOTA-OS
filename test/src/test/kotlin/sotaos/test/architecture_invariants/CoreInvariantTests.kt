@@ -98,8 +98,9 @@ class NoAICanonicalizationTest : FunSpec({
     test("validateKnowledge() rejects a SubjectRef.Agent validator") {
         val clock = FixedClock()
         val ids = SequentialIdGenerator()
-        val svc = MemoryService(InMemoryExperienceRepository(), InMemoryKnowledgeRepository(), clock, ids,
-            TestRightsConstraint)
+        val experiences = InMemoryExperienceRepository()
+        val svc = MemoryService(experiences, InMemoryKnowledgeRepository(), clock, ids,
+            TestRightsConstraint, InMemoryEventStore())
         val experience = sotaos.domain.memory.Experience(
             id = ExperienceId("exp-1"), derivedFromEvents = listOf(EventId("e-1")),
             context = Context(domain = "d"), whatWasTried = "x", outcome = "y",
@@ -107,6 +108,7 @@ class NoAICanonicalizationTest : FunSpec({
             confidence = sotaos.domain.memory.Confidence.LOW,
             provenance = Provenance(null, SubjectRef.Person(PersonId("p-1")), clock.now())
         )
+        experiences.save(experience)
         val candidate = svc.proposeKnowledgeCandidate(testInvocation(SubjectRef.Person(PersonId("p-1"))),
             experience, "some claim")
         candidate.status shouldBe KnowledgeStatus.CANDIDATE
@@ -120,8 +122,9 @@ class NoAICanonicalizationTest : FunSpec({
     test("validateKnowledge() accepts a Person/Core/Sota validator") {
         val clock = FixedClock()
         val ids = SequentialIdGenerator()
-        val svc = MemoryService(InMemoryExperienceRepository(), InMemoryKnowledgeRepository(), clock, ids,
-            TestRightsConstraint)
+        val experiences = InMemoryExperienceRepository()
+        val svc = MemoryService(experiences, InMemoryKnowledgeRepository(), clock, ids,
+            TestRightsConstraint, InMemoryEventStore())
         val experience = sotaos.domain.memory.Experience(
             id = ExperienceId("exp-2"), derivedFromEvents = listOf(EventId("e-2")),
             context = Context(domain = "d"), whatWasTried = "x", outcome = "y",
@@ -129,6 +132,7 @@ class NoAICanonicalizationTest : FunSpec({
             confidence = sotaos.domain.memory.Confidence.LOW,
             provenance = Provenance(null, SubjectRef.Person(PersonId("p-1")), clock.now())
         )
+        experiences.save(experience)
         val candidate = svc.proposeKnowledgeCandidate(testInvocation(SubjectRef.Person(PersonId("p-1"))),
             experience, "some claim")
         val validated = svc.validateKnowledge(testInvocation(SubjectRef.Person(PersonId("p-1"))), candidate,

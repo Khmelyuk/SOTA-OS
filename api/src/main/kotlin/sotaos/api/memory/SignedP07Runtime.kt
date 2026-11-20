@@ -22,7 +22,8 @@ class SignedP07Runtime(
 ) : MemoryKnowledgeProtocol {
     val sync = P09Runtime(store, local, governanceContext, clock, ids, rights)
     private val repositories = SqlDelightRepositories(store.database)
-    private val service = MemoryService(repositories.experiences, repositories.knowledge, clock, ids, rights)
+    private val service = MemoryService(repositories.experiences, repositories.knowledge, clock, ids, rights,
+        repositories.events)
     private val sources = SignedMemorySources(store, local, clock)
     private val journal = SignedMemoryJournal(store, local, sync, clock, ids, signers)
     private val snapshots = JsonMemorySnapshotCodec()

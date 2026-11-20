@@ -95,7 +95,8 @@ private fun recordDemoExperience(
     personInvocation: ProtocolInvocation,
     event: sotaos.domain.memory.Event
 ): sotaos.domain.memory.Experience {
-    val memory = MemoryService(repositories.experiences, repositories.knowledge, clock, ids, rightsConstraint)
+    val memory = MemoryService(repositories.experiences, repositories.knowledge, clock, ids, rightsConstraint,
+        repositories.events)
     val experience = memory.createExperience(personInvocation, listOf(event),
         "The local Core Loop completed successfully.",
         "Applicable to a first-run CLI smoke demonstration.")

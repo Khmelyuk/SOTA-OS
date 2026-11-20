@@ -131,6 +131,14 @@ class InMemoryExperienceRepository : ExperienceRepository {
 
 class InMemoryKnowledgeRepository : KnowledgeRepository {
     private val store = mutableMapOf<KnowledgeId, Knowledge>()
+    override fun <T> transaction(block: () -> T): T {
+        val before = store.toMap()
+        return try { block() } catch (failure: Throwable) {
+            store.clear()
+            store.putAll(before)
+            throw failure
+        }
+    }
     override fun save(knowledge: Knowledge): Knowledge { store[knowledge.id] = knowledge; return knowledge }
     override fun findById(id: KnowledgeId): Knowledge? = store[id]
 }

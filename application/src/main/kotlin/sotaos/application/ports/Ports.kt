@@ -87,6 +87,8 @@ typealias RightsRepository = sotaos.domain.rights.RightsRepository
 typealias ConsentRepository = sotaos.domain.rights.ConsentRepository
 
 interface KnowledgeRepository {
+    /** Source reads and memory writes share this transaction; injected repositories must use the same store. */
+    fun <T> transaction(block: () -> T): T
     fun save(knowledge: Knowledge): Knowledge
     fun findById(id: KnowledgeId): Knowledge?
 }

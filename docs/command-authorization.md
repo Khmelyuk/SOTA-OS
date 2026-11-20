@@ -23,7 +23,7 @@ actor's identity or automatically supply missing authority.
 | P05 decide / execute | Authority holder equals actor; persisted ACTIVE Mission checked at both stages; policy receives actual Mission ID; scope, mission binding, time and ancestor checks; exact persisted Decision at execution; affected-Person consent | MissionStateBoundaryTest (ADR-022), DecisionAuthorityOwnerTest, ConsentExecutionVerificationTest, DelegationEnforcementTest; participation, version binding and mode propagation remain open |
 | P05 recordResult | Exact stored Action, original actor and persisted context; rights check | SignedResultTest; signed mode additionally requires exact verified local Action history and a current signing key |
 | P06 generic recordEvent | Actor equality and rights check, then unsupported | No general non-action event dispatcher or signed P08 producer |
-| P07 ordinary MemoryService | Own Events/Experience for creation/proposal; matching non-Agent validator; author-only deprecation; rights check | Core Loop and NoAICanonicalizationTest; ordinary mode does not establish exact signed source history or general validation mandates |
+| P07 ordinary MemoryService | Exact persisted own Events/Experience; distinct same-context nonfuture Events; current CANDIDATE for validation, current CANDIDATE/VALIDATED for author-only deprecation with reason; matching non-Agent validator; persisted policy context; transactional checks/write | MemorySourceBoundaryTest, Core Loop and NoAICanonicalizationTest; ADR-023. Ordinary mode does not establish signed history, lifecycle audit/versioning or general validation mandates |
 | P07 SignedP07Runtime | Local non-Agent actor, exact persisted sources and verified history, current key, constrained lifecycle and atomic writes | SignedMemoryTest, SignedMemorySafetyTest, SignedMemoryAtomicityTest; host authentication and collective validation mandates remain external |
 | P08 createCore | Invoking Person is founder; rights check; Core and founding membership commit together | MembershipAuthorizationTest, Core Loop; founder receives membership, no implicit owner authority |
 | P08 invite | Authenticated target Core/Sota invocation only; rights check; unused membership terms saved as PROPOSED | MembershipLifecycleTest; delegated invitations and collective decision/representation rules remain open |
@@ -66,8 +66,9 @@ and mapped in that ADR; initial root-grant legitimacy remains unresolved.
    the original specifications; add concrete source-to-test mappings before
    selecting additional policies.
 3. Review remaining person-affecting commands for explicit consent, and ordinary
-   memory operations for persisted-source requirements. Keep signed and ordinary
-   host contracts clearly distinguished.
+   memory operations for lifecycle audit, reason retention and version lineage.
+   Persisted-source/state checks are implemented under ADR-023; keep signed and
+   ordinary host contracts clearly distinguished.
 
 The source references in the existing ADRs and traceability matrix guide this
 audit. Full normative source conformance is still open; no new voting, ownership,
@@ -78,3 +79,8 @@ Five regressions reproduced missing/inactive Mission acceptance and omitted poli
 Mission ID; six tests cover both execution modes, database reopen, denial before
 writes and historical Result reporting. Root approval/quorum remains an explicit
 unresolved policy question for the owner.
+
+P07 ordinary source/state checks are implemented under
+[ADR-023](adr/ADR-023-persisted-memory-boundary.md), with nine SQLite regressions.
+Validation of a current candidate does not itself establish the validator's
+collective mandate or produce ordinary lifecycle audit history.

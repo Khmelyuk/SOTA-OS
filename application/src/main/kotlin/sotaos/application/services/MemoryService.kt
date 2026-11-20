@@ -18,7 +18,8 @@ class MemoryService(
     private val knowledgeRepo: KnowledgeRepository,
     private val clock: Clock,
     private val ids: IdGenerator,
-    private val rightsConstraint: RightsConstraint
+    private val rightsConstraint: RightsConstraint,
+    private val events: EventStore
 ) : MemoryKnowledgeProtocol {
 
     override fun recordEvent(
@@ -39,11 +40,12 @@ class MemoryService(
     }
 
     override fun createExperience(invocation: ProtocolInvocation, fromEvents: List<Event>, conclusion: String,
-        applicability: String): Experience {
+        applicability: String): Experience = knowledgeRepo.transaction {
         require(fromEvents.isNotEmpty()) { "Experience must derive from at least one Event." }
         require(fromEvents.all { it.actor == invocation.actor }) {
             "MVP experience creation is limited to events authored by the invoking subject."
         }
+        checkEvents(fromEvents)
         rightsConstraint.check(invocation, "P07", "createExperience", context = fromEvents.first().context)
         val experience = Experience(
             id = ExperienceId(ids.next()),
@@ -60,11 +62,13 @@ class MemoryService(
                 recordedAt = clock.now()
             )
         )
-        return experiences.save(experience)
+        require(experiences.findById(experience.id) == null) { "Experience ID is already in use." }
+        experiences.save(experience)
     }
 
     override fun proposeKnowledgeCandidate(invocation: ProtocolInvocation, from: Experience,
-        statement: String): Knowledge {
+        statement: String): Knowledge = knowledgeRepo.transaction {
+        require(experiences.findById(from.id) == from) { "Source Experience differs from storage." }
         require(invocation.actor == from.provenance.author) {
             "Knowledge candidate author must match the source Experience author."
         }
@@ -81,11 +85,11 @@ class MemoryService(
             provenance = from.provenance
         )
         require(knowledgeRepo.findById(knowledge.id) == null) { "Knowledge ID is already in use." }
-        return knowledgeRepo.save(knowledge)
+        knowledgeRepo.save(knowledge)
     }
 
     override fun validateKnowledge(invocation: ProtocolInvocation, candidate: Knowledge,
-        validator: SubjectRef): Knowledge {
+        validator: SubjectRef): Knowledge = knowledgeRepo.transaction {
         require(invocation.actor == validator) { "Invocation actor must match knowledge validator." }
         if (validator is SubjectRef.Agent) {
             throw KnowledgeGovernanceException(
@@ -93,17 +97,39 @@ class MemoryService(
                     "by an Agent (${validator}). A Person, Core, or Sota principal is required."
             )
         }
+        checkKnowledge(candidate)
+        require(candidate.status == KnowledgeStatus.CANDIDATE) { "Only a current candidate may be validated." }
         rightsConstraint.check(invocation, "P07", "validateKnowledge", context = candidate.context)
         val validated = candidate.copy(status = KnowledgeStatus.VALIDATED)
-        return knowledgeRepo.save(validated)
+        knowledgeRepo.save(validated)
     }
 
-    override fun deprecate(invocation: ProtocolInvocation, knowledge: Knowledge, reason: String): Knowledge {
-        require(invocation.actor == knowledge.provenance.author) {
-            "MVP deprecation is limited to the Knowledge provenance author."
+    override fun deprecate(invocation: ProtocolInvocation, knowledge: Knowledge, reason: String): Knowledge =
+        knowledgeRepo.transaction {
+            checkKnowledge(knowledge)
+            require(invocation.actor == knowledge.provenance.author) {
+                "MVP deprecation is limited to the Knowledge provenance author."
+            }
+            require(reason.isNotBlank()) { "Deprecation requires an explicit reason." }
+            require(knowledge.status in setOf(KnowledgeStatus.CANDIDATE, KnowledgeStatus.VALIDATED)) {
+                "Only current candidate or validated Knowledge may be deprecated."
+            }
+            rightsConstraint.check(invocation, "P07", "deprecate", context = knowledge.context)
+            val deprecated = knowledge.copy(status = KnowledgeStatus.DEPRECATED)
+            knowledgeRepo.save(deprecated)
         }
-        rightsConstraint.check(invocation, "P07", "deprecate", context = knowledge.context)
-        val deprecated = knowledge.copy(status = KnowledgeStatus.DEPRECATED)
-        return knowledgeRepo.save(deprecated)
+
+    private fun checkEvents(sources: List<Event>) {
+        require(sources.map { it.id }.distinct().size == sources.size) { "Experience requires distinct source Events." }
+        require(sources.all { it.context == sources.first().context }) { "Source contexts must match." }
+        val now = clock.now()
+        sources.forEach { source ->
+            require(events.findById(source.id) == source) { "Source Event differs from storage." }
+            require(!source.timestamp.isAfter(now)) { "Source Event cannot be from the future." }
+        }
+    }
+
+    private fun checkKnowledge(value: Knowledge) {
+        require(knowledgeRepo.findById(value.id) == value) { "Knowledge differs from its current record." }
     }
 }
