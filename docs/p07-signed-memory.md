@@ -39,6 +39,13 @@ candidate/validated/deprecated lifecycle in ordinary mode under
 uses a shared repository transaction. Ordinary mode accepts local unsigned facts;
 the signed checks described above remain additional requirements.
 
+[ADR-025](adr/ADR-025-local-memory-audit.md) adds a shared typed audit hook.
+Ordinary MemoryService writes unsigned LOCAL_* Events with before/after snapshots
+and reasons in the entity transaction. SignedP07Runtime injects SignedMemoryAudit
+and writes only the existing signed facts: no duplicate unsigned Event or wire-format
+change. Sources are checked before service policy evaluation and rechecked before
+the signed fact is appended. The entity write follows audit inside the same transaction.
+
 The existing MemoryService rules remain: Experience derives from the invoker's
 own Events, proposals belong to the Experience author, validation requires a
 matching non-Agent validator, and deprecation belongs to the Knowledge author.

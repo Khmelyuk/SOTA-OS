@@ -23,7 +23,7 @@ actor's identity or automatically supply missing authority.
 | P05 decide / execute | Authority holder equals actor; persisted ACTIVE Mission checked at both stages; policy receives actual Mission ID; scope, mission binding, time and ancestor checks; exact persisted Decision at execution; affected-Person consent; execution copies current Mission mode | MissionStateBoundaryTest (ADR-022), MissionModeTest (ADR-024), DecisionAuthorityOwnerTest, ConsentExecutionVerificationTest, DelegationEnforcementTest; participation, version binding and mode-change governance remain open |
 | P05 recordResult | Exact stored Action, original actor and persisted context; rights check | SignedResultTest, MissionModeTest; signed mode additionally requires verified local Action history, a current signing key and agreement with the signed mode field when present; legacy absent fields do not prove mode |
 | P06 generic recordEvent | Actor equality and rights check, then unsupported | No general non-action event dispatcher or signed P08 producer |
-| P07 ordinary MemoryService | Exact persisted own Events/Experience; distinct same-context nonfuture Events; current CANDIDATE for validation, current CANDIDATE/VALIDATED for author-only deprecation with reason; matching non-Agent validator; persisted policy context; transactional checks/write | MemorySourceBoundaryTest, Core Loop and NoAICanonicalizationTest; ADR-023. Ordinary mode does not establish signed history, lifecycle audit/versioning or general validation mandates |
+| P07 ordinary MemoryService | Exact persisted own Events/Experience; distinct same-context nonfuture Events; current CANDIDATE for validation, current CANDIDATE/VALIDATED for author-only deprecation with reason; matching non-Agent validator; persisted policy context; atomic entity/local audit Event | MemorySourceBoundaryTest, LocalMemoryAuditTest, Core Loop and NoAICanonicalizationTest; ADR-023/025. Ordinary mode does not establish signed history, version lineage or general validation mandates |
 | P07 SignedP07Runtime | Local non-Agent actor, exact persisted sources and verified history, current key, constrained lifecycle and atomic writes | SignedMemoryTest, SignedMemorySafetyTest, SignedMemoryAtomicityTest; host authentication and collective validation mandates remain external |
 | P08 createCore | Invoking Person is founder; rights check; Core and founding membership commit together | MembershipAuthorizationTest, Core Loop; founder receives membership, no implicit owner authority |
 | P08 invite | Authenticated target Core/Sota invocation only; rights check; unused membership terms saved as PROPOSED | MembershipLifecycleTest; delegated invitations and collective decision/representation rules remain open |
@@ -66,8 +66,8 @@ and mapped in that ADR; initial root-grant legitimacy remains unresolved.
    the original specifications; add concrete source-to-test mappings before
    selecting additional policies.
 3. Review remaining person-affecting commands for explicit consent, and ordinary
-   memory operations for lifecycle audit, reason retention and version lineage.
-   Persisted-source/state checks are implemented under ADR-023; keep signed and
+   memory operations for version lineage and historical coverage gaps.
+   Persisted-source/state checks and local audit are implemented under ADR-023/025; keep signed and
    ordinary host contracts clearly distinguished.
 
 The source references in the existing ADRs and traceability matrix guide this
@@ -83,4 +83,5 @@ unresolved policy question for the owner.
 P07 ordinary source/state checks are implemented under
 [ADR-023](adr/ADR-023-persisted-memory-boundary.md), with nine SQLite regressions.
 Validation of a current candidate does not itself establish the validator's
-collective mandate or produce ordinary lifecycle audit history.
+collective mandate. ADR-025 now records ordinary lifecycle audit and reasons,
+while version lineage and full historical coverage remain open.

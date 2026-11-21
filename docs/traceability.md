@@ -1,5 +1,13 @@
 # Traceability Matrix — Code ↔ Specification
 
+Local P07 audit update 2026-11-21: MemoryAudit, LocalMemoryAudit and
+SignedMemoryAudit connect Memory §§13/27/34/43 (bounded M-10 history evidence)
+to atomic entity/Event recording. LocalMemoryAuditTest covers actor attribution,
+full snapshots/reasons, restart, append-only storage, rollback/retry, denial and
+legacy transitions. Source pages/fingerprints and limitations are in
+[ADR-025](adr/ADR-025-local-memory-audit.md). Signed payload/causal semantics are
+preserved without duplicate local Events. Version lineage and mandates remain open.
+
 P05 mode update 2026-11-21: `MissionActionService` copies the current persisted
 Mission mode into Action and ACTION_EXECUTED; `SignedResultRecording` checks it
 against signed evidence when present. Data Model §§16/27/50 and Protocol §21

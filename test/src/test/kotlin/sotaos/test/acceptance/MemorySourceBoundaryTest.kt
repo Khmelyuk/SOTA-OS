@@ -97,7 +97,7 @@ class MemorySourceBoundaryTest : FunSpec({
             }
             f.repos.knowledge.findById(candidate.id) shouldBe deprecated
             deprecated.provenance shouldBe candidate.provenance
-            f.count("event") shouldBe 1L
+            f.count("event") shouldBe 5L
             f.count("sync_journal") shouldBe 0L
         }
     }

@@ -3,6 +3,10 @@
 Date: 2026-11-20
 Status: Accepted for the bounded local MVP slice
 
+Update 2026-11-21: [ADR-025](ADR-025-local-memory-audit.md) adds local lifecycle
+audit and reason retention, superseding the ordinary-audit limitation below.
+Version lineage and collective mandate boundaries remain open.
+
 ## Source and gap
 
 Protocol Architecture v0.1 §10 (PDF p.10) distinguishes Event, Experience,

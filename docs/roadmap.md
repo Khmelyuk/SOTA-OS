@@ -1,7 +1,7 @@
 # Development roadmap — updated 2026-11-21
 
-Published baseline before this increment: GitHub `main` at `8936075`
-(persisted P07 sources and current states), with successful CI. The earlier integration
+Published baseline before this increment: GitHub `main` at `be2b00a`
+(P05 Mission/Action mode propagation), with successful CI. The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
@@ -28,6 +28,9 @@ tracks the integrated implementation and subsequent bounded increments.
   states inside a shared transaction, with rollback after failed writes (ADR-023).
 - P05 Action/Event mode comes from the current active Mission at execution;
   Result recording checks Action mode against new signed evidence, with legacy compatibility (ADR-024).
+- Ordinary P07 lifecycle audit retains complete snapshots, actor, purpose and
+  deprecation reason atomically; signed P07 retains its existing facts without
+  unsigned duplicates (ADR-025).
 - JDK 21 CI with module graph checks, Detekt, tests and CLI smoke scenarios.
 - Local credential lifecycle and a human-invoked, candidate-only Research CLI
   (ADR-018). Research draft approval does not publish externally.
@@ -54,7 +57,7 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 | Order | Increment | Evidence required before completion |
 |---|---|---|
 | Done 2026-11-18 | Signed P07 Experience/Knowledge producers | Exact persisted source checks, full signed snapshots, causal parents, local non-Agent governance, atomic entity/Event/journal/receipt writes; SignedMemory acceptance tests and ten-record HTTPS rehearsal. Host authentication remains required; see ADR-019 |
-| 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state boundary and P05 mode propagation implemented under ADR-020/021/022/023/024. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/version/mode-change governance and P07 validation mandates/versioning/lifecycle audit |
+| 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state checks, P05 mode propagation and local P07 lifecycle audit implemented under ADR-020/021/022/023/024/025. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/version/mode-change governance and P07 validation mandates/version lineage |
 | 3 | P09 operational lifecycle | Governed certificate renewal and configuration changes, old/new material recovery, failure diagnostics and deployment runbooks; automated historical attestations only with explicit provenance policy |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
 | 5 | Broader persistence and release acceptance | Versioned migration fixtures, missing conformance tests, review of public API/GUI scope, and recorded CI/rehearsal evidence for the selected release |
@@ -93,8 +96,11 @@ P05 mode propagation is implemented under ADR-024: execute uses current persiste
 Mission.mode, and new signed Action facts bind it. Decision mode/version binding
 is still open; no public mode-change command or protection-specific policy is added.
 
-Next independent slice: ordinary P07 lifecycle audit and deprecation-reason
-retention. Map the original Memory integrity/governance requirements to atomic
-local events and restart/rollback tests before extending the producer. Signed P07
-already records lifecycle facts. Version lineage and general canonicalization
-mandates remain separate requirements.
+Ordinary P07 lifecycle audit and deprecation-reason retention are implemented under
+ADR-025, with atomic local Events and restart/rollback tests. Existing history is
+not backfilled; local Events do not become signed P09 facts.
+
+Next independent review: P07 Knowledge version lineage. Map Memory Architecture
+§§13–14 to creation of a new version, immutable predecessor links and conflict/stale
+input checks before implementing a version command. Lifecycle audit alone does not
+increment versions or establish canonicalization/validation mandates.

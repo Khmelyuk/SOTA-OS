@@ -24,6 +24,7 @@ class SignedMemoryTest : FunSpec({
             val validated = runtime.validateKnowledge(f.invocation, candidate, f.actor)
             val deprecated = runtime.deprecate(f.invocation, validated, "New contradictory evidence")
             val records = f.journal.records()
+            f.count("event") shouldBe records.size.toLong()
             val facts = records.drop(source.size)
             facts.map { it.event.type } shouldBe listOf("EXPERIENCE_RECORDED", "KNOWLEDGE_PROPOSED",
                 "KNOWLEDGE_VALIDATED", "KNOWLEDGE_DEPRECATED")

@@ -7,7 +7,6 @@ import sotaos.domain.memory.*
 import sotaos.domain.shared.*
 import sotaos.persistence.SqlDelightRepositories
 import sotaos.persistence.SqlDelightStore
-import sotaos.protocol.JsonMemorySnapshotCodec
 import sotaos.security.*
 
 /** Opt-in local P07 producer. Host authenticates invocation.actor and protects provisioned signing keys. */
@@ -22,49 +21,32 @@ class SignedP07Runtime(
 ) : MemoryKnowledgeProtocol {
     val sync = P09Runtime(store, local, governanceContext, clock, ids, rights)
     private val repositories = SqlDelightRepositories(store.database)
-    private val service = MemoryService(repositories.experiences, repositories.knowledge, clock, ids, rights,
-        repositories.events)
     private val sources = SignedMemorySources(store, local, clock)
-    private val journal = SignedMemoryJournal(store, local, sync, clock, ids, signers)
-    private val snapshots = JsonMemorySnapshotCodec()
+    private val service = MemoryService(repositories.experiences, repositories.knowledge, clock, ids, rights,
+        repositories.events, SignedMemoryAudit(sources,
+            SignedMemoryJournal(store, local, sync, clock, ids, signers)))
 
     override fun createExperience(invocation: ProtocolInvocation, fromEvents: List<Event>, conclusion: String,
         applicability: String): Experience = transaction(invocation) {
-        val parents = sources.events(fromEvents)
-        val experience = service.createExperience(invocation, parents, conclusion, applicability)
-        journal.append(invocation, MemoryFact("EXPERIENCE_RECORDED", experience.id.value,
-            snapshots.encode(experience)), parents)
-        experience
+        service.createExperience(invocation, sources.events(fromEvents), conclusion, applicability)
     }
 
     override fun proposeKnowledgeCandidate(invocation: ProtocolInvocation, from: Experience,
         statement: String): Knowledge = transaction(invocation) {
-        val parent = sources.experience(from)
-        val knowledge = service.proposeKnowledgeCandidate(invocation, from, statement)
-        journal.append(invocation, MemoryFact("KNOWLEDGE_PROPOSED", knowledge.id.value,
-            snapshots.encode(knowledge)), listOf(parent))
-        knowledge
+        sources.experience(from)
+        service.proposeKnowledgeCandidate(invocation, from, statement)
     }
 
     override fun validateKnowledge(invocation: ProtocolInvocation, candidate: Knowledge,
         validator: SubjectRef): Knowledge = transaction(invocation) {
-        val parent = sources.knowledge(candidate)
-        require(candidate.status == KnowledgeStatus.CANDIDATE) { "Only a current candidate may be validated." }
-        val knowledge = service.validateKnowledge(invocation, candidate, validator)
-        journal.append(invocation, MemoryFact("KNOWLEDGE_VALIDATED", knowledge.id.value,
-            snapshots.encode(knowledge)), listOf(parent))
-        knowledge
+        sources.knowledge(candidate)
+        service.validateKnowledge(invocation, candidate, validator)
     }
 
     override fun deprecate(invocation: ProtocolInvocation, knowledge: Knowledge, reason: String): Knowledge =
         transaction(invocation) {
-            val parent = sources.knowledge(knowledge)
-            require(reason.isNotBlank()) { "Deprecation requires an explicit reason." }
-            require(knowledge.status in setOf(KnowledgeStatus.CANDIDATE, KnowledgeStatus.VALIDATED))
-            val deprecated = service.deprecate(invocation, knowledge, reason)
-            journal.append(invocation, MemoryFact("KNOWLEDGE_DEPRECATED", deprecated.id.value,
-                snapshots.encode(deprecated)), listOf(parent), reason)
-            deprecated
+            sources.knowledge(knowledge)
+            service.deprecate(invocation, knowledge, reason)
         }
 
     override fun recordEvent(invocation: ProtocolInvocation, type: String, actor: SubjectRef, context: Context,

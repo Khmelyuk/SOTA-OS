@@ -19,7 +19,8 @@ class MemoryService(
     private val clock: Clock,
     private val ids: IdGenerator,
     private val rightsConstraint: RightsConstraint,
-    private val events: EventStore
+    private val events: EventStore,
+    private val audit: MemoryAudit = LocalMemoryAudit(events, clock, ids)
 ) : MemoryKnowledgeProtocol {
 
     override fun recordEvent(
@@ -63,6 +64,7 @@ class MemoryService(
             )
         )
         require(experiences.findById(experience.id) == null) { "Experience ID is already in use." }
+        audit.record(invocation, MemoryChange.ExperienceRecorded(experience, fromEvents))
         experiences.save(experience)
     }
 
@@ -85,6 +87,7 @@ class MemoryService(
             provenance = from.provenance
         )
         require(knowledgeRepo.findById(knowledge.id) == null) { "Knowledge ID is already in use." }
+        audit.record(invocation, MemoryChange.KnowledgeProposed(knowledge, from))
         knowledgeRepo.save(knowledge)
     }
 
@@ -101,6 +104,7 @@ class MemoryService(
         require(candidate.status == KnowledgeStatus.CANDIDATE) { "Only a current candidate may be validated." }
         rightsConstraint.check(invocation, "P07", "validateKnowledge", context = candidate.context)
         val validated = candidate.copy(status = KnowledgeStatus.VALIDATED)
+        audit.record(invocation, MemoryChange.KnowledgeValidated(validated, candidate))
         knowledgeRepo.save(validated)
     }
 
@@ -116,6 +120,7 @@ class MemoryService(
             }
             rightsConstraint.check(invocation, "P07", "deprecate", context = knowledge.context)
             val deprecated = knowledge.copy(status = KnowledgeStatus.DEPRECATED)
+            audit.record(invocation, MemoryChange.KnowledgeDeprecated(deprecated, knowledge, reason))
             knowledgeRepo.save(deprecated)
         }
 
