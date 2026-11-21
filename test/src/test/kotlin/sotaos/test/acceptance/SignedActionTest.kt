@@ -20,11 +20,14 @@ class SignedActionTest : FunSpec({
             val token = destination.peer("source")
             var sender = source.runtime()
             var receiver = destination.runtime("destination")
-            val decision = source.decision(sender)
+            val mission = sender.formMission(source.invocation, source.actor, "Protect work", Mode.PROTECTION)
+            val decision = sender.decide(source.invocation, source.actor, mission.id, source.authorityId, "execute")
             val action = sender.execute(source.invocation, decision)
+            action.mode shouldBe Mode.PROTECTION
             val record = source.journal.records().single()
             record.event.type shouldBe "ACTION_EXECUTED"
             record.event.payload["actionId"] shouldBe action.id.value
+            record.event.payload["mode"] shouldBe "PROTECTION"
             record.event.authorityRef shouldBe decision.authorityRef.value
             record.event.decisionRef shouldBe decision.id.value
             record.event.provenance.author shouldBe source.actor

@@ -42,6 +42,9 @@ internal class SignedResultRecording(
         require(record.origin == local.node && event.actor == action.actor && event.actor in local.actors)
         require(event.context == action.context && event.authorityRef == action.authority.value &&
             event.decisionRef == action.decision?.value && event.timestamp == action.timestamp)
+        require("mode" !in event.payload || event.payload["mode"] == action.mode.name) {
+            "Action mode differs from its signed execution evidence."
+        }
         SyncRecordIntegrity(codec).check(record)
         val proof = requireNotNull(SqlDelightVerifiedRecordRepository(store.database).find(event.id)) {
             "Action event must have local verification evidence."

@@ -51,6 +51,17 @@ history and are denied at execution. Result reporting for an already executed
 Action remains allowed after Mission closure, subject to its existing checks.
 See [ADR-022](adr/ADR-022-active-mission-boundary.md) and MissionStateBoundaryTest.
 
+## Mission/Action mode — 2026-11-21
+
+New Actions copy the current persisted Mission mode at execution; their
+ACTION_EXECUTED payload includes `mode` (`CREATION` or `PROTECTION`). Signed P09
+integrity binds that value. Later Mission changes do not rewrite Action history.
+Signed Result recording rejects a mode mismatch between the stored Action and
+its execution Event when that field is present. Legacy signed Events without it
+remain readable and usable, but provide no signed evidence of mode.
+See [ADR-024](adr/ADR-024-mission-action-mode.md) and MissionModeTest. Mission
+version binding and policies governing mode changes remain open.
+
 ## Result producer — 2026-10-11
 
 `recordResult` now requires the exact persisted Action in both signed and ordinary

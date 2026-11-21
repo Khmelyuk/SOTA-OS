@@ -1,4 +1,4 @@
-# Command authorization audit — 2026-11-20
+# Command authorization audit — 2026-11-21
 
 This is a review of implemented checks and remaining work, not a claim that all
 source requirements or Phase 3 are complete. `ProtocolInvocation.actor` is a
@@ -20,8 +20,8 @@ actor's identity or automatically supply missing authority.
 | P04 delegation | Actor is issuer; one current covering parent and complete valid lineage; context, scope, time and accountability ceilings | DelegationBoundsTest, AuthorityGrantBoundaryTest; no implicit authority from membership or role |
 | P04 revoke | Stored issuer, rights check, atomic descendant revocation/audit | AuthorityRevocationBoundaryTest, DelegationCascadeTest |
 | P05 createIntent / formMission | Actor equals subject/owner; rights check | Core Loop tests; collective representation and broader mission admission rules remain open |
-| P05 decide / execute | Authority holder equals actor; persisted ACTIVE Mission checked at both stages; policy receives actual Mission ID; scope, mission binding, time and ancestor checks; exact persisted Decision at execution; affected-Person consent | MissionStateBoundaryTest (ADR-022), DecisionAuthorityOwnerTest, ConsentExecutionVerificationTest, DelegationEnforcementTest; participation, version binding and mode propagation remain open |
-| P05 recordResult | Exact stored Action, original actor and persisted context; rights check | SignedResultTest; signed mode additionally requires exact verified local Action history and a current signing key |
+| P05 decide / execute | Authority holder equals actor; persisted ACTIVE Mission checked at both stages; policy receives actual Mission ID; scope, mission binding, time and ancestor checks; exact persisted Decision at execution; affected-Person consent; execution copies current Mission mode | MissionStateBoundaryTest (ADR-022), MissionModeTest (ADR-024), DecisionAuthorityOwnerTest, ConsentExecutionVerificationTest, DelegationEnforcementTest; participation, version binding and mode-change governance remain open |
+| P05 recordResult | Exact stored Action, original actor and persisted context; rights check | SignedResultTest, MissionModeTest; signed mode additionally requires verified local Action history, a current signing key and agreement with the signed mode field when present; legacy absent fields do not prove mode |
 | P06 generic recordEvent | Actor equality and rights check, then unsupported | No general non-action event dispatcher or signed P08 producer |
 | P07 ordinary MemoryService | Exact persisted own Events/Experience; distinct same-context nonfuture Events; current CANDIDATE for validation, current CANDIDATE/VALIDATED for author-only deprecation with reason; matching non-Agent validator; persisted policy context; transactional checks/write | MemorySourceBoundaryTest, Core Loop and NoAICanonicalizationTest; ADR-023. Ordinary mode does not establish signed history, lifecycle audit/versioning or general validation mandates |
 | P07 SignedP07Runtime | Local non-Agent actor, exact persisted sources and verified history, current key, constrained lifecycle and atomic writes | SignedMemoryTest, SignedMemorySafetyTest, SignedMemoryAtomicityTest; host authentication and collective validation mandates remain external |
@@ -62,7 +62,7 @@ and mapped in that ADR; initial root-grant legitimacy remains unresolved.
 1. Specify initial collective mandate/root eligibility and broader representation
    beyond ADR-021's authenticated delegated Core invitations. Reuse the
    confirmed single-founder Research bootstrap only within its ADR-018 scope.
-2. Review P05 participation/version/mode rules and P07 validation mandates against
+2. Review P05 participation/version/mode-change governance and P07 validation mandates against
    the original specifications; add concrete source-to-test mappings before
    selecting additional policies.
 3. Review remaining person-affecting commands for explicit consent, and ordinary

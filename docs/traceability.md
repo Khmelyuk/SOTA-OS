@@ -1,5 +1,14 @@
 # Traceability Matrix — Code ↔ Specification
 
+P05 mode update 2026-11-21: `MissionActionService` copies the current persisted
+Mission mode into Action and ACTION_EXECUTED; `SignedResultRecording` checks it
+against signed evidence when present. Data Model §§16/27/50 and Protocol §21
+sections/pages/fingerprints are mapped in [ADR-024](adr/ADR-024-mission-action-mode.md).
+MissionModeTest covers both modes/paths, reopen, snapshot history, mismatch denial,
+legacy compatibility and rollback. SignedActionTest exchanges PROTECTION history
+after lost response/restart without remote execution. Mode-change governance and
+Decision version binding remain open.
+
 Ordinary P07 update 2026-11-20: `MemoryService` checks exact persisted sources,
 Event sets and current Knowledge states inside a shared repository transaction.
 `MemorySourceBoundaryTest` maps Protocol §10 and Memory Architecture §§9–10/27/43
@@ -14,7 +23,7 @@ Protocol §8, Data Model §27 and Security §14 sections/pages/fingerprints are 
 in [ADR-022](adr/ADR-022-active-mission-boundary.md). `MissionStateBoundaryTest`
 covers missing/inactive Missions, ordinary/signed execution after reopen, no writes
 on denial, actual policy Mission ID and historical Result reporting after closure.
-Participation, version binding and mode propagation remain open.
+Participation and version binding remain open; mode propagation was added under ADR-024.
 
 Authenticated admission update 2026-11-18: `P08AdmissionRuntime` connects P01
 provider proof to P04 scoped representation and P08 explicit agreement. Original

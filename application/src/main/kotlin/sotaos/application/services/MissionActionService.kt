@@ -124,7 +124,7 @@ class MissionActionService(
                 "Decision and Authority must both belong to the acting subject (AC-15)."
             )
         }
-        requireActiveMission(missionId)
+        val currentMission = requireActiveMission(missionId)
         if (authority.context.mission != null && authority.context.mission != missionId) {
             throw ActionNotAuthorizedException(
                 "Authority context does not cover mission ${missionId.value} (AC-15)."
@@ -165,7 +165,7 @@ class MissionActionService(
             decision = decision.id,
             context = authority.context,
             timestamp = clock.now(),
-            mode = Mode.CREATION,
+            mode = currentMission.mode,
             target = null
         )
         val saved = actions.save(action)
@@ -263,6 +263,7 @@ class MissionActionService(
             "actionId" to action.id.value,
             "authorityId" to authority.id.value,
             "decisionId" to action.decision?.value,
+            "mode" to action.mode.name,
             "rightsPolicies" to appliedPolicies.toList(),
             "affectedPersons" to affectedPersons.map { it.value },
             "consentCheckedPersons" to consentCheckedPersons.map { it.value }

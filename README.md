@@ -48,6 +48,9 @@ What exists and is source-complete:
 - P05 decisions and execution require a persisted ACTIVE Mission, rechecked before
   execution; decision rights policy receives the actual Mission ID. Historical
   Result reporting remains available after closure ([ADR-022](docs/adr/ADR-022-active-mission-boundary.md)).
+- P05 copies the current Mission's CREATION/PROTECTION mode into the executed
+  Action and its Event. Signed Result recording checks mode against new signed
+  Action evidence, while retaining legacy history ([ADR-024](docs/adr/ADR-024-mission-action-mode.md)).
 - Opt-in [signed P07 Experience and Knowledge](docs/p07-signed-memory.md) validate exact
   persisted sources, sign full snapshots with causal links, and atomically record
   creation, human validation and deprecation under ADR-019.
@@ -110,17 +113,18 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
-Local verification on 2026-11-20: the full build, Detekt, migration and
-module-layering checks passed with **315 tests** (zero failures, errors or
-skips), including nine new ordinary-memory tests, six Mission-boundary tests, 13 authenticated-admission tests,
+Local verification on 2026-11-21: the full build, Detekt, migration and
+module-layering checks passed with **320 tests** (zero failures, errors or
+skips), including five new Mission-mode tests, nine ordinary-memory tests,
+six Mission-boundary tests, 13 authenticated-admission tests,
 13 persisted-membership tests and 11 signed-memory tests. The CLI distribution
 and two-node HTTPS rehearsal passed with ten matching signed records and
-checkpoints `(10, 10)`. Ordinary CLI `init` and `demo` also passed on a new
-temporary SQLite database. Research CLI smoke passed during the preceding
+checkpoints `(10, 10)`. Ordinary CLI `init` and `demo` passed on a new
+temporary SQLite database during the preceding P07 increment. Research CLI smoke passed during the
 persisted-membership increment.
 P09 status, signed P10 and credential lifecycle smoke scenarios passed during
-integration on 2026-11-17 and remain part of CI. The published P05 Mission-boundary
-baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/44780142967).
+integration on 2026-11-17 and remain part of CI. The published P07 persisted-source
+baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/44797523773).
 This verifies the integrated local tree; the CI link
 above records the result for each published commit.
 
@@ -180,14 +184,14 @@ authentication port and per-Sota provider allowlist are described in
 [ADR-009](docs/adr/ADR-009-provider-based-authentication.md). Only the local
 provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
-The next increments, updated after the P07 persisted-source boundary on 2026-11-20, are recorded
+The next increments, updated after P05 mode propagation on 2026-11-21, are recorded
 in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
 admission, signatures and HTTPS hosting are already implemented. Continue with:
 
 1. Extend command-specific authorization and source conformance: explicit
    initial collective mandate/root eligibility and further command conformance.
    Delegated Core invitations now have a fresh-proof host under ADR-021;
-   broader collective representation, P05 participation/version/mode rules and
+   broader collective representation, P05 participation/version and mode-change governance, and
    P07 validation mandates, versioning and ordinary lifecycle audit remain open.
    Initial Core mandate approval/quorum needs
    an explicit owner policy; independent source review can continue meanwhile.

@@ -1,7 +1,7 @@
-# Development roadmap — updated 2026-11-20
+# Development roadmap — updated 2026-11-21
 
-Published baseline before this increment: GitHub `main` at `4650af5`
-(active persisted P05 Missions), with successful CI. The earlier integration
+Published baseline before this increment: GitHub `main` at `8936075`
+(persisted P07 sources and current states), with successful CI. The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
@@ -26,6 +26,8 @@ tracks the integrated implementation and subsequent bounded increments.
   reporting remains available after Mission closure.
 - Ordinary P07 verifies exact persisted sources and current Knowledge lifecycle
   states inside a shared transaction, with rollback after failed writes (ADR-023).
+- P05 Action/Event mode comes from the current active Mission at execution;
+  Result recording checks Action mode against new signed evidence, with legacy compatibility (ADR-024).
 - JDK 21 CI with module graph checks, Detekt, tests and CLI smoke scenarios.
 - Local credential lifecycle and a human-invoked, candidate-only Research CLI
   (ADR-018). Research draft approval does not publish externally.
@@ -52,7 +54,7 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 | Order | Increment | Evidence required before completion |
 |---|---|---|
 | Done 2026-11-18 | Signed P07 Experience/Knowledge producers | Exact persisted source checks, full signed snapshots, causal parents, local non-Agent governance, atomic entity/Event/journal/receipt writes; SignedMemory acceptance tests and ten-record HTTPS rehearsal. Host authentication remains required; see ADR-019 |
-| 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions and ordinary P07 source/state boundary implemented under ADR-020/021/022/023. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/version/mode rules and P07 validation mandates/versioning/lifecycle audit |
+| 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state boundary and P05 mode propagation implemented under ADR-020/021/022/023/024. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/version/mode-change governance and P07 validation mandates/versioning/lifecycle audit |
 | 3 | P09 operational lifecycle | Governed certificate renewal and configuration changes, old/new material recovery, failure diagnostics and deployment runbooks; automated historical attestations only with explicit provenance policy |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
 | 5 | Broader persistence and release acceptance | Versioned migration fixtures, missing conformance tests, review of public API/GUI scope, and recorded CI/rehearsal evidence for the selected release |
@@ -70,7 +72,7 @@ existing source review backlog.
 The [command authorization audit](command-authorization.md) maps each command
 group to its actor/authority checks and executable evidence. The next bounded
 review is initial collective mandate/root standing and broader representation,
-followed by P05 participation/version/mode rules and P07 validation mandates. ADR-021 records
+followed by P05 participation/version/mode-change governance and P07 validation mandates. ADR-021 records
 the original Protocol and Security PDF constraints reviewed for the bounded
 admission host; it does not claim to define the missing collective decision protocol.
 
@@ -87,8 +89,12 @@ regressions cover source/state checks, restart and transactional rollback.
 General validation mandates remain a separate policy question; exact-source checks
 do not grant them.
 
-Next independent review: P05 currently creates Action with a fixed CREATION mode.
-Map Mission/Action mode requirements to the original specifications and tests before
-changing propagation or decision binding. P07's ordinary lifecycle audit, reason
-retention and version lineage also remain open; signed P07 already records its
-lifecycle facts, but neither path defines general canonicalization mandates.
+P05 mode propagation is implemented under ADR-024: execute uses current persisted
+Mission.mode, and new signed Action facts bind it. Decision mode/version binding
+is still open; no public mode-change command or protection-specific policy is added.
+
+Next independent slice: ordinary P07 lifecycle audit and deprecation-reason
+retention. Map the original Memory integrity/governance requirements to atomic
+local events and restart/rollback tests before extending the producer. Signed P07
+already records lifecycle facts. Version lineage and general canonicalization
+mandates remain separate requirements.
