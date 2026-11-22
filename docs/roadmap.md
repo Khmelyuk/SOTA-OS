@@ -1,7 +1,7 @@
-# Development roadmap — updated 2026-11-21
+# Development roadmap — updated 2026-11-22
 
-Published baseline before this increment: GitHub `main` at `be2b00a`
-(P05 Mission/Action mode propagation), with successful CI. The earlier integration
+Published baseline before this increment: GitHub `main` at `cb15492`
+(local P07 lifecycle audit), with successful CI. The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
@@ -31,6 +31,9 @@ tracks the integrated implementation and subsequent bounded increments.
 - Ordinary P07 lifecycle audit retains complete snapshots, actor, purpose and
   deprecation reason atomically; signed P07 retains its existing facts without
   unsigned duplicates (ADR-025).
+- Explicit Knowledge revision creates a new candidate with a retained predecessor,
+  immutable version content/links, exact reason and source, local/signed audit, and
+  stale/fork/lineage checks (ADR-026). Validation remains a separate operation.
 - JDK 21 CI with module graph checks, Detekt, tests and CLI smoke scenarios.
 - Local credential lifecycle and a human-invoked, candidate-only Research CLI
   (ADR-018). Research draft approval does not publish externally.
@@ -57,7 +60,7 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 | Order | Increment | Evidence required before completion |
 |---|---|---|
 | Done 2026-11-18 | Signed P07 Experience/Knowledge producers | Exact persisted source checks, full signed snapshots, causal parents, local non-Agent governance, atomic entity/Event/journal/receipt writes; SignedMemory acceptance tests and ten-record HTTPS rehearsal. Host authentication remains required; see ADR-019 |
-| 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state checks, P05 mode propagation and local P07 lifecycle audit implemented under ADR-020/021/022/023/024/025. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/version/mode-change governance and P07 validation mandates/version lineage |
+| 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state checks, P05 mode propagation, local P07 lifecycle audit and explicit Knowledge revision implemented under ADR-020/021/022/023/024/025/026. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/version/mode-change governance and P07 validation mandates/general branch-conflict governance |
 | 3 | P09 operational lifecycle | Governed certificate renewal and configuration changes, old/new material recovery, failure diagnostics and deployment runbooks; automated historical attestations only with explicit provenance policy |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
 | 5 | Broader persistence and release acceptance | Versioned migration fixtures, missing conformance tests, review of public API/GUI scope, and recorded CI/rehearsal evidence for the selected release |
@@ -100,7 +103,13 @@ Ordinary P07 lifecycle audit and deprecation-reason retention are implemented un
 ADR-025, with atomic local Events and restart/rollback tests. Existing history is
 not backfilled; local Events do not become signed P09 facts.
 
-Next independent review: P07 Knowledge version lineage. Map Memory Architecture
-§§13–14 to creation of a new version, immutable predecessor links and conflict/stale
-input checks before implementing a version command. Lifecycle audit alone does not
-increment versions or establish canonicalization/validation mandates.
+P07 Knowledge version lineage is implemented under ADR-026, mapped to Memory
+Architecture §§13–14/18–19. A new version is a separate candidate; its predecessor
+retains content and status. The local single-successor rule rejects stale/forked
+submissions without erasing stored versions. General contradiction records,
+branch reconciliation and canonical-head/validation mandates remain open.
+
+Next independent review: P05 Decision binding to Mission version and mode. Map
+the source requirements and existing persisted Decision format before selecting
+the stale-decision rule and migration/legacy policy. Keep participation and
+collective mandate decisions explicit; do not infer a quorum from the current model.

@@ -1,12 +1,23 @@
 # Traceability Matrix — Code ↔ Specification
 
+P07 version update 2026-11-22: MemoryService.reviseKnowledge and KnowledgeLineage
+connect Memory §§13–14/18–19 to separately reviewed candidates, immutable stored
+content/links, retained predecessors and explicit stale/fork denial. Local and signed
+audit retain reason, source and version history atomically. KnowledgeLineageTest,
+KnowledgeRevisionTest and KnowledgeRevisionBoundaryTest cover persistence, source
+boundaries, lifecycle, rollback, restart and signed evidence. SignedMemoryTest delivers
+revision and validation through recovery without remote entity materialization.
+Source pages/fingerprints and limits are in [ADR-026](adr/ADR-026-knowledge-version-lineage.md).
+General branch/conflict governance and validation mandates remain open.
+
 Local P07 audit update 2026-11-21: MemoryAudit, LocalMemoryAudit and
 SignedMemoryAudit connect Memory §§13/27/34/43 (bounded M-10 history evidence)
 to atomic entity/Event recording. LocalMemoryAuditTest covers actor attribution,
 full snapshots/reasons, restart, append-only storage, rollback/retry, denial and
 legacy transitions. Source pages/fingerprints and limitations are in
 [ADR-025](adr/ADR-025-local-memory-audit.md). Signed payload/causal semantics are
-preserved without duplicate local Events. Version lineage and mandates remain open.
+preserved without duplicate local Events. ADR-026 subsequently adds bounded version
+lineage; general validation mandates remain open.
 
 P05 mode update 2026-11-21: `MissionActionService` copies the current persisted
 Mission mode into Action and ACTION_EXECUTED; `SignedResultRecording` checks it

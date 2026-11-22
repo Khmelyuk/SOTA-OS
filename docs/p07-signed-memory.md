@@ -13,6 +13,7 @@ Public actor keys must already be provisioned through governed P09 operations.
 |---|---|---|
 | createExperience | EXPERIENCE_RECORDED | Every supplied source Event |
 | proposeKnowledgeCandidate | KNOWLEDGE_PROPOSED | Exact source Experience fact |
+| reviseKnowledge | KNOWLEDGE_REVISED | Exact predecessor Knowledge fact and source Experience fact |
 | validateKnowledge | KNOWLEDGE_VALIDATED | Current candidate fact |
 | deprecate | KNOWLEDGE_DEPRECATED | Current candidate or validated fact |
 
@@ -29,9 +30,19 @@ including all domain fields and original entity provenance. The surrounding P09
 signature binds those exact bytes, context, origin and causal parents. The Event's
 actor/provenance identify the person or collective making this transition; a
 validator does not replace the Knowledge's original author. Deprecation requires
-a nonblank reason. These facts have no state assertions.
+a nonblank reason, as does revision. These facts have no state assertions.
 
 ## Governance and atomicity
+
+[ADR-026](adr/ADR-026-knowledge-version-lineage.md) adds
+`reviseKnowledge(invocation, previous, from, statement, reason)`. It creates a new
+CANDIDATE with the next version number and immutable predecessor link, while
+retaining the predecessor's content and status. Both sources must belong to the
+invoker and share a context. Changed content and an exact nonblank reason are
+required. Revision accepts CANDIDATE, VALIDATED or DEPRECATED predecessors, rejects
+stale inputs and existing local successors, and never copies validation to the child.
+Repository writes preserve content/provenance/version links; only status can change
+on an existing ID. General branching and validation mandates remain separate work.
 
 The shared MemoryService now also enforces exact persisted sources and the bounded
 candidate/validated/deprecated lifecycle in ordinary mode under
@@ -42,9 +53,11 @@ the signed checks described above remain additional requirements.
 [ADR-025](adr/ADR-025-local-memory-audit.md) adds a shared typed audit hook.
 Ordinary MemoryService writes unsigned LOCAL_* Events with before/after snapshots
 and reasons in the entity transaction. SignedP07Runtime injects SignedMemoryAudit
-and writes only the existing signed facts: no duplicate unsigned Event or wire-format
-change. Sources are checked before service policy evaluation and rechecked before
+and writes only signed facts, without duplicate unsigned Events. The snapshot and
+signed payload formats remain unchanged. Sources are checked before service policy evaluation and rechecked before
 the signed fact is appended. The entity write follows audit inside the same transaction.
+Revision uses that same hook with a new fact type and two verified causal parents;
+the existing snapshot and signed payload formats remain unchanged.
 
 The existing MemoryService rules remain: Experience derives from the invoker's
 own Events, proposals belong to the Experience author, validation requires a
@@ -77,7 +90,7 @@ remains a separate candidate-only journal. The ordinary unsigned `demo` remains
 supported with persisted sources; the unsupported generic `recordEvent` entry
 point remains as before. No new P07 CLI
 command, remote dispatcher, unsigned-history upgrade or schema migration is added;
-`selectExperienceById` is a query over the existing table.
+Experience and successor lookups query the existing tables.
 
 `SignedMemoryTest`, `SignedMemorySafetyTest` and `SignedMemoryAtomicityTest` cover
 the full lifecycle, source/provenance checks, validator identity, no-Agent boundary,
@@ -85,3 +98,6 @@ current keys and historical receipts, restart, rollback at every write stage,
 lost acknowledgement and duplicate-free exchange. The [HTTPS rehearsal](getting-started.md)
 now exchanges ten signed records: Action, Result, Experience, Knowledge proposal
 and six exit stages. See [ADR-019](adr/ADR-019-signed-memory-producers.md).
+KnowledgeLineageTest, KnowledgeRevisionTest and KnowledgeRevisionBoundaryTest add
+revision/immutability coverage under ADR-026. The signed-memory recovery test includes
+a new version and its independent validation in its seven-record exchange.

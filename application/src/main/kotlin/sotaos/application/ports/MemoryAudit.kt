@@ -8,6 +8,8 @@ import sotaos.domain.shared.ProtocolInvocation
 sealed interface MemoryChange {
     data class ExperienceRecorded(val value: Experience, val sources: List<Event>) : MemoryChange
     data class KnowledgeProposed(val value: Knowledge, val source: Experience) : MemoryChange
+    data class KnowledgeRevised(val value: Knowledge, val previous: Knowledge,
+        val source: Experience, val reason: String) : MemoryChange
     data class KnowledgeValidated(val value: Knowledge, val previous: Knowledge) : MemoryChange
     data class KnowledgeDeprecated(val value: Knowledge, val previous: Knowledge, val reason: String) : MemoryChange
 }

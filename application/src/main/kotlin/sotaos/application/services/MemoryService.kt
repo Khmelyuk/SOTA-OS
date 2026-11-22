@@ -91,6 +91,19 @@ class MemoryService(
         knowledgeRepo.save(knowledge)
     }
 
+    override fun reviseKnowledge(invocation: ProtocolInvocation, previous: Knowledge, from: Experience,
+        statement: String, reason: String): Knowledge = knowledgeRepo.transaction {
+        checkRevision(invocation, previous, from, statement, reason)
+        rightsConstraint.check(invocation, "P07", "reviseKnowledge", context = previous.context)
+        val revised = Knowledge(KnowledgeId(ids.next()), statement, listOf(from.id), emptyList(), previous.context,
+            KnowledgeStatus.CANDIDATE, previous.version + 1, previous.id,
+            Provenance(from.provenance.sourceEventId, invocation.actor, clock.now(),
+                listOf(previous.id.value, from.id.value)))
+        require(knowledgeRepo.findById(revised.id) == null) { "Knowledge ID is already in use." }
+        audit.record(invocation, MemoryChange.KnowledgeRevised(revised, previous, from, reason))
+        knowledgeRepo.save(revised)
+    }
+
     override fun validateKnowledge(invocation: ProtocolInvocation, candidate: Knowledge,
         validator: SubjectRef): Knowledge = knowledgeRepo.transaction {
         require(invocation.actor == validator) { "Invocation actor must match knowledge validator." }
@@ -123,6 +136,28 @@ class MemoryService(
             audit.record(invocation, MemoryChange.KnowledgeDeprecated(deprecated, knowledge, reason))
             knowledgeRepo.save(deprecated)
         }
+
+    private fun checkRevision(invocation: ProtocolInvocation, previous: Knowledge, from: Experience,
+        statement: String, reason: String) {
+        checkKnowledge(previous)
+        require(experiences.findById(from.id) == from) { "Source Experience differs from storage." }
+        require(invocation.actor == previous.provenance.author && invocation.actor == from.provenance.author) {
+            "MVP revision requires the Knowledge and Experience author."
+        }
+        require(previous.context == from.context) { "Revision source context must match Knowledge." }
+        require(statement.isNotBlank() && statement != previous.statement && reason.isNotBlank()) {
+            "Revision requires changed nonblank content and an explicit reason."
+        }
+        require(previous.status in setOf(KnowledgeStatus.CANDIDATE, KnowledgeStatus.VALIDATED,
+            KnowledgeStatus.DEPRECATED)) { "Knowledge status is outside the revision lifecycle." }
+        knowledgeRepo.checkKnowledgeLineage(previous)
+        require(previous.version < Int.MAX_VALUE) { "Knowledge version limit reached." }
+        require(knowledgeRepo.findSuccessors(previous.id).isEmpty()) { "Knowledge already has a local successor." }
+        val now = clock.now()
+        require(!previous.provenance.recordedAt.isAfter(now) && !from.provenance.recordedAt.isAfter(now)) {
+            "Revision sources cannot be from the future."
+        }
+    }
 
     private fun checkEvents(sources: List<Event>) {
         require(sources.map { it.id }.distinct().size == sources.size) { "Experience requires distinct source Events." }

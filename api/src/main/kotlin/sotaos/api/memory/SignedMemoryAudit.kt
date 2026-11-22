@@ -18,6 +18,9 @@ internal class SignedMemoryAudit(private val sources: SignedMemorySources,
             is MemoryChange.KnowledgeProposed -> journal.append(invocation,
                 MemoryFact("KNOWLEDGE_PROPOSED", change.value.id.value, snapshots.encode(change.value)),
                 listOf(sources.experience(change.source)))
+            is MemoryChange.KnowledgeRevised -> journal.append(invocation,
+                MemoryFact("KNOWLEDGE_REVISED", change.value.id.value, snapshots.encode(change.value)),
+                listOf(sources.knowledge(change.previous), sources.experience(change.source)), change.reason)
             is MemoryChange.KnowledgeValidated -> journal.append(invocation,
                 MemoryFact("KNOWLEDGE_VALIDATED", change.value.id.value, snapshots.encode(change.value)),
                 listOf(sources.knowledge(change.previous)))

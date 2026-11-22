@@ -14,6 +14,7 @@ import sotaos.domain.memory.Experience as DomainExperience
 import sotaos.domain.memory.Knowledge as DomainKnowledge
 import app.cash.sqldelight.db.SqlDriver
 import sotaos.application.ports.*
+import sotaos.application.services.checkKnowledgeWrite
 import sotaos.domain.agency.*
 import sotaos.domain.collective.*
 import sotaos.domain.identity.*
@@ -440,7 +441,8 @@ class SqlDelightExperienceRepository(private val db: SotaOsDatabase) : Experienc
 class SqlDelightKnowledgeRepository(private val db: SotaOsDatabase) : KnowledgeRepository {
     override fun <T> transaction(block: () -> T): T = db.transactionWithResult { block() }
 
-    override fun save(knowledge: DomainKnowledge): DomainKnowledge {
+    override fun save(knowledge: DomainKnowledge): DomainKnowledge = transaction {
+        checkKnowledgeWrite(knowledge)
         val derived = ValueJsonMapping.strings(knowledge.derivedFromExperience.map { it.value })
         val evidence = ValueJsonMapping.strings(knowledge.evidence.map { it.value })
         val context = JsonMapping.context(knowledge.context)
@@ -449,18 +451,21 @@ class SqlDelightKnowledgeRepository(private val db: SotaOsDatabase) : KnowledgeR
             db.schemaQueries.insertKnowledge(knowledge.id.value, knowledge.statement, derived, evidence, context,
                 knowledge.status.name, knowledge.version.toLong(), knowledge.supersedes?.value, provenance, null, null)
         } else {
-            db.schemaQueries.updateKnowledge(knowledge.statement, derived, evidence, context, knowledge.status.name,
-                knowledge.version.toLong(), knowledge.supersedes?.value, provenance, null, null, knowledge.id.value)
+            db.schemaQueries.updateKnowledgeStatus(knowledge.status.name, knowledge.id.value)
         }
-        return knowledge
+        knowledge
     }
 
     override fun findById(id: KnowledgeId): DomainKnowledge? = db.schemaQueries.selectKnowledgeById(id.value)
-        .executeAsOneOrNull()?.let {
-            DomainKnowledge(KnowledgeId(it.knowledge_id), it.statement,
-                ValueJsonMapping.strings(it.derived_experience_json).map(::ExperienceId),
-                ValueJsonMapping.strings(it.evidence_json).map(::EvidenceId), JsonMapping.context(it.context_json),
-                KnowledgeStatus.valueOf(it.status), it.version.toInt(), it.supersedes?.let(::KnowledgeId),
-                JsonMapping.provenance(it.provenance_json))
-        }
+        .executeAsOneOrNull()?.toKnowledge()
+
+    override fun findSuccessors(id: KnowledgeId): List<DomainKnowledge> =
+        db.schemaQueries.selectKnowledgeSuccessors(id.value).executeAsList().map { it.toKnowledge() }
 }
+
+private fun sotaos.persistence.Knowledge.toKnowledge(): DomainKnowledge =
+    DomainKnowledge(KnowledgeId(knowledge_id), statement,
+        ValueJsonMapping.strings(derived_experience_json).map(::ExperienceId),
+        ValueJsonMapping.strings(evidence_json).map(::EvidenceId), JsonMapping.context(context_json),
+        KnowledgeStatus.valueOf(status), version.toInt(), supersedes?.let(::KnowledgeId),
+        JsonMapping.provenance(provenance_json))

@@ -341,6 +341,9 @@ WHERE unit_id = ? AND login_handle = ?;
 selectKnowledgeById:
 SELECT * FROM knowledge WHERE knowledge_id = ?;
 
+selectKnowledgeSuccessors:
+SELECT * FROM knowledge WHERE supersedes = ? ORDER BY knowledge_id;
+
 selectExperienceById:
 SELECT * FROM experience WHERE experience_id = ?;
 
@@ -368,10 +371,8 @@ updateConsent:
 UPDATE consent SET revoked_at = ? WHERE consent_id = ?;
 
 
-updateKnowledge:
-UPDATE knowledge SET statement = ?, derived_experience_json = ?, evidence_json = ?, context_json = ?,
-status = ?, version = ?, supersedes = ?, provenance_json = ?, validated_by_kind = ?,
-validated_by_id = ? WHERE knowledge_id = ?;
+updateKnowledgeStatus:
+UPDATE knowledge SET status = ? WHERE knowledge_id = ?;
 
 -- Immutable by policy and enforced for all SQL clients, not only adapters.
 CREATE TRIGGER event_no_update BEFORE UPDATE ON event

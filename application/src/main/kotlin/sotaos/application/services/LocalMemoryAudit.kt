@@ -20,6 +20,8 @@ class LocalMemoryAudit(private val events: EventStore, private val clock: Clock,
                     change.sources.map { it.id.value }))
             is MemoryChange.KnowledgeProposed -> knowledge(invocation, "LOCAL_KNOWLEDGE_PROPOSED",
                 change.value, source = change.source)
+            is MemoryChange.KnowledgeRevised -> knowledge(invocation, "LOCAL_KNOWLEDGE_REVISED",
+                change.value, previous = change.previous, source = change.source, reason = change.reason)
             is MemoryChange.KnowledgeValidated -> knowledge(invocation, "LOCAL_KNOWLEDGE_VALIDATED",
                 change.value, previous = change.previous)
             is MemoryChange.KnowledgeDeprecated -> knowledge(invocation, "LOCAL_KNOWLEDGE_DEPRECATED",

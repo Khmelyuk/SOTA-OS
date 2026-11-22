@@ -102,6 +102,10 @@ interface MemoryKnowledgeProtocol {
 
     fun proposeKnowledgeCandidate(invocation: ProtocolInvocation, from: Experience, statement: String): Knowledge
 
+    /** Creates a separately reviewed candidate; preserves the predecessor's content and status. */
+    fun reviseKnowledge(invocation: ProtocolInvocation, previous: Knowledge, from: Experience,
+        statement: String, reason: String): Knowledge
+
     /** Only Person/Core/Sota principals accepted — see contract note above. */
     fun validateKnowledge(invocation: ProtocolInvocation, candidate: Knowledge, validator: SubjectRef): Knowledge
 

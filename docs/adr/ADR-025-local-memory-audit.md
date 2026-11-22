@@ -84,9 +84,10 @@ point is still unsupported. No Person/Core/Sota mandate or authentication proof 
 inferred from a recorded actor.
 
 Knowledge version numbers and supersedes links are preserved, not advanced by
-lifecycle changes. New-version creation, complete version lineage, canonicalization
-mandates and historical backfill remain separate work; this is bounded M-10 evidence,
-not completion of all Memory governance/versioning requirements.
+lifecycle changes. [ADR-026](ADR-026-knowledge-version-lineage.md) subsequently adds
+explicit new-version creation and checks the known lineage. General branch/conflict
+governance, canonicalization mandates and historical backfill remain separate work;
+this is bounded M-10 evidence, not completion of all Memory governance requirements.
 
 ## Evidence
 

@@ -91,6 +91,7 @@ interface KnowledgeRepository {
     fun <T> transaction(block: () -> T): T
     fun save(knowledge: Knowledge): Knowledge
     fun findById(id: KnowledgeId): Knowledge?
+    fun findSuccessors(id: KnowledgeId): List<Knowledge>
 }
 
 /**

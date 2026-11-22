@@ -117,7 +117,11 @@ class SignedMemorySafetyTest : FunSpec({
                     .validateKnowledge(f.invocation.copy(actor = agent), candidate, agent)
             }
             val replacement = candidate.copy(statement = "Replaced outside signed runtime")
-            f.repos.knowledge.save(replacement)
+            // Bypass the immutable repository to simulate out-of-band database corruption.
+            f.driver.execute(null, "UPDATE knowledge SET statement = ? WHERE knowledge_id = ?", 2) {
+                bindString(0, replacement.statement)
+                bindString(1, replacement.id.value)
+            }
             shouldThrow<IllegalArgumentException> {
                 runtime.validateKnowledge(f.invocation, replacement, f.actor)
             }

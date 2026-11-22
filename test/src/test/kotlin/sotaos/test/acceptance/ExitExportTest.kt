@@ -46,7 +46,11 @@ class ExitExportTest : FunSpec({
             val authority = f.exportAuthority(refs.map { "${it.kind}:${it.id}" }.toSet())
             f.repos.authorities.save(authority)
             refs.forEach { f.runtime.governance.allowExport(f.operatorInvocation(), f.target, it, authority.id) }
-            f.repos.knowledge.save(knowledge.copy(statement = "unapproved edit", version = 2))
+            // Out-of-band storage corruption must not alter an approved portable snapshot.
+            f.driver.execute(null, "UPDATE knowledge SET statement = ?, version = 2 WHERE knowledge_id = ?", 2) {
+                bindString(0, "unapproved edit")
+                bindString(1, knowledge.id.value)
+            }
             f.reopen()
             val doc = f.runtime.service.exportPortableData(f.invocation, f.prepare())
             val json = Json.parseToJsonElement(doc.json).jsonObject

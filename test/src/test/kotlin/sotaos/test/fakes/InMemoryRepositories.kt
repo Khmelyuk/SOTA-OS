@@ -1,6 +1,7 @@
 package sotaos.test.fakes
 
 import sotaos.application.ports.*
+import sotaos.application.services.checkKnowledgeWrite
 import sotaos.domain.identity.*
 import sotaos.domain.collective.*
 import sotaos.domain.relation.*
@@ -139,6 +140,11 @@ class InMemoryKnowledgeRepository : KnowledgeRepository {
             throw failure
         }
     }
-    override fun save(knowledge: Knowledge): Knowledge { store[knowledge.id] = knowledge; return knowledge }
+    override fun save(knowledge: Knowledge): Knowledge {
+        checkKnowledgeWrite(knowledge)
+        store[knowledge.id] = knowledge
+        return knowledge
+    }
     override fun findById(id: KnowledgeId): Knowledge? = store[id]
+    override fun findSuccessors(id: KnowledgeId): List<Knowledge> = store.values.filter { it.supersedes == id }
 }

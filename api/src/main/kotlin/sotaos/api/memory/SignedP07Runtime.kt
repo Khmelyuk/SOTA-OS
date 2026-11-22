@@ -37,6 +37,13 @@ class SignedP07Runtime(
         service.proposeKnowledgeCandidate(invocation, from, statement)
     }
 
+    override fun reviseKnowledge(invocation: ProtocolInvocation, previous: Knowledge, from: Experience,
+        statement: String, reason: String): Knowledge = transaction(invocation) {
+        sources.knowledge(previous)
+        sources.experience(from)
+        service.reviseKnowledge(invocation, previous, from, statement, reason)
+    }
+
     override fun validateKnowledge(invocation: ProtocolInvocation, candidate: Knowledge,
         validator: SubjectRef): Knowledge = transaction(invocation) {
         sources.knowledge(candidate)

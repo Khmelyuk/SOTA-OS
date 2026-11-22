@@ -1,4 +1,4 @@
-# Command authorization audit — 2026-11-21
+# Command authorization audit — 2026-11-22
 
 This is a review of implemented checks and remaining work, not a claim that all
 source requirements or Phase 3 are complete. `ProtocolInvocation.actor` is a
@@ -23,7 +23,8 @@ actor's identity or automatically supply missing authority.
 | P05 decide / execute | Authority holder equals actor; persisted ACTIVE Mission checked at both stages; policy receives actual Mission ID; scope, mission binding, time and ancestor checks; exact persisted Decision at execution; affected-Person consent; execution copies current Mission mode | MissionStateBoundaryTest (ADR-022), MissionModeTest (ADR-024), DecisionAuthorityOwnerTest, ConsentExecutionVerificationTest, DelegationEnforcementTest; participation, version binding and mode-change governance remain open |
 | P05 recordResult | Exact stored Action, original actor and persisted context; rights check | SignedResultTest, MissionModeTest; signed mode additionally requires verified local Action history, a current signing key and agreement with the signed mode field when present; legacy absent fields do not prove mode |
 | P06 generic recordEvent | Actor equality and rights check, then unsupported | No general non-action event dispatcher or signed P08 producer |
-| P07 ordinary MemoryService | Exact persisted own Events/Experience; distinct same-context nonfuture Events; current CANDIDATE for validation, current CANDIDATE/VALIDATED for author-only deprecation with reason; matching non-Agent validator; persisted policy context; atomic entity/local audit Event | MemorySourceBoundaryTest, LocalMemoryAuditTest, Core Loop and NoAICanonicalizationTest; ADR-023/025. Ordinary mode does not establish signed history, version lineage or general validation mandates |
+| P07 ordinary MemoryService | Exact persisted own Events/Experience; distinct same-context nonfuture Events; current CANDIDATE for validation, current CANDIDATE/VALIDATED for author-only deprecation with reason; matching non-Agent validator; persisted policy context; atomic entity/local audit Event | MemorySourceBoundaryTest, LocalMemoryAuditTest, Core Loop and NoAICanonicalizationTest; ADR-023/025. Ordinary mode does not establish signed history or general validation mandates |
+| P07 reviseKnowledge (ordinary/signed) | Exact stored predecessor and Experience, invoking author/context match, nonfuture provenance, changed content/reason, supported lifecycle, complete known lineage, next version and no existing successor; persisted rights context; new candidate/audit atomic | KnowledgeLineageTest, KnowledgeRevisionTest, KnowledgeRevisionBoundaryTest; ADR-026. Existing version content is immutable; previous status is retained; signed mode requires verified facts for both parents. General branch/conflict and validation mandates remain open |
 | P07 SignedP07Runtime | Local non-Agent actor, exact persisted sources and verified history, current key, constrained lifecycle and atomic writes | SignedMemoryTest, SignedMemorySafetyTest, SignedMemoryAtomicityTest; host authentication and collective validation mandates remain external |
 | P08 createCore | Invoking Person is founder; rights check; Core and founding membership commit together | MembershipAuthorizationTest, Core Loop; founder receives membership, no implicit owner authority |
 | P08 invite | Authenticated target Core/Sota invocation only; rights check; unused membership terms saved as PROPOSED | MembershipLifecycleTest; delegated invitations and collective decision/representation rules remain open |
@@ -65,9 +66,9 @@ and mapped in that ADR; initial root-grant legitimacy remains unresolved.
 2. Review P05 participation/version/mode-change governance and P07 validation mandates against
    the original specifications; add concrete source-to-test mappings before
    selecting additional policies.
-3. Review remaining person-affecting commands for explicit consent, and ordinary
-   memory operations for version lineage and historical coverage gaps.
-   Persisted-source/state checks and local audit are implemented under ADR-023/025; keep signed and
+3. Review remaining person-affecting commands for explicit consent, and memory
+   operations for branch/conflict governance and historical coverage gaps.
+   Persisted sources, local audit and bounded version lineage are implemented under ADR-023/025/026; keep signed and
    ordinary host contracts clearly distinguished.
 
 The source references in the existing ADRs and traceability matrix guide this
@@ -84,4 +85,5 @@ P07 ordinary source/state checks are implemented under
 [ADR-023](adr/ADR-023-persisted-memory-boundary.md), with nine SQLite regressions.
 Validation of a current candidate does not itself establish the validator's
 collective mandate. ADR-025 now records ordinary lifecycle audit and reasons,
-while version lineage and full historical coverage remain open.
+and ADR-026 adds immutable version content and explicit revision with retained
+predecessors. General branch/conflict governance and full historical coverage remain open.

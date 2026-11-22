@@ -26,6 +26,10 @@ for application-service wiring. JSON columns use explicit mappings in
   their domain services change lifecycle/governance state. Consent rows keep
   their original grant terms and only update the revocation timestamp.
   RIGHT records are inserted once.
+- Knowledge repository saves enforce immutable version content/provenance/links;
+  only status changes on an existing ID. New versions check known ancestry and
+  reject duplicate local successors inside the transaction. Raw SQL remains a
+  trusted boundary; see [ADR-026](../docs/adr/ADR-026-knowledge-version-lineage.md).
 - Membership rows use a deterministic key derived from subject, collective,
   role, and start time. Lookup uses those exact terms, including a nullable role,
   and lifecycle changes preserve the actual stored ID, including legacy IDs.

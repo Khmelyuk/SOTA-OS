@@ -46,7 +46,7 @@ internal class SignedMemorySources(
 
     fun knowledge(value: Knowledge): Event {
         require(repositories.knowledge.findById(value.id) == value) { "Knowledge differs from its current record." }
-        return snapshot(setOf("KNOWLEDGE_PROPOSED", "KNOWLEDGE_VALIDATED", "KNOWLEDGE_DEPRECATED"),
+        return snapshot(setOf("KNOWLEDGE_PROPOSED", "KNOWLEDGE_REVISED", "KNOWLEDGE_VALIDATED", "KNOWLEDGE_DEPRECATED"),
             value.id.value, snapshots.encode(value))
     }
 

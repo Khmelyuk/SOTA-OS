@@ -59,8 +59,11 @@ class SignedMemoryTest : FunSpec({
             val token = b.peer("source")
             var sender = a.memory()
             var receiver = b.memory("destination")
-            val candidate = sender.proposeKnowledgeCandidate(a.invocation, a.experience(sender), "Statement")
-            sender.validateKnowledge(a.invocation, candidate, a.actor).status shouldBe KnowledgeStatus.VALIDATED
+            val experience = a.experience(sender)
+            val candidate = sender.proposeKnowledgeCandidate(a.invocation, experience, "Statement")
+            val approved = sender.validateKnowledge(a.invocation, candidate, a.actor)
+            val revised = sender.reviseKnowledge(a.invocation, approved, experience, "Revised", "New interpretation")
+            sender.validateKnowledge(a.invocation, revised, a.actor).status shouldBe KnowledgeStatus.VALIDATED
             val records = a.journal.records()
             val codec = JsonSyncMessageCodec()
             var loseAck = true
@@ -75,7 +78,7 @@ class SignedMemoryTest : FunSpec({
             a.reopen(); b.reopen()
             sender = a.memory(); receiver = b.memory("destination")
             loseAck = false
-            repeat(2) { sender.sync.synchronize(SotaId("destination"), transport) shouldBe PeerCheckpoint(5, 5) }
+            repeat(2) { sender.sync.synchronize(SotaId("destination"), transport) shouldBe PeerCheckpoint(7, 7) }
             b.journal.records() shouldBe records
             listOf("experience", "knowledge", "action", "result").forEach { b.count(it) shouldBe 0L }
         } }
