@@ -45,6 +45,14 @@ idempotent additive table creation for RIGHT and CONSENT so existing database
 files can open with these records available. Other future schema changes
 still need versioned SQLDelight migrations.
 
+Two frozen Git schema profiles now exercise this opening path with synthetic
+historical governance, memory and credential records. Seven tests cover exact row
+preservation, repeated reopen, structural comparison with a fresh store, current
+service behavior, guards and retry after a failed baseline insertion. The entire
+compatibility sequence is not a single schema transaction. See
+[historical migration acceptance](../docs/persistence-migrations.md) for evidence,
+fixture provenance and remaining runtime-schema coverage.
+
 `actor_signing_key` stores one active Ed25519 public key per actor as Base64
 X.509 material; private keys are never persisted. Lifecycle changes are
 recorded in append-only `actor_signing_key_audit` with explicit timestamps and

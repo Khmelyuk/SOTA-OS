@@ -1,5 +1,14 @@
 # Traceability Matrix — Code ↔ Specification
 
+Historical migration acceptance update 2026-11-23: two immutable Git-declared
+SQLite schemas and synthetic raw rows exercise ADR-007's real-persistence testing
+boundary independently of the current schema/encoders. HistoricalMigrationTest and
+HistoricalMigrationBehaviorTest cover row preservation, schema contracts, reopen,
+failure/retry, credential/consent/delegation state, Decision binding and Knowledge
+lineage under ADR-009/013/023/026/027. They preserve unsigned history without adding
+verification evidence or mandates. Provenance, checks and limits are documented in
+[migration acceptance](persistence-migrations.md); this is not full release-migration coverage.
+
 P05 Decision binding update 2026-11-23: MissionActionService records the exact modeled
 Mission terms with each new Decision and checks equality before execution writes.
 Data Model §§15–16/27 and Protocol §§8/21 are mapped in

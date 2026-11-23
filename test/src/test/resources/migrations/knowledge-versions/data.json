@@ -1,0 +1,311 @@
+{
+  "fixtureOnly": true,
+  "rows": [
+    {
+      "table": "person",
+      "values": {
+        "person_id": "actor",
+        "created_at": "2026-09-01T00:00:00Z"
+      }
+    },
+    {
+      "table": "person",
+      "values": {
+        "person_id": "delegate",
+        "created_at": "2026-09-01T00:00:00Z"
+      }
+    },
+    {
+      "table": "identity",
+      "values": {
+        "identity_id": "identity",
+        "person_id": "actor",
+        "local_handle": "fixture",
+        "external_refs_json": "[]"
+      }
+    },
+    {
+      "table": "core",
+      "values": {
+        "core_id": "core",
+        "name": "Історичне ядро",
+        "created_at": "2026-09-01T00:00:00Z",
+        "state": "ACTIVE"
+      }
+    },
+    {
+      "table": "membership",
+      "values": {
+        "membership_id": "historical-membership-id",
+        "person_id": "actor",
+        "collective_kind": "CORE",
+        "collective_id": "core",
+        "role_id": null,
+        "start_at": "2026-09-01T00:00:00Z",
+        "end_at": null,
+        "state": "ACTIVE"
+      }
+    },
+    {
+      "table": "authority",
+      "values": {
+        "authority_id": "root",
+        "issuer_kind": "CORE",
+        "issuer_id": "core",
+        "subject_kind": "PERSON",
+        "subject_id": "actor",
+        "scope_json": "{\"actions\":[\"execute\"],\"resources\":[],\"description\":\"Fixture scope\"}",
+        "context_json": "{\"domain\":\"work\",\"mission\":null,\"description\":\"Frozen migration fixture\"}",
+        "basis_json": "{\"trust\":[],\"competence\":[],\"note\":\"Synthetic trusted historical root\"}",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null,
+        "accountable_kind": "CORE",
+        "accountable_id": "core",
+        "state": "ACTIVE"
+      }
+    },
+    {
+      "table": "mission",
+      "values": {
+        "mission_id": "mission",
+        "owner_kind": "PERSON",
+        "owner_id": "actor",
+        "intent": "Зберегти історію\nБез підміни джерел",
+        "objectives_json": "[\"Preserve history\"]",
+        "participants_json": "[\"actor\"]",
+        "mode": "PROTECTION",
+        "state": "ACTIVE"
+      }
+    },
+    {
+      "table": "decision",
+      "values": {
+        "decision_id": "old-decision",
+        "subject_kind": "PERSON",
+        "subject_id": "actor",
+        "intent_ref": "mission",
+        "options_json": "[\"execute\"]",
+        "chosen_option": "execute",
+        "authority_ref": "root",
+        "timestamp": "2026-09-01T00:00:00Z",
+        "purpose": "Historical execution",
+        "affected_persons_json": "[]"
+      }
+    },
+    {
+      "table": "action",
+      "values": {
+        "action_id": "old-action",
+        "actor_kind": "PERSON",
+        "actor_id": "actor",
+        "authority_ref": "root",
+        "decision_ref": "old-decision",
+        "context_json": "{\"domain\":\"work\",\"mission\":null,\"description\":\"Frozen migration fixture\"}",
+        "timestamp": "2026-09-01T00:00:00Z",
+        "mode": "PROTECTION",
+        "target": null
+      }
+    },
+    {
+      "table": "result",
+      "values": {
+        "result_id": "old-result",
+        "action_id": "old-action",
+        "description": "Збережений результат",
+        "outcome": "SUCCESS",
+        "timestamp": "2026-09-01T00:00:00Z"
+      }
+    },
+    {
+      "table": "event",
+      "values": {
+        "event_id": "old-event",
+        "type": "ACTION_EXECUTED",
+        "actor_kind": "PERSON",
+        "actor_id": "actor",
+        "timestamp": "2026-09-01T00:00:00Z",
+        "context_json": "{\"domain\":\"work\",\"mission\":null,\"description\":\"Frozen migration fixture\"}",
+        "authority_ref": "root",
+        "decision_ref": "old-decision",
+        "payload_json": "{\"actionId\":\"old-action\",\"note\":\"Preserve exact bytes; null and newline\\n\",\"optional\":null}",
+        "result_ref": "old-result",
+        "provenance_json": "{\"sourceEventId\":null,\"authorKind\":\"PERSON\",\"authorId\":\"actor\",\"recordedAt\":\"2026-09-01T00:00:00Z\",\"derivedFrom\":[]}",
+        "content_hash": "legacy-unsigned-hash",
+        "signature": null,
+        "corrects_event_id": null
+      }
+    },
+    {
+      "table": "experience",
+      "values": {
+        "experience_id": "experience",
+        "derived_events_json": "[\"old-event\"]",
+        "context_json": "{\"domain\":\"work\",\"mission\":null,\"description\":\"Frozen migration fixture\"}",
+        "what_was_tried": "Historical attempt",
+        "outcome": "Done",
+        "conclusion": "Original conclusion",
+        "applicability": "Historical conditions",
+        "confidence": "MEDIUM",
+        "provenance_json": "{\"sourceEventId\":\"old-event\",\"authorKind\":\"PERSON\",\"authorId\":\"actor\",\"recordedAt\":\"2026-09-01T00:00:00Z\",\"derivedFrom\":[]}"
+      }
+    },
+    {
+      "table": "knowledge",
+      "values": {
+        "knowledge_id": "knowledge-root",
+        "statement": "Початковий висновок",
+        "derived_experience_json": "[\"experience\"]",
+        "evidence_json": "[\"evidence-reference\"]",
+        "context_json": "{\"domain\":\"work\",\"mission\":null,\"description\":\"Frozen migration fixture\"}",
+        "status": "VALIDATED",
+        "version": 3,
+        "supersedes": null,
+        "provenance_json": "{\"sourceEventId\":\"old-event\",\"authorKind\":\"PERSON\",\"authorId\":\"actor\",\"recordedAt\":\"2026-09-01T00:00:00Z\",\"derivedFrom\":[]}",
+        "validated_by_kind": "PERSON",
+        "validated_by_id": "actor"
+      }
+    },
+    {
+      "table": "knowledge",
+      "values": {
+        "knowledge_id": "knowledge-child",
+        "statement": "Уточнений висновок",
+        "derived_experience_json": "[\"experience\"]",
+        "evidence_json": "[\"evidence-reference\"]",
+        "context_json": "{\"domain\":\"work\",\"mission\":null,\"description\":\"Frozen migration fixture\"}",
+        "status": "CANDIDATE",
+        "version": 4,
+        "supersedes": "knowledge-root",
+        "provenance_json": "{\"sourceEventId\":\"old-event\",\"authorKind\":\"PERSON\",\"authorId\":\"actor\",\"recordedAt\":\"2026-09-01T00:00:00Z\",\"derivedFrom\":[]}",
+        "validated_by_kind": null,
+        "validated_by_id": null
+      }
+    },
+    {
+      "table": "consent",
+      "values": {
+        "consent_id": "withdrawn-consent",
+        "subject_person_id": "actor",
+        "recipient_kind": "PERSON",
+        "recipient_id": "delegate",
+        "purpose": "Historical sharing",
+        "context_json": "{\"domain\":\"work\",\"mission\":null,\"description\":\"Frozen migration fixture\"}",
+        "scope_json": "{\"actions\":[\"execute\"],\"resources\":[],\"description\":\"Fixture scope\"}",
+        "notice": "Historical notice",
+        "affirmation": "НАДАЮ ЗГОДУ",
+        "granted_at": "2026-09-01T00:00:00Z",
+        "valid_until": null,
+        "revoked_at": "2026-09-01T00:00:10Z"
+      }
+    },
+    {
+      "table": "authentication_binding",
+      "values": {
+        "unit_id": "fixture-node",
+        "provider_id": "local-passphrase",
+        "provider_subject": "fixture",
+        "person_id": "actor",
+        "linked_at": "2026-09-01T00:00:00Z"
+      }
+    },
+    {
+      "table": "local_credential",
+      "values": {
+        "unit_id": "fixture-node",
+        "provider_id": "local-passphrase",
+        "login_handle": "fixture",
+        "salt_base64": "ABEiM0RVZneImaq7zN3u/w==",
+        "hash_base64": "tslAHhDmXX6LmYt/JDH3HVexd3xrI/AVxyMQetLCa5g=",
+        "iterations": 100000,
+        "failed_attempts": 4,
+        "locked_until": "2026-09-01T00:01:00Z",
+        "created_at": "2026-09-01T00:00:00Z",
+        "revision": 3,
+        "revoked_at": "2026-09-02T00:00:00Z"
+      }
+    },
+    {
+      "table": "sync_journal",
+      "values": {
+        "position": 7,
+        "event_id": "old-event",
+        "record_json": "{\"version\":1,\"origin\":\"fixture-node\",\"parents\":[],\"event\":{\"id\":\"old-event\",\"type\":\"ACTION_EXECUTED\",\"actor\":{\"kind\":\"PERSON\",\"id\":\"actor\"},\"timestamp\":\"2026-09-01T00:00:00Z\",\"context\":{\"domain\":\"work\",\"mission\":null,\"description\":\"Frozen migration fixture\"},\"authority_ref\":\"root\",\"decision_ref\":\"old-decision\",\"payload\":{\"actionId\":\"old-action\",\"note\":\"Preserve exact bytes; null and newline\\n\",\"optional\":null},\"result_ref\":\"old-result\",\"provenance\":{\"source\":null,\"author\":{\"kind\":\"PERSON\",\"id\":\"actor\"},\"recorded_at\":\"2026-09-01T00:00:00Z\",\"derived_from\":[]},\"content_hash\":\"legacy-unsigned-hash\",\"signature\":null,\"corrects_event_id\":null},\"assertion\":null}"
+      }
+    },
+    {
+      "table": "sync_checkpoint",
+      "values": {
+        "peer_id": "historical-peer",
+        "sent": 7,
+        "received": 4
+      }
+    },
+    {
+      "table": "authority",
+      "values": {
+        "authority_id": "withdrawn-child",
+        "issuer_kind": "PERSON",
+        "issuer_id": "actor",
+        "subject_kind": "PERSON",
+        "subject_id": "delegate",
+        "scope_json": "{\"actions\":[\"execute\"],\"resources\":[],\"description\":\"Fixture scope\"}",
+        "context_json": "{\"domain\":\"work\",\"mission\":null,\"description\":\"Frozen migration fixture\"}",
+        "basis_json": "{\"trust\":[],\"competence\":[],\"note\":\"Synthetic trusted historical root\"}",
+        "valid_from": "2026-09-01T00:00:00Z",
+        "valid_until": null,
+        "accountable_kind": "CORE",
+        "accountable_id": "core",
+        "state": "REVOKED",
+        "parent_authority_id": "root"
+      }
+    },
+    {
+      "table": "authority_revocation",
+      "values": {
+        "revocation_id": 5,
+        "authority_id": "withdrawn-child",
+        "cascade_root": "withdrawn-child",
+        "actor_kind": "PERSON",
+        "actor_id": "actor",
+        "reason": "Explicit historical withdrawal",
+        "occurred_at": "2026-09-02T00:00:00Z"
+      }
+    },
+    {
+      "table": "local_credential_audit",
+      "values": {
+        "audit_id": 1,
+        "unit_id": "fixture-node",
+        "login_handle": "fixture",
+        "revision": 1,
+        "operation": "ENROLL",
+        "actor_person_id": "actor",
+        "occurred_at": "2026-09-01T00:00:00Z"
+      }
+    },
+    {
+      "table": "local_credential_audit",
+      "values": {
+        "audit_id": 2,
+        "unit_id": "fixture-node",
+        "login_handle": "fixture",
+        "revision": 2,
+        "operation": "ROTATE",
+        "actor_person_id": "actor",
+        "occurred_at": "2026-09-01T00:00:00Z"
+      }
+    },
+    {
+      "table": "local_credential_audit",
+      "values": {
+        "audit_id": 3,
+        "unit_id": "fixture-node",
+        "login_handle": "fixture",
+        "revision": 3,
+        "operation": "REVOKE",
+        "actor_person_id": "actor",
+        "occurred_at": "2026-09-02T00:00:00Z"
+      }
+    }
+  ]
+}

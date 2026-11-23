@@ -1,0 +1,91 @@
+{
+  "revision": "3c1a4aa1d20cf77179e3c37580ddd682b329d018",
+  "sources": [
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/AuthorityLineage.sq",
+      "sha256": "046b40861e9b98b89ad8cee7df5a7780f79ca64eff5972538d2ed38af9bd9f9a"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/Exit.sq",
+      "sha256": "16ef5b765fc5e2092dba692e78443d0f9387551c6be8323a9490df4cde4ad533"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/HistoricalApproval.sq",
+      "sha256": "ccc8006e55c4cfca4aff923942dda3b401f170a0efd0d1bd7529891c50cc45d4"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/LocalCredentialLifecycle.sq",
+      "sha256": "063985d903d35399de50c9c4ab4599eda945a39344d72ed108a69b2c0ee9bcff"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/PeerTrust.sq",
+      "sha256": "dc60dcddbc42bc7cd0733a4a33aaa0736c07c2e75d566cde5772264bad3d5233"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/RelationInventory.sq",
+      "sha256": "c9186f532b7a208c7635bccbf5ea638a3a08c2d3f1a85841861ff55e9190e018"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/Schema.sq",
+      "sha256": "79283cb6ba4dd5085fc3ce86843aee1530c9843cad1e4d804e7d41c99e44f89f"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/Sync.sq",
+      "sha256": "bba9c06ac5bfa93766075dbb3984580fad10ca2d540e7217ac162f924a76bfc8"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/VerifiedRecord.sq",
+      "sha256": "3ee9616aba192fdc82b1b323997e2678e3d9f2b60bd5e951b231cfc29f385d48"
+    }
+  ],
+  "statements": [
+    "CREATE TABLE IF NOT EXISTS authority_revocation (\n revocation_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n authority_id TEXT NOT NULL REFERENCES authority(authority_id),\n cascade_root TEXT NOT NULL REFERENCES authority(authority_id),\n actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL,\n reason TEXT NOT NULL, occurred_at TEXT NOT NULL\n);",
+    "CREATE TABLE IF NOT EXISTS exit_process (\n exit_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),\n core_id TEXT NOT NULL REFERENCES core(core_id), requested_at TEXT NOT NULL,\n updated_at TEXT NOT NULL, stage TEXT NOT NULL);",
+    "CREATE TABLE IF NOT EXISTS exit_transition (\n exit_id TEXT NOT NULL REFERENCES exit_process(exit_id), stage TEXT NOT NULL,\n actor_id TEXT NOT NULL, occurred_at TEXT NOT NULL, PRIMARY KEY(exit_id, stage));",
+    "CREATE TABLE IF NOT EXISTS exit_archive (\n exit_id TEXT NOT NULL PRIMARY KEY REFERENCES exit_process(exit_id),\n document_json TEXT NOT NULL, sha256 TEXT NOT NULL);",
+    "CREATE TABLE IF NOT EXISTS core_exit_relation (\n relation_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),\n core_id TEXT NOT NULL REFERENCES core(core_id), kind TEXT NOT NULL, description TEXT NOT NULL,\n state TEXT NOT NULL CHECK(state IN ('ACTIVE','CLOSED')));",
+    "CREATE TABLE IF NOT EXISTS exit_obligation (\n obligation_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),\n core_id TEXT NOT NULL REFERENCES core(core_id), description TEXT NOT NULL,\n state TEXT NOT NULL CHECK(state IN ('OPEN','RETAINED','FULFILLED')), resolution TEXT, resolved_at TEXT);",
+    "CREATE TABLE IF NOT EXISTS exit_export_grant (\n person_id TEXT NOT NULL, core_id TEXT NOT NULL, kind TEXT NOT NULL, artifact_id TEXT NOT NULL,\n artifact_json TEXT NOT NULL, PRIMARY KEY(person_id, core_id, kind, artifact_id));",
+    "CREATE TABLE IF NOT EXISTS owned_exit_evidence (\n evidence_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),\n core_id TEXT NOT NULL REFERENCES core(core_id), description TEXT NOT NULL,\n source_event_id TEXT, recorded_at TEXT NOT NULL);",
+    "CREATE TABLE IF NOT EXISTS exit_governance_audit (\n id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, person_id TEXT NOT NULL, core_id TEXT NOT NULL,\n operation TEXT NOT NULL, actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL,\n authority_id TEXT NOT NULL, evidence TEXT NOT NULL, occurred_at TEXT NOT NULL);",
+    "CREATE TABLE IF NOT EXISTS historical_record_approval (\n event_id TEXT NOT NULL PRIMARY KEY, canonical_record TEXT NOT NULL,\n actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL, key_id TEXT NOT NULL, public_key_base64 TEXT NOT NULL,\n target TEXT NOT NULL, operator_kind TEXT NOT NULL, operator_id TEXT NOT NULL, authority_id TEXT NOT NULL,\n purpose TEXT NOT NULL, approved_at TEXT NOT NULL, evidence_reference TEXT NOT NULL);",
+    "CREATE TABLE IF NOT EXISTS historical_record_revocation (\n event_id TEXT NOT NULL PRIMARY KEY REFERENCES historical_record_approval(event_id),\n target TEXT NOT NULL, operator_kind TEXT NOT NULL, operator_id TEXT NOT NULL, authority_id TEXT NOT NULL,\n purpose TEXT NOT NULL, revoked_at TEXT NOT NULL);",
+    "CREATE TABLE local_credential_audit (\n    audit_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n    unit_id TEXT NOT NULL,\n    login_handle TEXT NOT NULL,\n    revision INTEGER NOT NULL,\n    operation TEXT NOT NULL,\n    actor_person_id TEXT,\n    occurred_at TEXT NOT NULL,\n    FOREIGN KEY(unit_id, login_handle) REFERENCES local_credential(unit_id, login_handle)\n);",
+    "CREATE TABLE IF NOT EXISTS trusted_peer (\n    peer_id TEXT NOT NULL PRIMARY KEY,\n    policy_json TEXT NOT NULL,\n    credential_hash TEXT NOT NULL UNIQUE,\n    revision INTEGER NOT NULL,\n    active INTEGER NOT NULL\n);",
+    "CREATE TABLE IF NOT EXISTS provisioning_audit (\n    audit_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n    target TEXT NOT NULL,\n    operation TEXT NOT NULL,\n    actor_kind TEXT NOT NULL,\n    actor_id TEXT NOT NULL,\n    authority_id TEXT NOT NULL,\n    purpose TEXT NOT NULL,\n    occurred_at TEXT NOT NULL\n);",
+    "CREATE TABLE IF NOT EXISTS relation_terms (\n relation_id TEXT NOT NULL PRIMARY KEY REFERENCES core_exit_relation(relation_id),\n terms_json TEXT NOT NULL, exit_policy TEXT NOT NULL);",
+    "CREATE TABLE IF NOT EXISTS relation_obligation (\n relation_id TEXT NOT NULL REFERENCES relation_terms(relation_id),\n obligation_id TEXT NOT NULL UNIQUE REFERENCES exit_obligation(obligation_id),\n PRIMARY KEY(relation_id, obligation_id));",
+    "CREATE TABLE person (\n    person_id   TEXT NOT NULL PRIMARY KEY,\n    created_at  TEXT NOT NULL\n);",
+    "CREATE TABLE identity (\n    identity_id  TEXT NOT NULL PRIMARY KEY,\n    person_id    TEXT NOT NULL,\n    local_handle TEXT NOT NULL,\n    external_refs_json TEXT NOT NULL DEFAULT '[]',\n    FOREIGN KEY (person_id) REFERENCES person(person_id)\n);",
+    "CREATE TABLE core (\n    core_id     TEXT NOT NULL PRIMARY KEY,\n    name        TEXT NOT NULL,\n    created_at  TEXT NOT NULL,\n    state       TEXT NOT NULL\n);",
+    "CREATE TABLE membership (\n    membership_id   TEXT NOT NULL PRIMARY KEY,\n    person_id       TEXT NOT NULL,\n    collective_kind TEXT NOT NULL,\n    collective_id   TEXT NOT NULL,\n    role_id         TEXT,\n    start_at        TEXT NOT NULL,\n    end_at          TEXT,\n    state           TEXT NOT NULL,\n    FOREIGN KEY (person_id) REFERENCES person(person_id)\n);",
+    "CREATE TABLE authority (\n    authority_id     TEXT NOT NULL PRIMARY KEY,\n    issuer_kind      TEXT NOT NULL,\n    issuer_id        TEXT NOT NULL,\n    subject_kind     TEXT NOT NULL,\n    subject_id       TEXT NOT NULL,\n    scope_json       TEXT NOT NULL,\n    context_json     TEXT NOT NULL,\n    basis_json       TEXT NOT NULL,\n    valid_from       TEXT NOT NULL,\n    valid_until      TEXT,\n    accountable_kind TEXT NOT NULL,\n    accountable_id   TEXT NOT NULL,\n    state            TEXT NOT NULL,\n    parent_authority_id TEXT REFERENCES authority(authority_id)\n);",
+    "CREATE TABLE mission (\n    mission_id        TEXT NOT NULL PRIMARY KEY,\n    owner_kind        TEXT NOT NULL,\n    owner_id          TEXT NOT NULL,\n    intent            TEXT NOT NULL,\n    objectives_json   TEXT NOT NULL,\n    participants_json TEXT NOT NULL,\n    mode              TEXT NOT NULL,\n    state             TEXT NOT NULL\n);",
+    "CREATE TABLE decision (\n    decision_id   TEXT NOT NULL PRIMARY KEY,\n    subject_kind  TEXT NOT NULL,\n    subject_id    TEXT NOT NULL,\n    intent_ref    TEXT NOT NULL,\n    options_json  TEXT NOT NULL,\n    chosen_option TEXT NOT NULL,\n    authority_ref TEXT NOT NULL,\n    timestamp     TEXT NOT NULL,\n    purpose       TEXT NOT NULL DEFAULT 'Execute mission action',\n    affected_persons_json TEXT NOT NULL DEFAULT '[]',\n    FOREIGN KEY (authority_ref) REFERENCES authority(authority_id)\n);",
+    "CREATE TABLE action (\n    action_id     TEXT NOT NULL PRIMARY KEY,\n    actor_kind    TEXT NOT NULL,\n    actor_id      TEXT NOT NULL,\n    authority_ref TEXT NOT NULL,\n    decision_ref  TEXT,\n    context_json  TEXT NOT NULL,\n    timestamp     TEXT NOT NULL,\n    mode          TEXT NOT NULL,\n    target        TEXT,\n    FOREIGN KEY (authority_ref) REFERENCES authority(authority_id),\n    FOREIGN KEY (decision_ref) REFERENCES decision(decision_id)\n);",
+    "CREATE TABLE result (\n    result_id   TEXT NOT NULL PRIMARY KEY,\n    action_id   TEXT NOT NULL,\n    description TEXT NOT NULL,\n    outcome     TEXT NOT NULL,\n    timestamp   TEXT NOT NULL,\n    FOREIGN KEY (action_id) REFERENCES action(action_id)\n);",
+    "CREATE TABLE event (\n    event_id        TEXT NOT NULL PRIMARY KEY,\n    type            TEXT NOT NULL,\n    actor_kind      TEXT NOT NULL,\n    actor_id        TEXT NOT NULL,\n    timestamp       TEXT NOT NULL,\n    context_json    TEXT NOT NULL,\n    authority_ref   TEXT,\n    decision_ref    TEXT,\n    payload_json    TEXT NOT NULL,\n    result_ref      TEXT,\n    provenance_json TEXT NOT NULL,\n    content_hash    TEXT NOT NULL,\n    signature       TEXT,\n    corrects_event_id TEXT\n);",
+    "CREATE TABLE experience (\n    experience_id        TEXT NOT NULL PRIMARY KEY,\n    derived_events_json  TEXT NOT NULL,\n    context_json         TEXT NOT NULL,\n    what_was_tried        TEXT NOT NULL,\n    outcome               TEXT NOT NULL,\n    conclusion            TEXT NOT NULL,\n    applicability         TEXT NOT NULL,\n    confidence             TEXT NOT NULL,\n    provenance_json        TEXT NOT NULL\n);",
+    "CREATE TABLE knowledge (\n    knowledge_id             TEXT NOT NULL PRIMARY KEY,\n    statement                TEXT NOT NULL,\n    derived_experience_json  TEXT NOT NULL,\n    evidence_json            TEXT NOT NULL,\n    context_json             TEXT NOT NULL,\n    status                   TEXT NOT NULL,\n    version                  INTEGER NOT NULL DEFAULT 1,\n    supersedes               TEXT,\n    provenance_json          TEXT NOT NULL,\n    validated_by_kind        TEXT,\n    validated_by_id          TEXT\n);",
+    "CREATE TABLE right_record (\n    right_id TEXT NOT NULL PRIMARY KEY,\n    subject_kind TEXT NOT NULL,\n    subject_id TEXT NOT NULL,\n    right_type TEXT NOT NULL,\n    scope_json TEXT NOT NULL,\n    source TEXT NOT NULL,\n    status TEXT NOT NULL,\n    constraints_json TEXT NOT NULL\n);",
+    "CREATE TABLE consent (\n    consent_id TEXT NOT NULL PRIMARY KEY,\n    subject_person_id TEXT NOT NULL,\n    recipient_kind TEXT NOT NULL,\n    recipient_id TEXT NOT NULL,\n    purpose TEXT NOT NULL,\n    context_json TEXT NOT NULL,\n    scope_json TEXT NOT NULL,\n    notice TEXT NOT NULL,\n    affirmation TEXT NOT NULL,\n    granted_at TEXT NOT NULL,\n    valid_until TEXT,\n    revoked_at TEXT,\n    FOREIGN KEY (subject_person_id) REFERENCES person(person_id)\n);",
+    "CREATE TABLE authentication_binding (\n    unit_id TEXT NOT NULL,\n    provider_id TEXT NOT NULL,\n    provider_subject TEXT NOT NULL,\n    person_id TEXT NOT NULL,\n    linked_at TEXT NOT NULL,\n    PRIMARY KEY (unit_id, provider_id, provider_subject),\n    FOREIGN KEY (person_id) REFERENCES person(person_id)\n);",
+    "CREATE TABLE local_credential (\n    unit_id TEXT NOT NULL,\n    provider_id TEXT NOT NULL DEFAULT 'local-passphrase',\n    login_handle TEXT NOT NULL,\n    salt_base64 TEXT NOT NULL,\n    hash_base64 TEXT NOT NULL,\n    iterations INTEGER NOT NULL,\n    failed_attempts INTEGER NOT NULL DEFAULT 0,\n    locked_until TEXT,\n    created_at TEXT NOT NULL,\n    revision INTEGER NOT NULL DEFAULT 1,\n    revoked_at TEXT,\n    PRIMARY KEY (unit_id, login_handle),\n    FOREIGN KEY (unit_id, provider_id, login_handle)\n        REFERENCES authentication_binding(unit_id, provider_id, provider_subject)\n    );",
+    "CREATE TABLE sync_journal (\n    position INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n    event_id TEXT NOT NULL UNIQUE REFERENCES event(event_id),\n    record_json TEXT NOT NULL\n);",
+    "CREATE TABLE sync_checkpoint (\n    peer_id TEXT NOT NULL PRIMARY KEY,\n    sent INTEGER NOT NULL,\n    received INTEGER NOT NULL\n);",
+    "CREATE TABLE sync_conflict (\n    entity_kind TEXT NOT NULL,\n    entity_id TEXT NOT NULL,\n    left_event_id TEXT NOT NULL REFERENCES event(event_id),\n    right_event_id TEXT NOT NULL REFERENCES event(event_id),\n    PRIMARY KEY(entity_kind, entity_id, left_event_id, right_event_id)\n);",
+    "CREATE TABLE IF NOT EXISTS verified_sync_record (\n event_id TEXT NOT NULL PRIMARY KEY REFERENCES event(event_id),\n canonical_record TEXT NOT NULL,\n actor_kind TEXT NOT NULL,\n actor_id TEXT NOT NULL,\n key_id TEXT NOT NULL,\n public_key_base64 TEXT NOT NULL,\n verified_at TEXT NOT NULL,\n historical_approval_target TEXT\n);",
+    "CREATE INDEX IF NOT EXISTS authority_parent_idx ON authority(parent_authority_id);",
+    "CREATE UNIQUE INDEX IF NOT EXISTS exit_one_open ON exit_process(person_id, core_id) WHERE stage != 'COMPLETED' ;",
+    "CREATE TRIGGER credential_audit_no_update BEFORE UPDATE ON local_credential_audit\nBEGIN SELECT RAISE(ABORT, 'credential audit is append-only'); END;",
+    "CREATE TRIGGER credential_audit_no_delete BEFORE DELETE ON local_credential_audit\nBEGIN SELECT RAISE(ABORT, 'credential audit is append-only'); END;",
+    "CREATE TRIGGER IF NOT EXISTS provisioning_audit_no_update\nBEFORE UPDATE ON provisioning_audit\nBEGIN SELECT RAISE(ABORT, 'provisioning audit is append-only'); END;",
+    "CREATE TRIGGER IF NOT EXISTS provisioning_audit_no_delete\nBEFORE DELETE ON provisioning_audit\nBEGIN SELECT RAISE(ABORT, 'provisioning audit is append-only'); END;",
+    "CREATE TRIGGER event_no_update BEFORE UPDATE ON event\nBEGIN SELECT RAISE(ABORT, 'event rows are append-only'); END;",
+    "CREATE TRIGGER event_no_delete BEFORE DELETE ON event\nBEGIN SELECT RAISE(ABORT, 'event rows are append-only'); END;",
+    "CREATE TRIGGER sync_journal_no_update BEFORE UPDATE ON sync_journal\nBEGIN SELECT RAISE(ABORT, 'sync history is append-only'); END;",
+    "CREATE TRIGGER sync_journal_no_delete BEFORE DELETE ON sync_journal\nBEGIN SELECT RAISE(ABORT, 'sync history is append-only'); END;",
+    "CREATE TRIGGER sync_conflict_no_update BEFORE UPDATE ON sync_conflict\nBEGIN SELECT RAISE(ABORT, 'conflicts are historical facts'); END;",
+    "CREATE TRIGGER sync_conflict_no_delete BEFORE DELETE ON sync_conflict\nBEGIN SELECT RAISE(ABORT, 'conflicts are historical facts'); END;"
+  ]
+}

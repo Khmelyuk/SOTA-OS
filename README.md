@@ -96,7 +96,9 @@ What is **not yet done**:
 
 - `persistence/` has Core Loop and two-node sync integration coverage,
   including restart, additive sync-schema migration and rollback.
-  Broader repository and migration coverage is still open.
+  Two [frozen historical-schema profiles](docs/persistence-migrations.md) now verify
+  row preservation, schema contracts, current service behavior and retry after a
+  failed upgrade. Broader repository, runtime-schema and migration coverage is still open.
 - P09 public hosting operations, automatic historical attestations, producer adoption and additional
   entity assertion producers remain open. Credential authentication, trusted
   peer admission, event signatures, durable provisioning governance and
@@ -126,23 +128,26 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
 Local verification on 2026-11-23: the full build, Detekt, migration and
-module-layering checks passed with **346 tests** (zero failures, errors or
-skips), including nine new Decision/Mission snapshot tests, 12 Knowledge revision/lineage tests,
+module-layering checks passed with **353 tests** (zero failures, errors or
+skips), including seven frozen historical migration tests,
+nine Decision/Mission snapshot tests, 12 Knowledge revision/lineage tests,
 five local-memory audit tests,
 five Mission-mode tests, nine ordinary-memory tests,
 six Mission-boundary tests, 13 authenticated-admission tests,
 13 persisted-membership tests and 11 signed-memory tests. The CLI distribution
 and two-node HTTPS rehearsal passed with ten matching signed records and
-checkpoints `(10, 10)`. Ordinary CLI `init` and `demo` passed on a new
+checkpoints `(10, 10)`. During the Decision/Mission snapshot increment,
+ordinary CLI `init` and `demo` passed on a new
 temporary SQLite database with Decision/Mission snapshots, local P07 audit and immutable Knowledge versions enabled;
-repeated `init` reopened that database successfully. The new migration fixture retained
-historical Decision/Action rows without inventing Mission snapshots.
+repeated `init` reopened that database successfully. The historical migration profiles retain
+original governance, memory, credential and journal rows without inventing Mission snapshots
+or signed verification evidence.
 The signed-memory recovery test exchanged seven facts including revision and separate validation.
 Research CLI smoke passed during the
 persisted-membership increment.
 P09 status, signed P10 and credential lifecycle smoke scenarios passed during
-integration on 2026-11-17 and remain part of CI. The published P07 version-lineage
-baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/45034364851).
+integration on 2026-11-17 and remain part of CI. The published P05 Decision/Mission snapshot
+baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/45215328990).
 This verifies the integrated local tree; the CI link
 above records the result for each published commit.
 
@@ -202,11 +207,12 @@ authentication port and per-Sota provider allowlist are described in
 [ADR-009](docs/adr/ADR-009-provider-based-authentication.md). Only the local
 provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
-The next increments, updated after P05 Decision/Mission binding on 2026-11-23, are recorded
+The next increments, updated after historical migration acceptance on 2026-11-23, are recorded
 in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
 admission, signatures and HTTPS hosting are already implemented. The next independent
-engineering increment is broader historical SQLite schema fixtures and migration/reopen
-acceptance. Further functional priorities are:
+engineering increment is extending the historical SQLite catalog to runtime-only
+guards and signed verification/provisioning histories. Two declared-schema profiles
+and their migration/reopen acceptance are implemented. Further functional priorities are:
 
 1. Extend command-specific authorization and source conformance: explicit
    initial collective mandate/root eligibility and further command conformance.
