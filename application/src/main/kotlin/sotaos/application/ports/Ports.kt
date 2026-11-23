@@ -53,8 +53,10 @@ interface MissionRepository {
 }
 
 interface DecisionRepository {
-    fun save(decision: Decision): Decision
+    /** Insert once; null snapshot denotes historical data that cannot authorize a new execution. */
+    fun save(decision: Decision, missionSnapshot: Mission? = null): Decision
     fun findById(id: DecisionId): Decision?
+    fun findMissionSnapshot(id: DecisionId): Mission?
 }
 
 interface ActionRepository {

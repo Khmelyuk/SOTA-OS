@@ -94,8 +94,18 @@ class InMemoryMissionRepository : MissionRepository {
 
 class InMemoryDecisionRepository : DecisionRepository {
     private val store = mutableListOf<Decision>()
-    override fun save(decision: Decision): Decision { store.add(decision); return decision }
+    private val snapshots = mutableMapOf<DecisionId, Mission>()
+    override fun save(decision: Decision, missionSnapshot: Mission?): Decision {
+        require(findById(decision.id) == null) { "Decision already exists." }
+        require(missionSnapshot == null ||
+            (missionSnapshot.id.value == decision.intentRef && missionSnapshot.state == LifecycleState.ACTIVE))
+        store.add(decision)
+        missionSnapshot?.let { snapshots[decision.id] = it.copy(objectives = it.objectives.toList(),
+            participants = it.participants.toList()) }
+        return decision
+    }
     override fun findById(id: DecisionId): Decision? = store.lastOrNull { it.id == id }
+    override fun findMissionSnapshot(id: DecisionId): Mission? = snapshots[id]
 }
 
 class InMemoryActionRepository : ActionRepository {

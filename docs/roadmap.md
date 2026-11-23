@@ -1,7 +1,7 @@
-# Development roadmap — updated 2026-11-22
+# Development roadmap — updated 2026-11-23
 
-Published baseline before this increment: GitHub `main` at `cb15492`
-(local P07 lifecycle audit), with successful CI. The earlier integration
+Published baseline before this increment: GitHub `main` at `3c1a4aa`
+(immutable P07 Knowledge versions), with successful CI. The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
@@ -34,6 +34,9 @@ tracks the integrated implementation and subsequent bounded increments.
 - Explicit Knowledge revision creates a new candidate with a retained predecessor,
   immutable version content/links, exact reason and source, local/signed audit, and
   stale/fork/lineage checks (ADR-026). Validation remains a separate operation.
+- P05 Decisions retain exact Mission terms; execution requires current ACTIVE terms
+  to match. Action history includes the snapshot, while migration retains unbound
+  old Decisions and historical Result reporting (ADR-027).
 - JDK 21 CI with module graph checks, Detekt, tests and CLI smoke scenarios.
 - Local credential lifecycle and a human-invoked, candidate-only Research CLI
   (ADR-018). Research draft approval does not publish externally.
@@ -60,7 +63,7 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 | Order | Increment | Evidence required before completion |
 |---|---|---|
 | Done 2026-11-18 | Signed P07 Experience/Knowledge producers | Exact persisted source checks, full signed snapshots, causal parents, local non-Agent governance, atomic entity/Event/journal/receipt writes; SignedMemory acceptance tests and ten-record HTTPS rehearsal. Host authentication remains required; see ADR-019 |
-| 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state checks, P05 mode propagation, local P07 lifecycle audit and explicit Knowledge revision implemented under ADR-020/021/022/023/024/025/026. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/version/mode-change governance and P07 validation mandates/general branch-conflict governance |
+| 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state checks, P05 mode propagation, local P07 lifecycle audit, explicit Knowledge revision and Decision/Mission snapshot binding implemented under ADR-020/021/022/023/024/025/026/027. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/numeric revision/mode-change governance and P07 validation mandates/general branch-conflict governance |
 | 3 | P09 operational lifecycle | Governed certificate renewal and configuration changes, old/new material recovery, failure diagnostics and deployment runbooks; automated historical attestations only with explicit provenance policy |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
 | 5 | Broader persistence and release acceptance | Versioned migration fixtures, missing conformance tests, review of public API/GUI scope, and recorded CI/rehearsal evidence for the selected release |
@@ -78,7 +81,7 @@ existing source review backlog.
 The [command authorization audit](command-authorization.md) maps each command
 group to its actor/authority checks and executable evidence. The next bounded
 review is initial collective mandate/root standing and broader representation,
-followed by P05 participation/version/mode-change governance and P07 validation mandates. ADR-021 records
+followed by P05 participation/numeric revision/mode-change governance and P07 validation mandates. ADR-021 records
 the original Protocol and Security PDF constraints reviewed for the bounded
 admission host; it does not claim to define the missing collective decision protocol.
 
@@ -96,8 +99,9 @@ General validation mandates remain a separate policy question; exact-source chec
 do not grant them.
 
 P05 mode propagation is implemented under ADR-024: execute uses current persisted
-Mission.mode, and new signed Action facts bind it. Decision mode/version binding
-is still open; no public mode-change command or protection-specific policy is added.
+Mission.mode, and new signed Action facts bind it. ADR-027 now requires the current
+Mission to match the terms saved with the Decision, including mode. No public
+mode-change command or protection-specific policy is added.
 
 Ordinary P07 lifecycle audit and deprecation-reason retention are implemented under
 ADR-025, with atomic local Events and restart/rollback tests. Existing history is
@@ -109,7 +113,13 @@ retains content and status. The local single-successor rule rejects stale/forked
 submissions without erasing stored versions. General contradiction records,
 branch reconciliation and canonical-head/validation mandates remain open.
 
-Next independent review: P05 Decision binding to Mission version and mode. Map
-the source requirements and existing persisted Decision format before selecting
-the stale-decision rule and migration/legacy policy. Keep participation and
-collective mandate decisions explicit; do not infer a quorum from the current model.
+Decision/Mission snapshot binding is implemented under ADR-027, with nine new
+SQLite tests. Changed terms require a fresh Decision; historical unbound Decisions
+remain readable and cannot execute. This is equality of modeled content, not a
+monotonic revision counter; restoring identical ACTIVE terms matches again.
+
+Next independent engineering increment: consolidate historical SQLite schema fixtures
+and expand migration/reopen acceptance for the existing governance and memory data.
+Keep P05 participation and collective mandate decisions explicit; do not infer a
+quorum or Mission ownership authority from the current model. P09 operational
+lifecycle and extended P10 settlement remain the subsequent functional tracks.

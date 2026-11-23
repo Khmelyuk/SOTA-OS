@@ -59,8 +59,30 @@ integrity binds that value. Later Mission changes do not rewrite Action history.
 Signed Result recording rejects a mode mismatch between the stored Action and
 its execution Event when that field is present. Legacy signed Events without it
 remain readable and usable, but provide no signed evidence of mode.
-See [ADR-024](adr/ADR-024-mission-action-mode.md) and MissionModeTest. Mission
-version binding and policies governing mode changes remain open.
+See [ADR-024](adr/ADR-024-mission-action-mode.md) and MissionModeTest. ADR-027 now
+binds execution to the decided Mission terms; numerical revisions and policies
+governing mode changes remain open.
+
+## Decided Mission terms — 2026-11-23
+
+Each new Decision stores the exact persisted ACTIVE Mission snapshot. Execution
+requires all modeled Mission fields to match it, including owner, intent, objectives,
+participants and mode. Changed terms require a fresh Decision under current authority
+and rights checks. The snapshot and Decision share one INSERT; their binding cannot
+be updated. Ordinary P05 uses the same boundary.
+
+New ACTION_EXECUTED payloads include `missionSnapshot` with `snapshotVersion = 1`,
+ID, ownerKind/ownerId, intent, objectives, participants, mode and state. The signature
+binds these terms together with the existing execution references. This is not a
+numeric Mission revision or a separate signed collective Decision. Existing peer
+sharing policy governs the additional Mission terms in the signed execution fact.
+
+An additive SQLite migration leaves old Decision snapshots null. They remain readable
+but cannot authorize a new Action; create a new Decision. Existing Action/Result history
+and old signatures remain usable under their previous contract without backfill.
+See [ADR-027](adr/ADR-027-decision-mission-snapshot.md), DecisionMissionBindingTest
+and DecisionMissionPersistenceTest. Restoring identical ACTIVE terms matches the old
+snapshot again; a monotonic revision/lifecycle protocol remains separate work.
 
 ## Result producer — 2026-10-11
 
@@ -91,5 +113,5 @@ SQLite reopen, atomic rollback for Result/Event/journal/receipt failures, forged
 Actions, wrong author/origin, rights denial, key rotation and unsigned-history denial.
 The [HTTPS rehearsal](getting-started.md) now exchanges ten records: Action,
 Result, Experience, Knowledge proposal and six exit stages. Ordinary unsigned `demo` behavior remains unchanged
-apart from persisted-Action validation on result recording. No schema migration is
-needed: `selectActionById` is a read query over the existing table.
+apart from the documented source and Mission/Decision checks. The original Result
+producer needed no schema migration; ADR-027 adds the Decision snapshot migration.

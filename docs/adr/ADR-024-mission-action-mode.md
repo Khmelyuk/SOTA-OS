@@ -28,12 +28,17 @@ ACTION_EXECUTED payload field `mode`, using the enum name. Both ordinary and
 signed P05 share this path. The canonical P09 signature binds the new payload;
 ordinary local events remain unsigned under their existing contract.
 
-The mode is taken at execution time. Decision currently stores a Mission ID,
+The original ADR-024 boundary took the mode at execution time. Decision stored a Mission ID,
 not a version or mode snapshot. A trusted change to Mission.mode before execution
 therefore affects the new Action. This is an explicit bounded behavior, not an
 approval protocol for changing mission terms. No public mode-change command is
 added. Once recorded, an Action's mode is historical and does not follow later
 Mission changes. Result recording continues to use that exact persisted Action.
+
+[ADR-027](ADR-027-decision-mission-snapshot.md) tightens this boundary: new Decisions
+persist exact Mission terms, and changed terms require a fresh Decision before
+execution. Actions still copy the matching current Mission mode. This supersedes
+the earlier allowance for changing mode between deciding and executing.
 
 Signed Result recording also compares the Action's mode with its execution
 Event when the Event contains `mode`. A differing or malformed value is rejected

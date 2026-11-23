@@ -107,7 +107,7 @@ class MissionActionService(
             purpose = invocation.purpose,
             affectedPersons = affectedPersons
         )
-        decisions.save(decision)
+        decisions.save(decision, currentMission)
     }
 
     override fun execute(invocation: ProtocolInvocation, decision: Decision): Action = authorities.transaction {
@@ -124,7 +124,7 @@ class MissionActionService(
                 "Decision and Authority must both belong to the acting subject (AC-15)."
             )
         }
-        val currentMission = requireActiveMission(missionId)
+        val currentMission = requireActiveMission(missionId, decision)
         if (authority.context.mission != null && authority.context.mission != missionId) {
             throw ActionNotAuthorizedException(
                 "Authority context does not cover mission ${missionId.value} (AC-15)."
@@ -172,17 +172,22 @@ class MissionActionService(
 
         // Every Action produces an Event (CORE-16 / AC-14) — this is
         // not optional and not a separate call the caller can skip.
-        recordActionEvent(saved, authority, rightsDecision.appliedPolicies, decision.affectedPersons, affectedOthers)
+        recordActionEvent(saved, authority, rightsDecision.appliedPolicies, decision.affectedPersons, affectedOthers,
+            currentMission)
 
         saved
     }
 
-    private fun requireActiveMission(id: MissionId): Mission {
+    private fun requireActiveMission(id: MissionId, decision: Decision? = null): Mission {
         val mission = missions.findById(id)
             ?: throw ActionNotAuthorizedException("Mission ${id.value} is not persisted.")
-        if (mission.state != LifecycleState.ACTIVE) {
-            throw ActionNotAuthorizedException("Mission ${id.value} is not active; decision/action denied.")
+        val rejection = when {
+            mission.state != LifecycleState.ACTIVE -> "Mission ${id.value} is not active; decision/action denied."
+            decision != null && decisions.findMissionSnapshot(decision.id) != mission ->
+                "Mission snapshot is missing or changed; create a new Decision."
+            else -> null
         }
+        if (rejection != null) throw ActionNotAuthorizedException(rejection)
         return mission
     }
 
@@ -257,13 +262,15 @@ class MissionActionService(
         authority: Authority,
         appliedPolicies: Set<String>,
         affectedPersons: List<PersonId>,
-        consentCheckedPersons: List<PersonId>
+        consentCheckedPersons: List<PersonId>,
+        mission: Mission
     ) {
         val payload = mapOf(
             "actionId" to action.id.value,
             "authorityId" to authority.id.value,
             "decisionId" to action.decision?.value,
             "mode" to action.mode.name,
+            "missionSnapshot" to MissionSnapshot.values(mission),
             "rightsPolicies" to appliedPolicies.toList(),
             "affectedPersons" to affectedPersons.map { it.value },
             "consentCheckedPersons" to consentCheckedPersons.map { it.value }

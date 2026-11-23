@@ -16,9 +16,13 @@ class DecisionAuthorityOwnerTest : FunSpec({
         val f = AuthorityFixture()
         f.repository.save(f.source)
         val written = mutableListOf<Decision>()
-        val decisions = object : DecisionRepository {
-            override fun save(decision: Decision): Decision { written.add(decision); return decision }
-            override fun findById(id: DecisionId): Decision? = written.find { it.id == id }
+        val storage = InMemoryDecisionRepository()
+        val decisions = object : DecisionRepository by storage {
+            override fun save(decision: Decision, missionSnapshot: Mission?): Decision {
+                val saved = storage.save(decision, missionSnapshot)
+                written.add(saved)
+                return saved
+            }
         }
         val missions = InMemoryMissionRepository().apply {
             save(Mission(MissionId("mission"), f.issuer, "Work", emptyList(), emptyList(),

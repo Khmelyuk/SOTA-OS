@@ -46,6 +46,7 @@ class SqlDelightStore(private val driver: SqlDriver) : AutoCloseable {
         createAuthorityLineageSchemaIfMissing(driver)
         createVerifiedRecordSchemaIfMissing(driver)
         createHistoricalApprovalSchemaIfMissing(driver)
+        createDecisionMissionSnapshotSchema(driver)
         // Add the structured affected-person set to older decision tables.
         runCatching {
             driver.execute(null, "ALTER TABLE decision ADD COLUMN affected_persons_json TEXT NOT NULL DEFAULT '[]'", 0)
@@ -285,12 +286,17 @@ class SqlDelightMissionRepository(private val db: SotaOsDatabase) : MissionRepos
 }
 
 class SqlDelightDecisionRepository(private val db: SotaOsDatabase) : DecisionRepository {
-    override fun save(decision: DomainDecision): DomainDecision {
+    override fun save(decision: DomainDecision, missionSnapshot: DomainMission?): DomainDecision {
+        require(missionSnapshot == null ||
+            (missionSnapshot.id.value == decision.intentRef && missionSnapshot.state == LifecycleState.ACTIVE)) {
+            "Decision requires a matching active Mission snapshot."
+        }
         val (kind, id) = ValueJsonMapping.subject(decision.subject)
         db.schemaQueries.insertDecision(decision.id.value, kind, id, decision.intentRef,
             ValueJsonMapping.strings(decision.optionsConsidered), decision.chosenOption,
             decision.authorityRef.value, decision.timestamp.toString(), decision.purpose,
-            ValueJsonMapping.strings(decision.affectedPersons.map { it.value }))
+            ValueJsonMapping.strings(decision.affectedPersons.map { it.value }),
+            missionSnapshot?.let(MissionSnapshotJson::encode))
         return decision
     }
 
@@ -308,6 +314,10 @@ class SqlDelightDecisionRepository(private val db: SotaOsDatabase) : DecisionRep
                 affectedPersons = ValueJsonMapping.strings(row.affected_persons_json).map(::PersonId)
             )
         }
+
+    override fun findMissionSnapshot(id: DecisionId): DomainMission? =
+        db.schemaQueries.selectDecisionById(id.value).executeAsOneOrNull()?.mission_snapshot_json
+            ?.let(MissionSnapshotJson::decode)
 }
 
 class SqlDelightActionRepository(private val db: SotaOsDatabase) : ActionRepository {

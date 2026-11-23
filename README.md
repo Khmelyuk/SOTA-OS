@@ -51,6 +51,10 @@ What exists and is source-complete:
 - P05 copies the current Mission's CREATION/PROTECTION mode into the executed
   Action and its Event. Signed Result recording checks mode against new signed
   Action evidence, while retaining legacy history ([ADR-024](docs/adr/ADR-024-mission-action-mode.md)).
+- P05 Decisions now persist exact Mission terms. Execution requires the current
+  ACTIVE Mission to match that snapshot; changed terms or legacy missing snapshots
+  require a fresh Decision. New Action Events retain those terms, protected by the
+  signed producer ([ADR-027](docs/adr/ADR-027-decision-mission-snapshot.md)).
 - Opt-in [signed P07 Experience and Knowledge](docs/p07-signed-memory.md) validate exact
   persisted sources, sign full snapshots with causal links, and atomically record
   creation, human validation and deprecation under ADR-019.
@@ -121,21 +125,24 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
-Local verification on 2026-11-22: the full build, Detekt, migration and
-module-layering checks passed with **337 tests** (zero failures, errors or
-skips), including 12 new Knowledge revision/lineage tests, five local-memory audit tests,
+Local verification on 2026-11-23: the full build, Detekt, migration and
+module-layering checks passed with **346 tests** (zero failures, errors or
+skips), including nine new Decision/Mission snapshot tests, 12 Knowledge revision/lineage tests,
+five local-memory audit tests,
 five Mission-mode tests, nine ordinary-memory tests,
 six Mission-boundary tests, 13 authenticated-admission tests,
 13 persisted-membership tests and 11 signed-memory tests. The CLI distribution
 and two-node HTTPS rehearsal passed with ten matching signed records and
 checkpoints `(10, 10)`. Ordinary CLI `init` and `demo` passed on a new
-temporary SQLite database with local P07 audit and immutable Knowledge versions enabled.
+temporary SQLite database with Decision/Mission snapshots, local P07 audit and immutable Knowledge versions enabled;
+repeated `init` reopened that database successfully. The new migration fixture retained
+historical Decision/Action rows without inventing Mission snapshots.
 The signed-memory recovery test exchanged seven facts including revision and separate validation.
 Research CLI smoke passed during the
 persisted-membership increment.
 P09 status, signed P10 and credential lifecycle smoke scenarios passed during
-integration on 2026-11-17 and remain part of CI. The published local P07 audit
-baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/44947217947).
+integration on 2026-11-17 and remain part of CI. The published P07 version-lineage
+baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/45034364851).
 This verifies the integrated local tree; the CI link
 above records the result for each published commit.
 
@@ -195,14 +202,16 @@ authentication port and per-Sota provider allowlist are described in
 [ADR-009](docs/adr/ADR-009-provider-based-authentication.md). Only the local
 provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
-The next increments, updated after P07 version lineage on 2026-11-22, are recorded
+The next increments, updated after P05 Decision/Mission binding on 2026-11-23, are recorded
 in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
-admission, signatures and HTTPS hosting are already implemented. Continue with:
+admission, signatures and HTTPS hosting are already implemented. The next independent
+engineering increment is broader historical SQLite schema fixtures and migration/reopen
+acceptance. Further functional priorities are:
 
 1. Extend command-specific authorization and source conformance: explicit
    initial collective mandate/root eligibility and further command conformance.
    Delegated Core invitations now have a fresh-proof host under ADR-021;
-   broader collective representation, P05 participation/version and mode-change governance, and
+   broader collective representation, P05 participation/numeric revision and mode-change governance, and
    P07 validation mandates and general branch/conflict governance remain open.
    Initial Core mandate approval/quorum needs
    an explicit owner policy; independent source review can continue meanwhile.

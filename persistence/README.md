@@ -30,6 +30,10 @@ for application-service wiring. JSON columns use explicit mappings in
   only status changes on an existing ID. New versions check known ancestry and
   reject duplicate local successors inside the transaction. Raw SQL remains a
   trusted boundary; see [ADR-026](../docs/adr/ADR-026-knowledge-version-lineage.md).
+- New Decisions store their exact Mission snapshot in the same INSERT. The binding
+  and Mission reference cannot be updated. Opening an older database adds a nullable
+  snapshot column and leaves historical records unbound; new execution requires a
+  fresh Decision. See [ADR-027](../docs/adr/ADR-027-decision-mission-snapshot.md).
 - Membership rows use a deterministic key derived from subject, collective,
   role, and start time. Lookup uses those exact terms, including a nullable role,
   and lifecycle changes preserve the actual stored ID, including legacy IDs.

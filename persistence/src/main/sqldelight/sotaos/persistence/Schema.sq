@@ -79,6 +79,7 @@ CREATE TABLE decision (
     timestamp     TEXT NOT NULL,
     purpose       TEXT NOT NULL DEFAULT 'Execute mission action',
     affected_persons_json TEXT NOT NULL DEFAULT '[]',
+    mission_snapshot_json TEXT,
     FOREIGN KEY (authority_ref) REFERENCES authority(authority_id)
 );
 
@@ -382,8 +383,8 @@ CREATE TRIGGER event_no_delete BEFORE DELETE ON event
 BEGIN SELECT RAISE(ABORT, 'event rows are append-only'); END;
 
 insertDecision:
-INSERT INTO decision(decision_id, subject_kind, subject_id, intent_ref, options_json, chosen_option, authority_ref, timestamp, purpose, affected_persons_json)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO decision(decision_id, subject_kind, subject_id, intent_ref, options_json, chosen_option, authority_ref, timestamp, purpose, affected_persons_json, mission_snapshot_json)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 insertAction:
 INSERT INTO action(action_id, actor_kind, actor_id, authority_ref, decision_ref, context_json, timestamp, mode, target)

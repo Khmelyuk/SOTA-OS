@@ -1,4 +1,4 @@
-# Command authorization audit — 2026-11-22
+# Command authorization audit — 2026-11-23
 
 This is a review of implemented checks and remaining work, not a claim that all
 source requirements or Phase 3 are complete. `ProtocolInvocation.actor` is a
@@ -20,7 +20,7 @@ actor's identity or automatically supply missing authority.
 | P04 delegation | Actor is issuer; one current covering parent and complete valid lineage; context, scope, time and accountability ceilings | DelegationBoundsTest, AuthorityGrantBoundaryTest; no implicit authority from membership or role |
 | P04 revoke | Stored issuer, rights check, atomic descendant revocation/audit | AuthorityRevocationBoundaryTest, DelegationCascadeTest |
 | P05 createIntent / formMission | Actor equals subject/owner; rights check | Core Loop tests; collective representation and broader mission admission rules remain open |
-| P05 decide / execute | Authority holder equals actor; persisted ACTIVE Mission checked at both stages; policy receives actual Mission ID; scope, mission binding, time and ancestor checks; exact persisted Decision at execution; affected-Person consent; execution copies current Mission mode | MissionStateBoundaryTest (ADR-022), MissionModeTest (ADR-024), DecisionAuthorityOwnerTest, ConsentExecutionVerificationTest, DelegationEnforcementTest; participation, version binding and mode-change governance remain open |
+| P05 decide / execute | Authority holder equals actor; persisted ACTIVE Mission checked at both stages; Decision stores exact Mission terms, checked before execution rights/writes; policy receives actual Mission ID; scope, mission binding, time and ancestor checks; exact persisted Decision at execution; affected-Person consent; Action retains matching Mission mode/snapshot | MissionStateBoundaryTest (ADR-022), MissionModeTest (ADR-024), DecisionMissionBindingTest and DecisionMissionPersistenceTest (ADR-027), DecisionAuthorityOwnerTest, ConsentExecutionVerificationTest, DelegationEnforcementTest; participation, numeric revisions and mode-change governance remain open |
 | P05 recordResult | Exact stored Action, original actor and persisted context; rights check | SignedResultTest, MissionModeTest; signed mode additionally requires verified local Action history, a current signing key and agreement with the signed mode field when present; legacy absent fields do not prove mode |
 | P06 generic recordEvent | Actor equality and rights check, then unsupported | No general non-action event dispatcher or signed P08 producer |
 | P07 ordinary MemoryService | Exact persisted own Events/Experience; distinct same-context nonfuture Events; current CANDIDATE for validation, current CANDIDATE/VALIDATED for author-only deprecation with reason; matching non-Agent validator; persisted policy context; atomic entity/local audit Event | MemorySourceBoundaryTest, LocalMemoryAuditTest, Core Loop and NoAICanonicalizationTest; ADR-023/025. Ordinary mode does not establish signed history or general validation mandates |
@@ -63,7 +63,7 @@ and mapped in that ADR; initial root-grant legitimacy remains unresolved.
 1. Specify initial collective mandate/root eligibility and broader representation
    beyond ADR-021's authenticated delegated Core invitations. Reuse the
    confirmed single-founder Research bootstrap only within its ADR-018 scope.
-2. Review P05 participation/version/mode-change governance and P07 validation mandates against
+2. Review P05 participation/numeric revision/mode-change governance and P07 validation mandates against
    the original specifications; add concrete source-to-test mappings before
    selecting additional policies.
 3. Review remaining person-affecting commands for explicit consent, and memory
@@ -80,6 +80,12 @@ Five regressions reproduced missing/inactive Mission acceptance and omitted poli
 Mission ID; six tests cover both execution modes, database reopen, denial before
 writes and historical Result reporting. Root approval/quorum remains an explicit
 unresolved policy question for the owner.
+
+P05 Decision/Mission snapshot binding is implemented under
+[ADR-027](adr/ADR-027-decision-mission-snapshot.md). Changed modeled terms or an
+absent legacy snapshot require a fresh Decision; no authority is derived from the
+snapshot itself. Legacy history remains readable, and Result reporting for existing
+Actions does not require reconstructing earlier Mission terms.
 
 P07 ordinary source/state checks are implemented under
 [ADR-023](adr/ADR-023-persisted-memory-boundary.md), with nine SQLite regressions.

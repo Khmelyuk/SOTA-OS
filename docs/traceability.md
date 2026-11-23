@@ -1,5 +1,14 @@
 # Traceability Matrix — Code ↔ Specification
 
+P05 Decision binding update 2026-11-23: MissionActionService records the exact modeled
+Mission terms with each new Decision and checks equality before execution writes.
+Data Model §§15–16/27 and Protocol §§8/21 are mapped in
+[ADR-027](adr/ADR-027-decision-mission-snapshot.md). DecisionMissionBindingTest and
+DecisionMissionPersistenceTest cover stale terms, signed evidence, restart, immutable
+binding, migration without backfill, historical Results, write failure and denial.
+MissionModeTest retains both modes and rollback under the tightened contract.
+Numeric Mission revisions and participation/mode-change governance remain open.
+
 P07 version update 2026-11-22: MemoryService.reviseKnowledge and KnowledgeLineage
 connect Memory §§13–14/18–19 to separately reviewed candidates, immutable stored
 content/links, retained predecessors and explicit stale/fork denial. Local and signed
@@ -26,7 +35,8 @@ sections/pages/fingerprints are mapped in [ADR-024](adr/ADR-024-mission-action-m
 MissionModeTest covers both modes/paths, reopen, snapshot history, mismatch denial,
 legacy compatibility and rollback. SignedActionTest exchanges PROTECTION history
 after lost response/restart without remote execution. Mode-change governance and
-Decision version binding remain open.
+numeric Mission revisions remain open. ADR-027 subsequently binds Decision execution
+to the exact modeled Mission terms.
 
 Ordinary P07 update 2026-11-20: `MemoryService` checks exact persisted sources,
 Event sets and current Knowledge states inside a shared repository transaction.

@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import sotaos.application.ports.*
 import sotaos.application.services.AuthorityLineage
+import sotaos.application.services.ActionNotAuthorizedException
 import sotaos.application.services.MissionActionService
 import sotaos.domain.agency.*
 import sotaos.domain.memory.Event
@@ -39,7 +40,7 @@ class MissionModeTest : FunSpec({
         }
     }
 
-    test("execution reads current Mission mode and a later Mission change does not rewrite Action or Result history") {
+    test("mode changes need a fresh decision and later Mission changes preserve Action and Result history") {
         for (signed in listOf(false, true)) SignedActionFixture().use { f ->
             f.key()
             val service = f.modeService(signed)
@@ -47,7 +48,10 @@ class MissionModeTest : FunSpec({
             val decision = service.decide(f.invocation, f.actor, mission.id, f.authorityId, "execute")
             f.driver.execute(null, "UPDATE mission SET mode = 'PROTECTION'", 0)
             f.reopen()
-            val action = f.modeService(signed).execute(f.invocation, decision)
+            val reopened = f.modeService(signed)
+            shouldThrow<ActionNotAuthorizedException> { reopened.execute(f.invocation, decision) }
+            val fresh = reopened.decide(f.invocation, f.actor, mission.id, f.authorityId, "execute")
+            val action = reopened.execute(f.invocation, fresh)
             action.mode shouldBe Mode.PROTECTION
             f.driver.execute(null, "UPDATE mission SET mode = 'CREATION'", 0)
             f.reopen()
@@ -108,6 +112,7 @@ class MissionModeTest : FunSpec({
             for (table in listOf("action", "event", "sync_journal", "verified_sync_record")) f.count(table) shouldBe 0L
             f.driver.execute(null, "DROP TRIGGER mode_failure", 0)
             f.reopen()
+            f.repos.decisions.findMissionSnapshot(decision.id) shouldBe mission
             f.runtime().execute(f.invocation, decision).mode shouldBe Mode.PROTECTION
             f.journal.records().single().event.payload["mode"] shouldBe "PROTECTION"
         }
