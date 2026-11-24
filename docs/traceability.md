@@ -1,5 +1,11 @@
 # Traceability Matrix — Code ↔ Specification
 
+P09 comparison passwords update 2026-11-24: ADR-029 now supports independent candidate
+TLS password sources, with shared-mode compatibility and no fallback from a selected
+invalid source. Seven new tests and CLI smoke cover source selection, password-only
+re-encryption, malformed input, buffer cleanup, secret exclusion and explicit runtime
+source selection. The change does not rotate peer credentials or replace TLS files.
+
 P09 bundle comparison update 2026-11-24: [ADR-029](adr/ADR-029-p09-tls-bundle-comparison.md)
 adds read-only current/staged TLS comparison under ADR-015/017/028. Six API tests and
 the real CLI smoke cover certificate/trust deltas, stable node settings, invalid

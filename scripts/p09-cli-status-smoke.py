@@ -22,6 +22,8 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
     env = dict(os.environ, SOTA_P09_TLS_PASSWORD=uuid.uuid4().hex, SOTA_P09_PEER_TOKEN='smoke-only-unknown')
     env.pop('SOTA_P09_TLS_PASSWORD_FILE', None)
     env.pop('SOTA_P09_PEER_TOKEN_FILE', None)
+    env.pop('SOTA_P09_CANDIDATE_TLS_PASSWORD', None)
+    env.pop('SOTA_P09_CANDIDATE_TLS_PASSWORD_FILE', None)
     keystore, certificate, database = folder/'server.p12', folder/'public.pem', folder/'node.db'
     keytool = str(java_home/'bin/keytool')
     subprocess.run([keytool, '-genkeypair', '-alias', 'p09', '-keyalg', 'EC', '-groupname', 'secp256r1',
@@ -144,6 +146,59 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
     assert env['SOTA_P09_TLS_PASSWORD'].encode() not in compared.stdout + compared.stderr
     assert env['SOTA_P09_PEER_TOKEN'].encode() not in compared.stdout + compared.stderr
     assert {path: hashlib.sha256(path.read_bytes()).digest() for path in compared_paths} == snapshots
+    reencrypted = folder/'reencrypted.p12'
+    candidate_password = uuid.uuid4().hex
+    independent_env = dict(env, SOTA_P09_CANDIDATE_TLS_PASSWORD=candidate_password)
+    subprocess.run([keytool, '-importkeystore', '-srckeystore', str(keystore), '-srcstoretype', 'PKCS12',
+                    '-srcstorepass:env', 'SOTA_P09_TLS_PASSWORD', '-srcalias', 'p09',
+                    '-destkeystore', str(reencrypted), '-deststoretype', 'PKCS12',
+                    '-deststorepass:env', 'SOTA_P09_CANDIDATE_TLS_PASSWORD',
+                    '-destkeypass:env', 'SOTA_P09_CANDIDATE_TLS_PASSWORD', '-noprompt'],
+                   env=independent_env, check=True, capture_output=True, timeout=30)
+    password_config = folder/'password-change.conf'
+    password_settings = dict(settings, keystore=reencrypted.name, truststore=reencrypted.name)
+    password_config.write_text('version=1\n' + '\n'.join(key+'='+value for key, value in password_settings.items()))
+    candidate_password_file = folder/'candidate.password'
+    candidate_password_file.write_text(candidate_password + '\r\n')
+    candidate_password_file.chmod(0o600)
+    independent_files = dict(file_env, SOTA_P09_CANDIDATE_TLS_PASSWORD_FILE=str(candidate_password_file))
+    password_paths = compared_paths + (reencrypted, password_config, candidate_password_file)
+    password_snapshot = {path: hashlib.sha256(path.read_bytes()).digest() for path in password_paths}
+    password_command = compare_command[:-1] + [str(password_config)]
+    for selected_env in (independent_env, independent_files):
+        with socket.socket() as occupied:
+            occupied.bind(('127.0.0.1', port))
+            compared = subprocess.run(password_command, env=selected_env, capture_output=True, timeout=15)
+        assert compared.returncode == 0
+        comparison = json.loads(compared.stdout.decode().splitlines()[0][len(comparison_prefix):])
+        for field in ('serverLeaves', 'clientTrust'):
+            assert comparison[field] == {'added': [], 'removed': [], 'retained': [diagnostic['sha256']]}
+        for secret in (env['SOTA_P09_TLS_PASSWORD'], candidate_password, env['SOTA_P09_PEER_TOKEN']):
+            assert secret.encode() not in compared.stdout + compared.stderr
+    invalid_password_cases = [
+        (password_command, file_env),
+        (password_command, dict(env, SOTA_P09_CANDIDATE_TLS_PASSWORD='wrong-candidate-fixture')),
+        (password_command, dict(independent_env, SOTA_P09_TLS_PASSWORD='wrong-current-fixture')),
+        (compare_command, dict(file_env, SOTA_P09_CANDIDATE_TLS_PASSWORD='')),
+        (compare_command, dict(independent_files, SOTA_P09_CANDIDATE_TLS_PASSWORD=env['SOTA_P09_TLS_PASSWORD'])),
+        (compare_command, dict(file_env, SOTA_P09_CANDIDATE_TLS_PASSWORD_FILE=str(folder/'missing.password'))),
+    ]
+    for selected_command, selected_env in invalid_password_cases:
+        rejected = subprocess.run(selected_command, env=selected_env, capture_output=True, timeout=15)
+        assert rejected.returncode != 0 and comparison_prefix.encode() not in rejected.stdout
+        for name in ('SOTA_P09_TLS_PASSWORD', 'SOTA_P09_CANDIDATE_TLS_PASSWORD', 'SOTA_P09_PEER_TOKEN'):
+            if selected_env.get(name):
+                assert selected_env[name].encode() not in rejected.stdout + rejected.stderr
+    # Activation/recovery keep the ordinary runtime source names; candidate variables apply only to compare.
+    candidate_check = java + ['sync', 'check', '--config', str(password_config)]
+    rejected = subprocess.run(candidate_check, env=independent_files, capture_output=True, timeout=15)
+    assert rejected.returncode != 0
+    activated_env = dict(file_env, SOTA_P09_TLS_PASSWORD_FILE=str(candidate_password_file))
+    for selected_command, selected_env in ((candidate_check, activated_env), (check_command, file_env)):
+        checked_password = subprocess.run(selected_command, env=selected_env, capture_output=True, timeout=15)
+        assert checked_password.returncode == 0
+        assert candidate_password.encode() not in checked_password.stdout + checked_password.stderr
+    assert {path: hashlib.sha256(path.read_bytes()).digest() for path in password_paths} == password_snapshot
     drift_config = folder/'drift.conf'
     drift_config.write_text(staged_config.read_text().replace('node=smoke-node', 'node=another-node'))
     for command_suffix in ([str(drift_config)], [str(staged_config), '--db', str(database)]):
@@ -285,4 +340,4 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
     import sqlite3
     with sqlite3.connect(database) as db:
         assert db.execute('SELECT count(*) FROM sync_journal').fetchone()[0] == 0
-    print('CLI status smoke passed: validation, periodic output, secrets excluded, SIGTERM, restart, default quiet mode, configuration file, inbound JSON metrics, file secrets, read-only certificate diagnostics and bundle comparison, invalid certificate denial, live scheduling reload.')
+    print('CLI status smoke passed: validation, periodic output, secrets excluded, SIGTERM, restart, default quiet mode, configuration file, inbound JSON metrics, file secrets, read-only certificate diagnostics and bundle comparison, independent TLS passwords, invalid certificate denial, live scheduling reload.')

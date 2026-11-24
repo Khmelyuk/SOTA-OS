@@ -137,7 +137,7 @@ class P09MaterialComparisonTest : FunSpec({
     }
 })
 
-private fun comparisonConfig(fixture: CertificateFixture, database: Path = fixture.database,
+internal fun comparisonConfig(fixture: CertificateFixture, database: Path = fixture.database,
     key: Path = fixture.server, trust: Path = fixture.trustOnly, port: Int = 1): Path {
     val path = fixture.directory.resolve("compare.conf")
     Files.writeString(path, """
@@ -155,7 +155,7 @@ private fun comparisonConfig(fixture: CertificateFixture, database: Path = fixtu
     return path
 }
 
-private fun comparisonInput(current: Path, candidate: Path) = Arguments("sync", "compare", null,
+internal fun comparisonInput(current: Path, candidate: Path) = Arguments("sync", "compare", null,
     mapOf("config" to current.toString(), "candidate" to candidate.toString()))
 
 private fun comparisonReport(lines: List<String>): JsonObject {

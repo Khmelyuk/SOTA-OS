@@ -21,13 +21,12 @@ internal fun compareSyncMaterial(input: Arguments, secrets: P09Secrets = P09Secr
     val database = Path.of(current.getValue("db"))
     require(Files.isRegularFile(database) && Files.size(database) > 0) { "Provision the database before sync." }
     secrets.peerToken()
-    val password = secrets.tlsPassword()
     val observedAt = Date.from(at).toInstant()
-    val comparison = try {
-        val previous = inspectBundle(current, password, observedAt)
-        val staged = inspectBundle(candidate, password, observedAt)
+    val comparison = secrets.withComparisonPasswords { currentPassword, candidatePassword ->
+        val previous = inspectBundle(current, currentPassword, observedAt)
+        val staged = inspectBundle(candidate, candidatePassword, observedAt)
         comparisonJson(previous, staged, observedAt)
-    } finally { password.fill('\u0000') }
+    }
     output("P09 TLS comparison $comparison")
     output("P09 TLS comparison complete: both bundles passed local validation at the reported time. " +
         "Keep the previous bundle and recheck it before recovery; verify peer exchange after restart.")

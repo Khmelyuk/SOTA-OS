@@ -20,10 +20,23 @@ including database path, node/actor, peer/endpoint, governance context and sched
 An omitted default and an explicitly specified default are deliberately distinct;
 comparison is not a general configuration migration tool or filesystem identity test.
 
-Both bundles use the existing single `SOTA_P09_TLS_PASSWORD` or
-`SOTA_P09_TLS_PASSWORD_FILE` source. The existing outbound token source is validated
-once for format. Independent candidate passwords and credential rotation are outside
-this increment. No password or token is printed or added to configuration files.
+The current bundle uses `SOTA_P09_TLS_PASSWORD` or `SOTA_P09_TLS_PASSWORD_FILE`.
+The candidate optionally uses `SOTA_P09_CANDIDATE_TLS_PASSWORD` or
+`SOTA_P09_CANDIDATE_TLS_PASSWORD_FILE`. If neither candidate variable is present,
+comparison uses a separate copy of the current password, preserving shared-password
+operation. If either candidate variable is present, exactly one must be selected and
+valid; empty, ambiguous, malformed, unreadable or incorrect material fails without
+retrying the current password. Both stores within each bundle still share one password.
+
+Candidate file input uses the same bounded UTF-8, single-line rules as existing
+secrets. Password spaces are preserved. Both password character buffers are cleared
+after success or failure; the current buffer is also cleared if candidate source
+loading fails. This does not promise erasure of JVM Strings or provider-internal copies.
+The existing outbound token source is validated once for format. No password or token
+is printed or added to configuration files. Candidate variables apply only to comparison;
+ordinary check/startup still uses `SOTA_P09_TLS_PASSWORD[_FILE]`. Activation and recovery
+must explicitly select the corresponding runtime password source. Credential rotation
+and writing/re-encrypting stores remain operator tasks.
 
 Load each server store once, check every key-entry leaf at one shared millisecond
 observation, and initialize its key manager. Load each client store once and initialize
@@ -75,6 +88,13 @@ The real CLI smoke verifies unchanged/replaced fingerprints, file-backed secrets
 configuration drift, overrides and invalid dates in either bundle without database writes.
 Existing HTTPS material-rotation and two-node recovery scenarios remain regression checks.
 
-Next bounded increment: independently supplied current/candidate TLS passwords for
-staged password changes, preserving explicit source selection and failure behavior.
+Seven additional tests in `P09ComparisonSecretsTest` and `P09ComparisonPasswordTest`
+cover independent direct/file sources, shared-mode compatibility, bounded malformed
+input, source ambiguity, clearing buffers on success/failure, wrong/swapped passwords,
+both candidate stores, and unchanged public certificate fingerprints after password-only
+re-encryption. Real CLI smoke also checks independent sources, absence of secret values,
+explicit activation/recovery source selection and no fallback or file mutation.
+
+Next bounded increment: a reproducible failed TLS replacement and rollback rehearsal
+with previous certificates, trust and password, checking journals and authenticated exchange.
 Automatic issuance, issuer choice and broader configuration rollout remain separate.

@@ -78,7 +78,7 @@ acceptance, revocation status or peer authorization. See
 
 ## Compare current and staged bundles
 
-For a TLS-only replacement using the same password, run:
+For a TLS-only replacement, run:
 
 ```text
 api sync compare --config /private/sota/releases/current/node.conf --candidate /private/sota/releases/new/node.conf
@@ -87,8 +87,30 @@ api sync compare --config /private/sota/releases/current/node.conf --candidate /
 Both files must be full `sync run` configurations with identical resolved settings
 except `keystore` and `truststore`. Relative paths resolve against each configuration's
 directory, so both database paths must resolve to the same path. Explicit defaults
-must match too. Other flags and `--db` overrides are rejected. Both bundles use the
-same existing TLS password source; independent candidate passwords are not yet supported.
+must match too. Other flags and `--db` overrides are rejected.
+
+The current bundle uses the existing TLS password source. For a different candidate
+password, select exactly one of `SOTA_P09_CANDIDATE_TLS_PASSWORD` and
+`SOTA_P09_CANDIDATE_TLS_PASSWORD_FILE`. For example, retain the current password file
+and select a separate, protected candidate file before running comparison:
+
+```bash
+export SOTA_P09_TLS_PASSWORD_FILE=/private/sota/releases/current/tls.password
+export SOTA_P09_CANDIDATE_TLS_PASSWORD_FILE=/private/sota/releases/new/tls.password
+```
+
+Unset the corresponding direct-value variables when using files. Candidate files
+follow the same UTF-8, size and single-line rules as other secrets. If neither
+candidate variable is set, comparison uses the current password for both bundles.
+An explicitly configured candidate source never falls back: ambiguity, invalid
+content, a missing file or a wrong password fails comparison. Keystore and truststore
+within each bundle still need the same password. Comparison does not re-encrypt files.
+
+Candidate variables apply only to `sync compare`. Before checking or starting the
+candidate on its own, point `SOTA_P09_TLS_PASSWORD_FILE` at its password file and
+unset the candidate variable to avoid stale comparison settings. For recovery, select
+the previous runtime password source explicitly; keep both versioned bundles and
+their protected password files available until the rollout has been verified.
 
 After both bundles pass local validation, one `P09 TLS comparison ` JSON record
 reports both server-leaf inventories and client-trust fingerprints, plus sorted
@@ -112,7 +134,7 @@ process's loaded context. Details: [ADR-029](adr/ADR-029-p09-tls-bundle-comparis
 2. Stage the server key/certificate, truststore, password and configuration together
    under versioned paths. Keep the previous valid bundle available for rollback.
 3. Run `sync check` with the candidate environment/configuration, then `sync compare`
-   against the previous bundle when both use the same password. Review the leaf and
+   with the current password source and optional independent candidate source. Review the leaf and
    client-trust changes on both peers. Resolve validation
    errors before stopping the current node. The running process keeps its loaded TLS
    context while files are staged.
@@ -168,6 +190,12 @@ requires nonzero exit for expired and not-yet-valid replacement certificates.
 trust, stable node settings, invalid material and read-only comparison. The CLI smoke
 also compares real unchanged/replaced bundles, rejects configuration drift/overrides
 and invalid dates in either bundle, and verifies unchanged files with an occupied port.
+
+`P09ComparisonSecretsTest` and `P09ComparisonPasswordTest` add seven tests for independent
+password sources, strict selection, malformed input, buffer cleanup, re-encrypted
+stores with unchanged certificate fingerprints and failure without writes or fallback.
+CLI smoke verifies both source forms, rejection of wrong/ambiguous/missing sources,
+and explicit password selection for candidate activation and previous-bundle recovery.
 
 Verification — 2026-10-07: full JDK 21 build, Detekt, migrations and 206 tests
 passed with no failures/errors/skips. Extended CLI smoke passed.

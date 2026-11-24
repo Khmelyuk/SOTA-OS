@@ -16,6 +16,16 @@ class P09Secrets(environment: Map<String, String> = System.getenv()) {
 
     fun tlsPassword(): CharArray = read("SOTA_P09_TLS_PASSWORD").toCharArray()
 
+    /** Candidate sources apply only to comparison; an explicitly selected source never falls back. */
+    fun <T> withComparisonPasswords(block: (CharArray, CharArray) -> T): T {
+        val current = tlsPassword()
+        return try {
+            val candidate = if (CANDIDATE_PASSWORD in environment || "${CANDIDATE_PASSWORD}_FILE" in environment)
+                read(CANDIDATE_PASSWORD).toCharArray() else current.copyOf()
+            try { block(current, candidate) } finally { candidate.fill('\u0000') }
+        } finally { current.fill('\u0000') }
+    }
+
     private fun read(name: String): String {
         val direct = environment[name]
         val file = environment["${name}_FILE"]
@@ -43,5 +53,8 @@ class P09Secrets(environment: Map<String, String> = System.getenv()) {
         }
     }
 
-    private companion object { const val MAX_SECRET_BYTES = 4096 }
+    private companion object {
+        const val MAX_SECRET_BYTES = 4096
+        const val CANDIDATE_PASSWORD = "SOTA_P09_CANDIDATE_TLS_PASSWORD"
+    }
 }

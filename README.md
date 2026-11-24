@@ -96,7 +96,7 @@ What exists and is source-complete:
   time and an advisory 30-day renewal warning; expired/future certificates still fail
   ([ADR-028](docs/adr/ADR-028-p09-certificate-diagnostics.md)).
 - P09 `sync compare --config CURRENT --candidate STAGED` compares locally valid
-  TLS bundles with unchanged node settings and a shared password, showing server-leaf
+  TLS bundles with unchanged node settings and shared or independent passwords, showing server-leaf
   and client-trust fingerprint changes ([ADR-029](docs/adr/ADR-029-p09-tls-bundle-comparison.md)).
 
 What is **not yet done**:
@@ -137,9 +137,9 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
-Local verification on 2026-11-24: JDK 21 compilation, Detekt, migration and
-module-layering checks passed with **378 tests** (zero failures, errors or
-skips), including six TLS bundle-comparison and six certificate-preflight tests,
+Local verification on 2026-11-24: the full JDK 21 build, Detekt, migration and
+module-layering checks passed with **385 tests** (zero failures, errors or
+skips), including seven independent-password tests, six TLS bundle-comparison and six certificate-preflight tests,
 seven declared-schema, six signed-runtime and seven P10 migration tests,
 nine Decision/Mission snapshot tests, 12 Knowledge revision/lineage tests,
 five local-memory audit tests,
@@ -157,8 +157,8 @@ The signed-memory recovery test exchanged seven facts including revision and sep
 Research CLI smoke passed during the
 persisted-membership increment.
 P09 status, signed P10 and credential lifecycle smoke scenarios passed during
-integration on 2026-11-17 and remain part of CI. The published certificate-diagnostics
-baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/45438799034).
+integration on 2026-11-17 and remain part of CI. The published TLS bundle-comparison
+baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/45449714572).
 This verifies the integrated local tree; the CI link
 above records the result for each published commit.
 
@@ -218,11 +218,12 @@ authentication port and per-Sota provider allowlist are described in
 [ADR-009](docs/adr/ADR-009-provider-based-authentication.md). Only the local
 provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
-The next increments, updated after P09 TLS bundle comparison on 2026-11-24, are recorded
+The next increments, updated after independent P09 TLS passwords on 2026-11-24, are recorded
 in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
 admission, signatures and HTTPS hosting are already implemented. The next independent
-engineering increment is independent current/candidate TLS password sources for staged
-password changes. Bundle comparison and explicit operator recovery checks are documented
+engineering increment is a reproducible failed TLS replacement and rollback rehearsal,
+with previous certificates/trust/password and journal continuity checks. Independent
+candidate password sources, bundle comparison and operator recovery checks are documented
 under ADR-029; local certificate-expiry diagnostics are implemented under ADR-028. Four historical profiles
 now cover reopen, runtime guards, signed provisioning history and populated P10 exits.
 Further functional priorities are:
