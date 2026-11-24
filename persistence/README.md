@@ -58,7 +58,14 @@ A third profile captures an actual historical runtime: 38 tables, two indexes,
 tests retain all captured guard definitions, check populated audit immutability,
 preserve exact signed replay and revocations, and exercise rollback/retry of an
 approved historical import after upgrade. Production schema/bootstrap code is
-unchanged; populated historical P10 and broader opening failures remain open.
+unchanged; broader opening failures remain open.
+
+A fourth profile captures 68 rows of historical P10 state: completed signed exit,
+approved portable snapshots, typed relation terms, retained/fulfilled obligations,
+an unsigned pending exit and an unaffected Core. Seven tests cover exact preservation,
+restart/resumption, archive and termination rollback/retry, and independent fulfillment
+after exit. Snapshot restoration installs old triggers after loading rows, with
+foreign keys checked at commit; this is test setup, not a production migration change.
 
 `actor_signing_key` stores one active Ed25519 public key per actor as Base64
 X.509 material; private keys are never persisted. Lifecycle changes are

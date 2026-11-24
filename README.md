@@ -96,10 +96,11 @@ What is **not yet done**:
 
 - `persistence/` has Core Loop and two-node sync integration coverage,
   including restart, additive sync-schema migration and rollback.
-  Two declared-schema profiles and one captured runtime profile now verify
+  Two declared-schema profiles and two captured runtime profiles now verify
   row preservation, schema contracts, current service behavior and retry after a
   failed upgrade. Six additional tests preserve runtime guards, signed receipts and
-  key/peer history. See [migration acceptance](docs/persistence-migrations.md); broader
+  key/peer history; seven more cover completed/pending P10 exits and retained obligations.
+  See [migration acceptance](docs/persistence-migrations.md); broader
   repository and release-migration coverage is still open.
 - P09 public hosting operations, automatic historical attestations, producer adoption and additional
   entity assertion producers remain open. Credential authentication, trusted
@@ -130,8 +131,8 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
 Local verification on 2026-11-24: the full build, Detekt, migration and
-module-layering checks passed with **359 tests** (zero failures, errors or
-skips), including seven declared-schema and six captured-runtime migration tests,
+module-layering checks passed with **366 tests** (zero failures, errors or
+skips), including seven declared-schema, six signed-runtime and seven P10 migration tests,
 nine Decision/Mission snapshot tests, 12 Knowledge revision/lineage tests,
 five local-memory audit tests,
 five Mission-mode tests, nine ordinary-memory tests,
@@ -148,8 +149,8 @@ The signed-memory recovery test exchanged seven facts including revision and sep
 Research CLI smoke passed during the
 persisted-membership increment.
 P09 status, signed P10 and credential lifecycle smoke scenarios passed during
-integration on 2026-11-17 and remain part of CI. The published declared-schema migration
-baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/45262565323).
+integration on 2026-11-17 and remain part of CI. The published runtime-history migration
+baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/45404199784).
 This verifies the integrated local tree; the CI link
 above records the result for each published commit.
 
@@ -209,12 +210,13 @@ authentication port and per-Sota provider allowlist are described in
 [ADR-009](docs/adr/ADR-009-provider-based-authentication.md). Only the local
 provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
-The next increments, updated after runtime migration acceptance on 2026-11-24, are recorded
+The next increments, updated after P10 migration acceptance on 2026-11-24, are recorded
 in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
 admission, signatures and HTTPS hosting are already implemented. The next independent
-engineering increment is populated historical P10 exit and retained-obligation migration
-acceptance. Two declared-schema profiles and one captured runtime profile now cover
-reopen, runtime guards and signed verification/provisioning histories. Further functional priorities are:
+engineering increment is P09 certificate-expiry diagnostics and operator readiness
+for renewal, extending existing staged material validation. Four historical profiles
+now cover reopen, runtime guards, signed provisioning history and populated P10 exits.
+Further functional priorities are:
 
 1. Extend command-specific authorization and source conformance: explicit
    initial collective mandate/root eligibility and further command conformance.

@@ -53,3 +53,6 @@ and add appropriate acceptance assertions. Never regenerate an existing profile 
 place to make a failing migration pass. The freezer refuses an existing directory.
 The checked-in profile's authoring-source hash binds the exact capture program;
 its source inventory additionally fingerprints old persistence and helper files.
+
+The freezer defaults to `p09`. The optional `p10` argument selects the P10 authoring
+program and ExitFixture source fingerprint; see [P10 capture](../historical-p10/README.md).

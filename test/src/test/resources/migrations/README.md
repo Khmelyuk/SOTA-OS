@@ -10,6 +10,7 @@ repositories. The current schema is used only to construct the fresh comparison 
 | durable-p09 | `ece3ad113fef41be69e632117304e28bfca02708` | 2 source files, 25 statements; before delegation ancestry, credential lifecycle and Decision snapshots |
 | knowledge-versions | `3c1a4aa1d20cf77179e3c37580ddd682b329d018` | 9 source files, 48 statements; after Knowledge revision, before Decision snapshots |
 | runtime-signed | `3c1a4aa1d20cf77179e3c37580ddd682b329d018` | Actual runtime: 38 tables, 2 indexes, 50 triggers; 27 synthetic P09 history/provisioning rows |
+| runtime-p10 | `3c1a4aa1d20cf77179e3c37580ddd682b329d018` | Actual runtime: 38 tables, 2 indexes, 50 triggers; 68 rows with completed signed exit, unsigned pending exit and an unaffected Core |
 
 Each `schema.json` records the full commit, original source paths and their SHA-256
 digests. DDL text is retained; tables execute before indexes and triggers to resolve
@@ -39,6 +40,20 @@ The public bearer vectors are `public-historical-peer-token` and
 No private keys are exported. See the
 [capture recipe](../../../../../scripts/historical-runtime/README.md).
 
+The `runtime-p10` profile retains a completed signed exit, its exact archive and
+approved Event/Knowledge/Evidence snapshots, typed Trust/Agreement participation,
+retained and fulfilled obligations, an unsigned REQUESTED exit and a third unaffected
+Core. Seven tests cover preservation, signed history, idempotent resumption, archive
+and termination failures, and independently governed fulfillment after exit. Its
+`vectors.json` pins process IDs and six canonical signed records; the hash is in
+`P10HistorySupport`. See the [P10 capture recipe](../../../../../scripts/historical-p10/README.md).
+
+Snapshot restoration now creates structures, inserts raw rows with deferred foreign-key
+checks and installs captured triggers in one transaction. Foreign keys remain enabled
+and are checked at commit. This permits restoring an existing pending exit with its
+still-active membership without replaying those rows as new commitments. Every guard
+is installed before current store opening; pre-upgrade tests verify guard behavior.
+
 ## Adding another historical baseline
 
 From the repository root, run the authoring tool with a full commit SHA and a new
@@ -56,10 +71,10 @@ Existing fixtures stay frozen when current schemas or codecs change.
 ## Scope
 
 The first two profiles contain historical declarations and separately authored rows.
-The third captures an actual old runtime with synthetic P09 history; it is not a
-production database backup. All 50 captured trigger definitions are retained across
-upgrade; behavior checks exercise populated key/provisioning/receipt/approval audit
+The third and fourth capture an actual old runtime with synthetic P09 and P10 history;
+neither is a production database backup. All 50 captured trigger definitions are
+retained across upgrade; behavior checks exercise populated audit, exit and relation
 tables, not every trigger. Captured history is node-local evidence and must not be
-treated as a portable trust grant. Additional historical versions, populated P10
-history, versioned `.sqm` migrations and broader opening failures remain separate
+treated as a portable trust grant. Additional historical versions, further P10
+states, versioned `.sqm` migrations and broader opening failures remain separate
 coverage. See [migration acceptance](../../../../../docs/persistence-migrations.md).

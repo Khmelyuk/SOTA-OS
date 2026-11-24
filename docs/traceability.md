@@ -1,5 +1,13 @@
 # Traceability Matrix — Code ↔ Specification
 
+Historical P10 acceptance update 2026-11-24: P10HistoryMigrationTest,
+P10ResumeMigrationTest and P10ObligationMigrationTest add seven tests against
+captured `3c1a4aa` P10 state under ADR-007/010/014. Completed signed exit history,
+approved export bytes, typed terms, retained obligations and a pending unsigned exit
+survive migration; current services preserve actor/digest boundaries and atomic
+rollback/retry. The profile does not define new settlement or collective mandate
+policy. See [migration acceptance](persistence-migrations.md) for the exact scope.
+
 Historical runtime acceptance update 2026-11-24: RuntimeSchemaMigrationTest and
 RuntimeSignedMigrationTest add six tests against a captured `3c1a4aa` runtime.
 They retain 50 startup guards and raw P09 history, exercise exact receipt replay,

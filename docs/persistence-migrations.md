@@ -2,8 +2,8 @@
 
 Updated: 2026-11-24
 
-The migration suite adds two frozen declared-schema baselines and one captured
-runtime profile to the existing
+The migration suite adds two frozen declared-schema baselines and two captured
+runtime profiles to the existing
 targeted compatibility tests. It addresses the risk that tests constructed by
 removing columns from today's schema can follow today's assumptions instead of
 preserving a genuinely older layout. Existing credential, historical-signature and
@@ -82,6 +82,42 @@ Six tests in `RuntimeSchemaMigrationTest` and `RuntimeSignedMigrationTest` verif
   Active key/peer state, peer revisions and revoked-peer authentication denial
   survive restart. A retained receipt cannot bypass live peer authentication.
 
+## Completed and pending historical P10
+
+The `runtime-p10` profile captures the same historical revision through its actual
+ExitService, SignedP10Runtime, export governance and typed relation inventory. Its
+68 rows contain one completed signed exit from `chosen`, one unsigned REQUESTED
+exit from `other`, and active participation in an `unaffected` Core. The completed
+exit has an exact archive, independently approved Event/Knowledge/Evidence snapshots,
+typed Trust/Agreement terms, retained responsibilities and separately fulfilled work.
+Six canonical signed Events, journal entries and local receipts are retained.
+
+Seven tests in `P10HistoryMigrationTest`, `P10ResumeMigrationTest` and
+`P10ObligationMigrationTest` verify:
+
+- Every original row and all 50 trigger definitions survive migration and three
+  reopens. Populated exit/relation history rejects rewriting/deletion, and the
+  pending-exit commitment guard works before and after current initialization.
+- Archive bytes/digest, approved snapshots, typed terms and retained versus fulfilled
+  obligations remain intact. Repeating completed export/termination adds no writes.
+- The six historical signed records retain their exact canonical bytes, causal
+  links, signatures and verification receipts. An unsigned pending exit cannot be
+  converted to signed history during resumption.
+- The pending exit resumes under its original ID, requires self-invocation and the
+  exact export digest, and completes once across restart. The completed archive and
+  unrelated Core remain intact; retained responsibility is not silently discharged.
+- Injected archive insertion and termination Event failures preserve all pre-call
+  rows. Restart/retry adds one transition per stage and does not duplicate the archive.
+- Fulfillment after exit still requires an independent scoped authority. Audit
+  insertion failure rolls back the obligation resolution; successful retry survives
+  reopen while the old portable archive remains the historical snapshot.
+
+The [authoring recipe](../scripts/historical-p10/README.md) records provenance and
+public-key-only capture. Test restoration inserts raw snapshot rows with deferred
+foreign-key checks and installs the captured guards before committing. Foreign keys
+stay enabled, and all guards are active before the production store is opened.
+This restoration transaction is separate from production compatibility migrations.
+
 ## Operational and coverage limits
 
 SqlDelightStore currently applies additive compatibility steps during opening.
@@ -91,13 +127,14 @@ for the injected baseline-write failure, not universal recovery from arbitrary
 malformed databases, storage exhaustion or process death at every statement.
 
 These are synthetic acceptance profiles, not production database backups. The
-runtime profile covers one historical revision and a bounded P09 history. It does
-not exercise every captured trigger, P10 history or every provisioning transition.
+runtime profiles cover one historical revision and bounded P09/P10 histories. They
+do not exercise every trigger, every intermediate P10 state or every provisioning transition.
 Verification receipts remain local to their original node; fixture restoration is
 not authorization to copy trust evidence between production nodes.
 
 No production migration code, schema or governance policy is changed by this
 increment. Versioned `.sqm` release migrations and broader opening-failure coverage
-remain open. The next independent persistence increment is populated historical
-P10 exit/retained-obligation acceptance, with preservation, restart and failure
-checks. P09 operational lifecycle remains the next functional track.
+remain open. Populated historical P10 exit/retained-obligation acceptance is now
+covered for the scenarios above. The next functional increment is P09 certificate
+expiry diagnostics and operator readiness for renewal, building on existing staged
+material validation. Certificate issuance policy remains a separate decision.

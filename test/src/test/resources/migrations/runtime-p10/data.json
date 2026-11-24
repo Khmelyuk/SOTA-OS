@@ -1,0 +1,832 @@
+{
+    "fixtureOnly": true,
+    "rows": [
+        {
+            "table": "actor_signing_key",
+            "values": {
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "key_id": "historical-exit-key",
+                "public_key_base64": "MCowBQYDK2VwAyEAzoDx1IrI9vIVWKZmAx2dOzPzEsDKwJVRw9S/RBvM7gQ="
+            }
+        },
+        {
+            "table": "actor_signing_key_audit",
+            "values": {
+                "audit_id": 1,
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "key_id": "historical-exit-key",
+                "operation": "ENROLL",
+                "public_key_base64": "MCowBQYDK2VwAyEAzoDx1IrI9vIVWKZmAx2dOzPzEsDKwJVRw9S/RBvM7gQ=",
+                "occurred_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "authority",
+            "values": {
+                "authority_id": "authority-chosen",
+                "issuer_kind": "CORE",
+                "issuer_id": "chosen",
+                "subject_kind": "PERSON",
+                "subject_id": "leaving-person",
+                "scope_json": "{\"actions\":[\"execute\"],\"resources\":[],\"description\":\"\"}",
+                "context_json": "{\"domain\":\"work\",\"description\":\"\"}",
+                "basis_json": "{\"trust\":[],\"competence\":[],\"note\":\"test bootstrap\"}",
+                "valid_from": "2026-09-25T23:59:59Z",
+                "valid_until": null,
+                "accountable_kind": "CORE",
+                "accountable_id": "chosen",
+                "state": "REVOKED",
+                "parent_authority_id": null
+            }
+        },
+        {
+            "table": "authority",
+            "values": {
+                "authority_id": "authority-other",
+                "issuer_kind": "CORE",
+                "issuer_id": "other",
+                "subject_kind": "PERSON",
+                "subject_id": "leaving-person",
+                "scope_json": "{\"actions\":[\"execute\"],\"resources\":[],\"description\":\"\"}",
+                "context_json": "{\"domain\":\"work\",\"description\":\"\"}",
+                "basis_json": "{\"trust\":[],\"competence\":[],\"note\":\"test bootstrap\"}",
+                "valid_from": "2026-09-25T23:59:59Z",
+                "valid_until": null,
+                "accountable_kind": "CORE",
+                "accountable_id": "other",
+                "state": "ACTIVE",
+                "parent_authority_id": null
+            }
+        },
+        {
+            "table": "authority",
+            "values": {
+                "authority_id": "authority-unaffected",
+                "issuer_kind": "CORE",
+                "issuer_id": "unaffected",
+                "subject_kind": "PERSON",
+                "subject_id": "leaving-person",
+                "scope_json": "{\"actions\":[\"execute\"],\"resources\":[],\"description\":\"\"}",
+                "context_json": "{\"domain\":\"work\",\"description\":\"\"}",
+                "basis_json": "{\"trust\":[],\"competence\":[],\"note\":\"test bootstrap\"}",
+                "valid_from": "2026-09-25T23:59:59Z",
+                "valid_until": null,
+                "accountable_kind": "CORE",
+                "accountable_id": "unaffected",
+                "state": "ACTIVE",
+                "parent_authority_id": null
+            }
+        },
+        {
+            "table": "authority",
+            "values": {
+                "authority_id": "exit-operator",
+                "issuer_kind": "CORE",
+                "issuer_id": "chosen",
+                "subject_kind": "PERSON",
+                "subject_id": "operator",
+                "scope_json": "{\"actions\":[\"exit.export\",\"exit.settle\"],\"resources\":[\"EVENT:owned-event\",\"EVIDENCE:owned-evidence\",\"KNOWLEDGE:owned-knowledge\",\"core:chosen\",\"obligation:already-fulfilled\",\"obligation:equipment\"],\"description\":\"\"}",
+                "context_json": "{\"domain\":\"exit-governance\",\"description\":\"\"}",
+                "basis_json": "{\"trust\":[],\"competence\":[],\"note\":\"Synthetic independent operator mandate\"}",
+                "valid_from": "2026-09-25T23:59:59Z",
+                "valid_until": null,
+                "accountable_kind": "CORE",
+                "accountable_id": "chosen",
+                "state": "ACTIVE",
+                "parent_authority_id": null
+            }
+        },
+        {
+            "table": "authority_revocation",
+            "values": {
+                "revocation_id": 1,
+                "authority_id": "authority-chosen",
+                "cascade_root": "authority-chosen",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "reason": "P10 exit e10b7e41-30d1-4996-9279-d75f7c47c456: Retain my outstanding responsibilities",
+                "occurred_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "core",
+            "values": {
+                "core_id": "chosen",
+                "name": "chosen",
+                "created_at": "2026-09-26T00:00:00Z",
+                "state": "ACTIVE"
+            }
+        },
+        {
+            "table": "core",
+            "values": {
+                "core_id": "other",
+                "name": "other",
+                "created_at": "2026-09-26T00:00:00Z",
+                "state": "ACTIVE"
+            }
+        },
+        {
+            "table": "core",
+            "values": {
+                "core_id": "unaffected",
+                "name": "unaffected",
+                "created_at": "2026-09-26T00:00:00Z",
+                "state": "ACTIVE"
+            }
+        },
+        {
+            "table": "core_exit_relation",
+            "values": {
+                "relation_id": "relation-chosen",
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "kind": "TRUST",
+                "description": "scoped trust",
+                "state": "CLOSED"
+            }
+        },
+        {
+            "table": "core_exit_relation",
+            "values": {
+                "relation_id": "relation-other",
+                "person_id": "leaving-person",
+                "core_id": "other",
+                "kind": "TRUST",
+                "description": "scoped trust",
+                "state": "ACTIVE"
+            }
+        },
+        {
+            "table": "core_exit_relation",
+            "values": {
+                "relation_id": "relation-unaffected",
+                "person_id": "leaving-person",
+                "core_id": "unaffected",
+                "kind": "TRUST",
+                "description": "Unchanged relation",
+                "state": "ACTIVE"
+            }
+        },
+        {
+            "table": "core_exit_relation",
+            "values": {
+                "relation_id": "typed-trust",
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "kind": "TRUST",
+                "description": "work",
+                "state": "CLOSED"
+            }
+        },
+        {
+            "table": "core_exit_relation",
+            "values": {
+                "relation_id": "typed-agreement",
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "kind": "AGREEMENT",
+                "description": "Shared historical project",
+                "state": "CLOSED"
+            }
+        },
+        {
+            "table": "event",
+            "values": {
+                "event_id": "owned-event",
+                "type": "OWNED",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "timestamp": "2026-09-26T00:00:00Z",
+                "context_json": "{\"domain\":\"work\",\"description\":\"\"}",
+                "authority_ref": "authority-chosen",
+                "decision_ref": null,
+                "payload_json": "{\"note\":\"Історичні дані\\nЗберегти точно\"}",
+                "result_ref": null,
+                "provenance_json": "{\"authorKind\":\"PERSON\",\"authorId\":\"leaving-person\",\"recordedAt\":\"2026-09-26T00:00:00Z\",\"derivedFrom\":[]}",
+                "content_hash": "historical-unsigned-content",
+                "signature": null,
+                "corrects_event_id": null
+            }
+        },
+        {
+            "table": "event",
+            "values": {
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:REQUESTED",
+                "type": "P10.REQUESTED",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "timestamp": "2026-09-26T00:00:00Z",
+                "context_json": "{\"domain\":\"core-exit\",\"description\":\"core:chosen\"}",
+                "authority_ref": null,
+                "decision_ref": null,
+                "payload_json": "{\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"coreId\":\"chosen\",\"personId\":\"leaving-person\",\"stage\":\"REQUESTED\"}",
+                "result_ref": null,
+                "provenance_json": "{\"authorKind\":\"PERSON\",\"authorId\":\"leaving-person\",\"recordedAt\":\"2026-09-26T00:00:00Z\",\"derivedFrom\":[]}",
+                "content_hash": "dc8d348371a7f934c7584d4e0a74ca607bd906b56d82ee919a8c9d91906068bd",
+                "signature": "ed25519:vz3plEeluZljqI4Q66R2IYSfS02LusVnh7wG/2gHv2lgTIotXGQuJxYqjdz4Lo0Bb8XCyj3wMvlYkXzQe+3FBQ",
+                "corrects_event_id": null
+            }
+        },
+        {
+            "table": "event",
+            "values": {
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:DELEGATIONS_REVOKED",
+                "type": "P10.DELEGATIONS_REVOKED",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "timestamp": "2026-09-26T00:00:00Z",
+                "context_json": "{\"domain\":\"core-exit\",\"description\":\"core:chosen\"}",
+                "authority_ref": null,
+                "decision_ref": null,
+                "payload_json": "{\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"coreId\":\"chosen\",\"personId\":\"leaving-person\",\"stage\":\"DELEGATIONS_REVOKED\"}",
+                "result_ref": null,
+                "provenance_json": "{\"authorKind\":\"PERSON\",\"authorId\":\"leaving-person\",\"recordedAt\":\"2026-09-26T00:00:00Z\",\"derivedFrom\":[]}",
+                "content_hash": "cdd08e944a30993c74ba45e94b06d8d0c24ab036c54a59f9fefa32ece805380e",
+                "signature": "ed25519:PF3UL+PiPY6obB5yFWt32Uzk2jTDSYxb4i1ec29AY2TOzIAd0qyxzBz1jtQKrX+7o0jaYq5Hq5TwtagC1mQHDw",
+                "corrects_event_id": null
+            }
+        },
+        {
+            "table": "event",
+            "values": {
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:RELATIONS_CLOSED",
+                "type": "P10.RELATIONS_CLOSED",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "timestamp": "2026-09-26T00:00:00Z",
+                "context_json": "{\"domain\":\"core-exit\",\"description\":\"core:chosen\"}",
+                "authority_ref": null,
+                "decision_ref": null,
+                "payload_json": "{\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"coreId\":\"chosen\",\"personId\":\"leaving-person\",\"stage\":\"RELATIONS_CLOSED\"}",
+                "result_ref": null,
+                "provenance_json": "{\"authorKind\":\"PERSON\",\"authorId\":\"leaving-person\",\"recordedAt\":\"2026-09-26T00:00:00Z\",\"derivedFrom\":[]}",
+                "content_hash": "127c44540e0fc75e3fc522dfcc099b40d7cd9cdccdbfef0663b60b1c6128a178",
+                "signature": "ed25519:DQXoVe+MU7y115dBnfJ2HQhMbVjneqpsoca4ALIECQkG1sq28OcOTNXSCYcYMFSEmsX2v+fBlyNezJANSBxjBg",
+                "corrects_event_id": null
+            }
+        },
+        {
+            "table": "event",
+            "values": {
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:OBLIGATIONS_SETTLED",
+                "type": "P10.OBLIGATIONS_SETTLED",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "timestamp": "2026-09-26T00:00:00Z",
+                "context_json": "{\"domain\":\"core-exit\",\"description\":\"core:chosen\"}",
+                "authority_ref": null,
+                "decision_ref": null,
+                "payload_json": "{\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"coreId\":\"chosen\",\"personId\":\"leaving-person\",\"stage\":\"OBLIGATIONS_SETTLED\"}",
+                "result_ref": null,
+                "provenance_json": "{\"authorKind\":\"PERSON\",\"authorId\":\"leaving-person\",\"recordedAt\":\"2026-09-26T00:00:00Z\",\"derivedFrom\":[]}",
+                "content_hash": "202117b52bffc4d7d80875faf9fcd763aeaa4b293dee8171f511b262f362b9c5",
+                "signature": "ed25519:wl8Drjoy3VDV2Z10PrOtO6BCeg3B33Kmp0RgyU9LVoxs8yNAHEurcUfwEkVtijRvdJsSKICa7M14vu8ocdsrAg",
+                "corrects_event_id": null
+            }
+        },
+        {
+            "table": "event",
+            "values": {
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:EXPORT_READY",
+                "type": "P10.EXPORT_READY",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "timestamp": "2026-09-26T00:00:00Z",
+                "context_json": "{\"domain\":\"core-exit\",\"description\":\"core:chosen\"}",
+                "authority_ref": null,
+                "decision_ref": null,
+                "payload_json": "{\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"coreId\":\"chosen\",\"personId\":\"leaving-person\",\"stage\":\"EXPORT_READY\"}",
+                "result_ref": null,
+                "provenance_json": "{\"authorKind\":\"PERSON\",\"authorId\":\"leaving-person\",\"recordedAt\":\"2026-09-26T00:00:00Z\",\"derivedFrom\":[]}",
+                "content_hash": "8f9d51ab9a3c086e7451e20783141aea1667d2c6f6cccaa6264eb208c24fc3a1",
+                "signature": "ed25519:X/CSFlBsSix2MWZ8aQJUz6llFFazLRjobNJngIt2UPtxfIBHlj/AEF6IqTHBgHQKKunQ8VfmP7xeBdOyDuinBg",
+                "corrects_event_id": null
+            }
+        },
+        {
+            "table": "event",
+            "values": {
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:COMPLETED",
+                "type": "P10.COMPLETED",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "timestamp": "2026-09-26T00:00:00Z",
+                "context_json": "{\"domain\":\"core-exit\",\"description\":\"core:chosen\"}",
+                "authority_ref": null,
+                "decision_ref": null,
+                "payload_json": "{\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"coreId\":\"chosen\",\"personId\":\"leaving-person\",\"stage\":\"COMPLETED\"}",
+                "result_ref": null,
+                "provenance_json": "{\"authorKind\":\"PERSON\",\"authorId\":\"leaving-person\",\"recordedAt\":\"2026-09-26T00:00:00Z\",\"derivedFrom\":[]}",
+                "content_hash": "bb4ba440b65706e94f4310d4d1d5fcec8fea93bd7bce050e7ce70d65c16a9c6b",
+                "signature": "ed25519:k3mnhku8t+xiCA4fajkMfSu6dIiLRGgqBhgfH/8Mx+qs9RXfh87r4zsx+kWPue30P49qaLxUW3Z3b0UYD2HwBw",
+                "corrects_event_id": null
+            }
+        },
+        {
+            "table": "event",
+            "values": {
+                "event_id": "exit:9088f293-52b9-4b1f-8818-1e3b847c1c7c:REQUESTED",
+                "type": "P10.REQUESTED",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "timestamp": "2026-09-26T00:00:00Z",
+                "context_json": "{\"domain\":\"core-exit\",\"description\":\"core:other\"}",
+                "authority_ref": null,
+                "decision_ref": null,
+                "payload_json": "{\"exitId\":\"9088f293-52b9-4b1f-8818-1e3b847c1c7c\",\"coreId\":\"other\",\"personId\":\"leaving-person\",\"stage\":\"REQUESTED\"}",
+                "result_ref": null,
+                "provenance_json": "{\"authorKind\":\"PERSON\",\"authorId\":\"leaving-person\",\"recordedAt\":\"2026-09-26T00:00:00Z\",\"derivedFrom\":[]}",
+                "content_hash": "8634f374e0483ce548d8258c0305c529e89ed05c9a5b192d90a0d66be953e8a6",
+                "signature": null,
+                "corrects_event_id": null
+            }
+        },
+        {
+            "table": "exit_archive",
+            "values": {
+                "exit_id": "e10b7e41-30d1-4996-9279-d75f7c47c456",
+                "document_json": "{\"format\":\"SOTA-P10-v1\",\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"personId\":\"leaving-person\",\"coreId\":\"chosen\",\"requestedAt\":\"2026-09-26T00:00:00Z\",\"policy\":\"explicit-approved-snapshots-v1\",\"identities\":[{\"id\":\"identity\",\"localHandle\":\"my-handle\",\"externalRefs\":[]}],\"event\":[{\"id\":\"owned-event\",\"type\":\"OWNED\",\"actor\":\"leaving-person\",\"timestamp\":\"2026-09-26T00:00:00Z\",\"authorityRef\":\"authority-chosen\",\"decisionRef\":null,\"context\":{\"domain\":\"work\",\"description\":\"\"},\"payload\":{\"note\":\"Історичні дані\\nЗберегти точно\"},\"provenance\":{\"authorKind\":\"PERSON\",\"authorId\":\"leaving-person\",\"recordedAt\":\"2026-09-26T00:00:00Z\",\"derivedFrom\":[]},\"resultRef\":null,\"contentHash\":\"historical-unsigned-content\",\"signature\":null,\"correctsEventId\":null}],\"knowledge\":[{\"id\":\"owned-knowledge\",\"statement\":\"Approved historical statement\",\"derivedExperience\":[\"owned-experience\"],\"evidence\":[\"owned-evidence\"],\"context\":{\"domain\":\"work\",\"description\":\"\"},\"status\":\"CANDIDATE\",\"version\":1,\"supersedes\":null,\"provenance\":{\"sourceEventId\":\"owned-event\",\"authorKind\":\"PERSON\",\"authorId\":\"leaving-person\",\"recordedAt\":\"2026-09-26T00:00:00Z\",\"derivedFrom\":[]}}],\"evidence\":[{\"id\":\"owned-evidence\",\"description\":\"Historical evidence\",\"sourceEventId\":\"owned-event\",\"recordedAt\":\"2026-09-26T00:00:00Z\"}],\"obligations\":[{\"id\":\"already-fulfilled\",\"description\":\"Completed work\",\"state\":\"FULFILLED\",\"resolution\":\"review:completed-work\"},{\"id\":\"equipment\",\"relationId\":\"typed-agreement\",\"description\":\"Повернути обладнання\",\"state\":\"RETAINED\",\"resolution\":\"Retain my outstanding responsibilities\"},{\"id\":\"obligation-chosen\",\"description\":\"Still responsible\",\"state\":\"RETAINED\",\"resolution\":\"Retain my outstanding responsibilities\"}]}",
+                "sha256": "739e225ff9f318f506f5b98f2567a356b250ef5e9c58df6be2497b945c282a3d"
+            }
+        },
+        {
+            "table": "exit_export_grant",
+            "values": {
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "kind": "EVENT",
+                "artifact_id": "owned-event",
+                "artifact_json": "{\"id\":\"owned-event\",\"type\":\"OWNED\",\"actor\":\"leaving-person\",\"timestamp\":\"2026-09-26T00:00:00Z\",\"authorityRef\":\"authority-chosen\",\"decisionRef\":null,\"context\":{\"domain\":\"work\",\"description\":\"\"},\"payload\":{\"note\":\"Історичні дані\\nЗберегти точно\"},\"provenance\":{\"authorKind\":\"PERSON\",\"authorId\":\"leaving-person\",\"recordedAt\":\"2026-09-26T00:00:00Z\",\"derivedFrom\":[]},\"resultRef\":null,\"contentHash\":\"historical-unsigned-content\",\"signature\":null,\"correctsEventId\":null}"
+            }
+        },
+        {
+            "table": "exit_export_grant",
+            "values": {
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "kind": "KNOWLEDGE",
+                "artifact_id": "owned-knowledge",
+                "artifact_json": "{\"id\":\"owned-knowledge\",\"statement\":\"Approved historical statement\",\"derivedExperience\":[\"owned-experience\"],\"evidence\":[\"owned-evidence\"],\"context\":{\"domain\":\"work\",\"description\":\"\"},\"status\":\"CANDIDATE\",\"version\":1,\"supersedes\":null,\"provenance\":{\"sourceEventId\":\"owned-event\",\"authorKind\":\"PERSON\",\"authorId\":\"leaving-person\",\"recordedAt\":\"2026-09-26T00:00:00Z\",\"derivedFrom\":[]}}"
+            }
+        },
+        {
+            "table": "exit_export_grant",
+            "values": {
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "kind": "EVIDENCE",
+                "artifact_id": "owned-evidence",
+                "artifact_json": "{\"id\":\"owned-evidence\",\"description\":\"Historical evidence\",\"sourceEventId\":\"owned-event\",\"recordedAt\":\"2026-09-26T00:00:00Z\"}"
+            }
+        },
+        {
+            "table": "exit_governance_audit",
+            "values": {
+                "id": 1,
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "operation": "exit.export",
+                "actor_kind": "PERSON",
+                "actor_id": "operator",
+                "authority_id": "exit-operator",
+                "evidence": "EVENT:owned-event",
+                "occurred_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "exit_governance_audit",
+            "values": {
+                "id": 2,
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "operation": "exit.export",
+                "actor_kind": "PERSON",
+                "actor_id": "operator",
+                "authority_id": "exit-operator",
+                "evidence": "KNOWLEDGE:owned-knowledge",
+                "occurred_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "exit_governance_audit",
+            "values": {
+                "id": 3,
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "operation": "exit.export",
+                "actor_kind": "PERSON",
+                "actor_id": "operator",
+                "authority_id": "exit-operator",
+                "evidence": "EVIDENCE:owned-evidence",
+                "occurred_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "exit_governance_audit",
+            "values": {
+                "id": 4,
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "operation": "exit.settle",
+                "actor_kind": "PERSON",
+                "actor_id": "operator",
+                "authority_id": "exit-operator",
+                "evidence": "review:completed-work",
+                "occurred_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "exit_obligation",
+            "values": {
+                "obligation_id": "obligation-chosen",
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "description": "Still responsible",
+                "state": "RETAINED",
+                "resolution": "Retain my outstanding responsibilities",
+                "resolved_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "exit_obligation",
+            "values": {
+                "obligation_id": "obligation-other",
+                "person_id": "leaving-person",
+                "core_id": "other",
+                "description": "Still responsible",
+                "state": "OPEN",
+                "resolution": null,
+                "resolved_at": null
+            }
+        },
+        {
+            "table": "exit_obligation",
+            "values": {
+                "obligation_id": "obligation-unaffected",
+                "person_id": "leaving-person",
+                "core_id": "unaffected",
+                "description": "Unchanged obligation",
+                "state": "OPEN",
+                "resolution": null,
+                "resolved_at": null
+            }
+        },
+        {
+            "table": "exit_obligation",
+            "values": {
+                "obligation_id": "equipment",
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "description": "Повернути обладнання",
+                "state": "RETAINED",
+                "resolution": "Retain my outstanding responsibilities",
+                "resolved_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "exit_obligation",
+            "values": {
+                "obligation_id": "already-fulfilled",
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "description": "Completed work",
+                "state": "FULFILLED",
+                "resolution": "review:completed-work",
+                "resolved_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "exit_process",
+            "values": {
+                "exit_id": "e10b7e41-30d1-4996-9279-d75f7c47c456",
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "requested_at": "2026-09-26T00:00:00Z",
+                "updated_at": "2026-09-26T00:00:00Z",
+                "stage": "COMPLETED"
+            }
+        },
+        {
+            "table": "exit_process",
+            "values": {
+                "exit_id": "9088f293-52b9-4b1f-8818-1e3b847c1c7c",
+                "person_id": "leaving-person",
+                "core_id": "other",
+                "requested_at": "2026-09-26T00:00:00Z",
+                "updated_at": "2026-09-26T00:00:00Z",
+                "stage": "REQUESTED"
+            }
+        },
+        {
+            "table": "exit_transition",
+            "values": {
+                "exit_id": "e10b7e41-30d1-4996-9279-d75f7c47c456",
+                "stage": "REQUESTED",
+                "actor_id": "leaving-person",
+                "occurred_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "exit_transition",
+            "values": {
+                "exit_id": "e10b7e41-30d1-4996-9279-d75f7c47c456",
+                "stage": "DELEGATIONS_REVOKED",
+                "actor_id": "leaving-person",
+                "occurred_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "exit_transition",
+            "values": {
+                "exit_id": "e10b7e41-30d1-4996-9279-d75f7c47c456",
+                "stage": "RELATIONS_CLOSED",
+                "actor_id": "leaving-person",
+                "occurred_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "exit_transition",
+            "values": {
+                "exit_id": "e10b7e41-30d1-4996-9279-d75f7c47c456",
+                "stage": "OBLIGATIONS_SETTLED",
+                "actor_id": "leaving-person",
+                "occurred_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "exit_transition",
+            "values": {
+                "exit_id": "e10b7e41-30d1-4996-9279-d75f7c47c456",
+                "stage": "EXPORT_READY",
+                "actor_id": "leaving-person",
+                "occurred_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "exit_transition",
+            "values": {
+                "exit_id": "e10b7e41-30d1-4996-9279-d75f7c47c456",
+                "stage": "COMPLETED",
+                "actor_id": "leaving-person",
+                "occurred_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "exit_transition",
+            "values": {
+                "exit_id": "9088f293-52b9-4b1f-8818-1e3b847c1c7c",
+                "stage": "REQUESTED",
+                "actor_id": "leaving-person",
+                "occurred_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "experience",
+            "values": {
+                "experience_id": "owned-experience",
+                "derived_events_json": "[\"owned-event\"]",
+                "context_json": "{\"domain\":\"work\",\"description\":\"\"}",
+                "what_was_tried": "Attempt",
+                "outcome": "Outcome",
+                "conclusion": "Conclusion",
+                "applicability": "Conditions",
+                "confidence": "HIGH",
+                "provenance_json": "{\"sourceEventId\":\"owned-event\",\"authorKind\":\"PERSON\",\"authorId\":\"leaving-person\",\"recordedAt\":\"2026-09-26T00:00:00Z\",\"derivedFrom\":[]}"
+            }
+        },
+        {
+            "table": "identity",
+            "values": {
+                "identity_id": "identity",
+                "person_id": "leaving-person",
+                "local_handle": "my-handle",
+                "external_refs_json": "[]"
+            }
+        },
+        {
+            "table": "knowledge",
+            "values": {
+                "knowledge_id": "owned-knowledge",
+                "statement": "Approved historical statement",
+                "derived_experience_json": "[\"owned-experience\"]",
+                "evidence_json": "[\"owned-evidence\"]",
+                "context_json": "{\"domain\":\"work\",\"description\":\"\"}",
+                "status": "CANDIDATE",
+                "version": 1,
+                "supersedes": null,
+                "provenance_json": "{\"sourceEventId\":\"owned-event\",\"authorKind\":\"PERSON\",\"authorId\":\"leaving-person\",\"recordedAt\":\"2026-09-26T00:00:00Z\",\"derivedFrom\":[]}",
+                "validated_by_kind": null,
+                "validated_by_id": null
+            }
+        },
+        {
+            "table": "membership",
+            "values": {
+                "membership_id": "2981aebcb9f7d6cc8e14811d62a49ee5e48111005a48736a9129f29f1a9a6fc2",
+                "person_id": "leaving-person",
+                "collective_kind": "CORE",
+                "collective_id": "chosen",
+                "role_id": null,
+                "start_at": "2026-09-26T00:00:00Z",
+                "end_at": "2026-09-26T00:00:00Z",
+                "state": "REVOKED"
+            }
+        },
+        {
+            "table": "membership",
+            "values": {
+                "membership_id": "2f69eab018566520da864108d1c925569f0f933a19a7412b0ad1f15ab8f2f9ec",
+                "person_id": "leaving-person",
+                "collective_kind": "CORE",
+                "collective_id": "other",
+                "role_id": null,
+                "start_at": "2026-09-26T00:00:00Z",
+                "end_at": null,
+                "state": "ACTIVE"
+            }
+        },
+        {
+            "table": "membership",
+            "values": {
+                "membership_id": "5ea1601f30f83ccc00a93114f60d0b2e7ac7ea1a446148e7e4c94568833778e5",
+                "person_id": "leaving-person",
+                "collective_kind": "CORE",
+                "collective_id": "unaffected",
+                "role_id": null,
+                "start_at": "2026-09-26T00:00:00Z",
+                "end_at": null,
+                "state": "ACTIVE"
+            }
+        },
+        {
+            "table": "owned_exit_evidence",
+            "values": {
+                "evidence_id": "owned-evidence",
+                "person_id": "leaving-person",
+                "core_id": "chosen",
+                "description": "Historical evidence",
+                "source_event_id": "owned-event",
+                "recorded_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "person",
+            "values": {
+                "person_id": "leaving-person",
+                "created_at": "2026-09-26T00:00:00Z"
+            }
+        },
+        {
+            "table": "relation_obligation",
+            "values": {
+                "relation_id": "typed-agreement",
+                "obligation_id": "equipment"
+            }
+        },
+        {
+            "table": "relation_terms",
+            "values": {
+                "relation_id": "typed-trust",
+                "terms_json": "{\"trust\":[{\"subjectKind\":\"PERSON\",\"subjectId\":\"leaving-person\",\"targetKind\":\"CORE\",\"targetId\":\"chosen\",\"context\":{\"domain\":\"work\",\"description\":\"\"},\"scope\":{\"actions\":[\"review\"],\"resources\":[],\"description\":\"\"},\"evidence\":[\"owned-evidence\"],\"validity\":{\"from\":\"2026-09-26T00:00:00Z\"},\"state\":\"ACTIVE\"}],\"competence\":[],\"note\":\"\"}",
+                "exit_policy": "WITHDRAW_TRUST"
+            }
+        },
+        {
+            "table": "relation_terms",
+            "values": {
+                "relation_id": "typed-agreement",
+                "terms_json": "{\"parties\":[{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},{\"kind\":\"CORE\",\"id\":\"chosen\"}],\"purpose\":\"Shared historical project\",\"terms\":[\"Return equipment\"],\"validity\":{\"from\":\"2026-09-26T00:00:00Z\"},\"exitTerms\":\"Participation ends; equipment responsibility remains\",\"state\":\"ACTIVE\"}",
+                "exit_policy": "WITHDRAW_PARTICIPATION_RETAIN_OBLIGATIONS"
+            }
+        },
+        {
+            "table": "sync_journal",
+            "values": {
+                "position": 1,
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:REQUESTED",
+                "record_json": "{\"version\":1,\"origin\":\"historical-exit-node\",\"parents\":[],\"event\":{\"id\":\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:REQUESTED\",\"type\":\"P10.REQUESTED\",\"actor\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"timestamp\":\"2026-09-26T00:00:00Z\",\"context\":{\"domain\":\"core-exit\",\"mission\":null,\"description\":\"core:chosen\"},\"authority_ref\":null,\"decision_ref\":null,\"payload\":{\"coreId\":\"chosen\",\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"personId\":\"leaving-person\",\"stage\":\"REQUESTED\"},\"result_ref\":null,\"provenance\":{\"source\":null,\"author\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"recorded_at\":\"2026-09-26T00:00:00Z\",\"derived_from\":[]},\"content_hash\":\"dc8d348371a7f934c7584d4e0a74ca607bd906b56d82ee919a8c9d91906068bd\",\"signature\":\"ed25519:vz3plEeluZljqI4Q66R2IYSfS02LusVnh7wG/2gHv2lgTIotXGQuJxYqjdz4Lo0Bb8XCyj3wMvlYkXzQe+3FBQ\",\"corrects_event_id\":null},\"assertion\":null}"
+            }
+        },
+        {
+            "table": "sync_journal",
+            "values": {
+                "position": 2,
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:DELEGATIONS_REVOKED",
+                "record_json": "{\"version\":1,\"origin\":\"historical-exit-node\",\"parents\":[\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:REQUESTED\"],\"event\":{\"id\":\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:DELEGATIONS_REVOKED\",\"type\":\"P10.DELEGATIONS_REVOKED\",\"actor\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"timestamp\":\"2026-09-26T00:00:00Z\",\"context\":{\"domain\":\"core-exit\",\"mission\":null,\"description\":\"core:chosen\"},\"authority_ref\":null,\"decision_ref\":null,\"payload\":{\"coreId\":\"chosen\",\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"personId\":\"leaving-person\",\"stage\":\"DELEGATIONS_REVOKED\"},\"result_ref\":null,\"provenance\":{\"source\":null,\"author\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"recorded_at\":\"2026-09-26T00:00:00Z\",\"derived_from\":[]},\"content_hash\":\"cdd08e944a30993c74ba45e94b06d8d0c24ab036c54a59f9fefa32ece805380e\",\"signature\":\"ed25519:PF3UL+PiPY6obB5yFWt32Uzk2jTDSYxb4i1ec29AY2TOzIAd0qyxzBz1jtQKrX+7o0jaYq5Hq5TwtagC1mQHDw\",\"corrects_event_id\":null},\"assertion\":null}"
+            }
+        },
+        {
+            "table": "sync_journal",
+            "values": {
+                "position": 3,
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:RELATIONS_CLOSED",
+                "record_json": "{\"version\":1,\"origin\":\"historical-exit-node\",\"parents\":[\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:DELEGATIONS_REVOKED\"],\"event\":{\"id\":\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:RELATIONS_CLOSED\",\"type\":\"P10.RELATIONS_CLOSED\",\"actor\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"timestamp\":\"2026-09-26T00:00:00Z\",\"context\":{\"domain\":\"core-exit\",\"mission\":null,\"description\":\"core:chosen\"},\"authority_ref\":null,\"decision_ref\":null,\"payload\":{\"coreId\":\"chosen\",\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"personId\":\"leaving-person\",\"stage\":\"RELATIONS_CLOSED\"},\"result_ref\":null,\"provenance\":{\"source\":null,\"author\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"recorded_at\":\"2026-09-26T00:00:00Z\",\"derived_from\":[]},\"content_hash\":\"127c44540e0fc75e3fc522dfcc099b40d7cd9cdccdbfef0663b60b1c6128a178\",\"signature\":\"ed25519:DQXoVe+MU7y115dBnfJ2HQhMbVjneqpsoca4ALIECQkG1sq28OcOTNXSCYcYMFSEmsX2v+fBlyNezJANSBxjBg\",\"corrects_event_id\":null},\"assertion\":null}"
+            }
+        },
+        {
+            "table": "sync_journal",
+            "values": {
+                "position": 4,
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:OBLIGATIONS_SETTLED",
+                "record_json": "{\"version\":1,\"origin\":\"historical-exit-node\",\"parents\":[\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:RELATIONS_CLOSED\"],\"event\":{\"id\":\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:OBLIGATIONS_SETTLED\",\"type\":\"P10.OBLIGATIONS_SETTLED\",\"actor\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"timestamp\":\"2026-09-26T00:00:00Z\",\"context\":{\"domain\":\"core-exit\",\"mission\":null,\"description\":\"core:chosen\"},\"authority_ref\":null,\"decision_ref\":null,\"payload\":{\"coreId\":\"chosen\",\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"personId\":\"leaving-person\",\"stage\":\"OBLIGATIONS_SETTLED\"},\"result_ref\":null,\"provenance\":{\"source\":null,\"author\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"recorded_at\":\"2026-09-26T00:00:00Z\",\"derived_from\":[]},\"content_hash\":\"202117b52bffc4d7d80875faf9fcd763aeaa4b293dee8171f511b262f362b9c5\",\"signature\":\"ed25519:wl8Drjoy3VDV2Z10PrOtO6BCeg3B33Kmp0RgyU9LVoxs8yNAHEurcUfwEkVtijRvdJsSKICa7M14vu8ocdsrAg\",\"corrects_event_id\":null},\"assertion\":null}"
+            }
+        },
+        {
+            "table": "sync_journal",
+            "values": {
+                "position": 5,
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:EXPORT_READY",
+                "record_json": "{\"version\":1,\"origin\":\"historical-exit-node\",\"parents\":[\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:OBLIGATIONS_SETTLED\"],\"event\":{\"id\":\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:EXPORT_READY\",\"type\":\"P10.EXPORT_READY\",\"actor\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"timestamp\":\"2026-09-26T00:00:00Z\",\"context\":{\"domain\":\"core-exit\",\"mission\":null,\"description\":\"core:chosen\"},\"authority_ref\":null,\"decision_ref\":null,\"payload\":{\"coreId\":\"chosen\",\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"personId\":\"leaving-person\",\"stage\":\"EXPORT_READY\"},\"result_ref\":null,\"provenance\":{\"source\":null,\"author\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"recorded_at\":\"2026-09-26T00:00:00Z\",\"derived_from\":[]},\"content_hash\":\"8f9d51ab9a3c086e7451e20783141aea1667d2c6f6cccaa6264eb208c24fc3a1\",\"signature\":\"ed25519:X/CSFlBsSix2MWZ8aQJUz6llFFazLRjobNJngIt2UPtxfIBHlj/AEF6IqTHBgHQKKunQ8VfmP7xeBdOyDuinBg\",\"corrects_event_id\":null},\"assertion\":null}"
+            }
+        },
+        {
+            "table": "sync_journal",
+            "values": {
+                "position": 6,
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:COMPLETED",
+                "record_json": "{\"version\":1,\"origin\":\"historical-exit-node\",\"parents\":[\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:EXPORT_READY\"],\"event\":{\"id\":\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:COMPLETED\",\"type\":\"P10.COMPLETED\",\"actor\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"timestamp\":\"2026-09-26T00:00:00Z\",\"context\":{\"domain\":\"core-exit\",\"mission\":null,\"description\":\"core:chosen\"},\"authority_ref\":null,\"decision_ref\":null,\"payload\":{\"coreId\":\"chosen\",\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"personId\":\"leaving-person\",\"stage\":\"COMPLETED\"},\"result_ref\":null,\"provenance\":{\"source\":null,\"author\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"recorded_at\":\"2026-09-26T00:00:00Z\",\"derived_from\":[]},\"content_hash\":\"bb4ba440b65706e94f4310d4d1d5fcec8fea93bd7bce050e7ce70d65c16a9c6b\",\"signature\":\"ed25519:k3mnhku8t+xiCA4fajkMfSu6dIiLRGgqBhgfH/8Mx+qs9RXfh87r4zsx+kWPue30P49qaLxUW3Z3b0UYD2HwBw\",\"corrects_event_id\":null},\"assertion\":null}"
+            }
+        },
+        {
+            "table": "verified_sync_record",
+            "values": {
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:REQUESTED",
+                "canonical_record": "{\"version\":1,\"origin\":\"historical-exit-node\",\"parents\":[],\"event\":{\"id\":\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:REQUESTED\",\"type\":\"P10.REQUESTED\",\"actor\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"timestamp\":\"2026-09-26T00:00:00Z\",\"context\":{\"domain\":\"core-exit\",\"mission\":null,\"description\":\"core:chosen\"},\"authority_ref\":null,\"decision_ref\":null,\"payload\":{\"coreId\":\"chosen\",\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"personId\":\"leaving-person\",\"stage\":\"REQUESTED\"},\"result_ref\":null,\"provenance\":{\"source\":null,\"author\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"recorded_at\":\"2026-09-26T00:00:00Z\",\"derived_from\":[]},\"content_hash\":\"dc8d348371a7f934c7584d4e0a74ca607bd906b56d82ee919a8c9d91906068bd\",\"signature\":\"ed25519:vz3plEeluZljqI4Q66R2IYSfS02LusVnh7wG/2gHv2lgTIotXGQuJxYqjdz4Lo0Bb8XCyj3wMvlYkXzQe+3FBQ\",\"corrects_event_id\":null},\"assertion\":null}",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "key_id": "historical-exit-key",
+                "public_key_base64": "MCowBQYDK2VwAyEAzoDx1IrI9vIVWKZmAx2dOzPzEsDKwJVRw9S/RBvM7gQ=",
+                "verified_at": "2026-09-26T00:00:00Z",
+                "historical_approval_target": null
+            }
+        },
+        {
+            "table": "verified_sync_record",
+            "values": {
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:DELEGATIONS_REVOKED",
+                "canonical_record": "{\"version\":1,\"origin\":\"historical-exit-node\",\"parents\":[\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:REQUESTED\"],\"event\":{\"id\":\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:DELEGATIONS_REVOKED\",\"type\":\"P10.DELEGATIONS_REVOKED\",\"actor\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"timestamp\":\"2026-09-26T00:00:00Z\",\"context\":{\"domain\":\"core-exit\",\"mission\":null,\"description\":\"core:chosen\"},\"authority_ref\":null,\"decision_ref\":null,\"payload\":{\"coreId\":\"chosen\",\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"personId\":\"leaving-person\",\"stage\":\"DELEGATIONS_REVOKED\"},\"result_ref\":null,\"provenance\":{\"source\":null,\"author\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"recorded_at\":\"2026-09-26T00:00:00Z\",\"derived_from\":[]},\"content_hash\":\"cdd08e944a30993c74ba45e94b06d8d0c24ab036c54a59f9fefa32ece805380e\",\"signature\":\"ed25519:PF3UL+PiPY6obB5yFWt32Uzk2jTDSYxb4i1ec29AY2TOzIAd0qyxzBz1jtQKrX+7o0jaYq5Hq5TwtagC1mQHDw\",\"corrects_event_id\":null},\"assertion\":null}",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "key_id": "historical-exit-key",
+                "public_key_base64": "MCowBQYDK2VwAyEAzoDx1IrI9vIVWKZmAx2dOzPzEsDKwJVRw9S/RBvM7gQ=",
+                "verified_at": "2026-09-26T00:00:00Z",
+                "historical_approval_target": null
+            }
+        },
+        {
+            "table": "verified_sync_record",
+            "values": {
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:RELATIONS_CLOSED",
+                "canonical_record": "{\"version\":1,\"origin\":\"historical-exit-node\",\"parents\":[\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:DELEGATIONS_REVOKED\"],\"event\":{\"id\":\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:RELATIONS_CLOSED\",\"type\":\"P10.RELATIONS_CLOSED\",\"actor\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"timestamp\":\"2026-09-26T00:00:00Z\",\"context\":{\"domain\":\"core-exit\",\"mission\":null,\"description\":\"core:chosen\"},\"authority_ref\":null,\"decision_ref\":null,\"payload\":{\"coreId\":\"chosen\",\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"personId\":\"leaving-person\",\"stage\":\"RELATIONS_CLOSED\"},\"result_ref\":null,\"provenance\":{\"source\":null,\"author\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"recorded_at\":\"2026-09-26T00:00:00Z\",\"derived_from\":[]},\"content_hash\":\"127c44540e0fc75e3fc522dfcc099b40d7cd9cdccdbfef0663b60b1c6128a178\",\"signature\":\"ed25519:DQXoVe+MU7y115dBnfJ2HQhMbVjneqpsoca4ALIECQkG1sq28OcOTNXSCYcYMFSEmsX2v+fBlyNezJANSBxjBg\",\"corrects_event_id\":null},\"assertion\":null}",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "key_id": "historical-exit-key",
+                "public_key_base64": "MCowBQYDK2VwAyEAzoDx1IrI9vIVWKZmAx2dOzPzEsDKwJVRw9S/RBvM7gQ=",
+                "verified_at": "2026-09-26T00:00:00Z",
+                "historical_approval_target": null
+            }
+        },
+        {
+            "table": "verified_sync_record",
+            "values": {
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:OBLIGATIONS_SETTLED",
+                "canonical_record": "{\"version\":1,\"origin\":\"historical-exit-node\",\"parents\":[\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:RELATIONS_CLOSED\"],\"event\":{\"id\":\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:OBLIGATIONS_SETTLED\",\"type\":\"P10.OBLIGATIONS_SETTLED\",\"actor\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"timestamp\":\"2026-09-26T00:00:00Z\",\"context\":{\"domain\":\"core-exit\",\"mission\":null,\"description\":\"core:chosen\"},\"authority_ref\":null,\"decision_ref\":null,\"payload\":{\"coreId\":\"chosen\",\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"personId\":\"leaving-person\",\"stage\":\"OBLIGATIONS_SETTLED\"},\"result_ref\":null,\"provenance\":{\"source\":null,\"author\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"recorded_at\":\"2026-09-26T00:00:00Z\",\"derived_from\":[]},\"content_hash\":\"202117b52bffc4d7d80875faf9fcd763aeaa4b293dee8171f511b262f362b9c5\",\"signature\":\"ed25519:wl8Drjoy3VDV2Z10PrOtO6BCeg3B33Kmp0RgyU9LVoxs8yNAHEurcUfwEkVtijRvdJsSKICa7M14vu8ocdsrAg\",\"corrects_event_id\":null},\"assertion\":null}",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "key_id": "historical-exit-key",
+                "public_key_base64": "MCowBQYDK2VwAyEAzoDx1IrI9vIVWKZmAx2dOzPzEsDKwJVRw9S/RBvM7gQ=",
+                "verified_at": "2026-09-26T00:00:00Z",
+                "historical_approval_target": null
+            }
+        },
+        {
+            "table": "verified_sync_record",
+            "values": {
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:EXPORT_READY",
+                "canonical_record": "{\"version\":1,\"origin\":\"historical-exit-node\",\"parents\":[\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:OBLIGATIONS_SETTLED\"],\"event\":{\"id\":\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:EXPORT_READY\",\"type\":\"P10.EXPORT_READY\",\"actor\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"timestamp\":\"2026-09-26T00:00:00Z\",\"context\":{\"domain\":\"core-exit\",\"mission\":null,\"description\":\"core:chosen\"},\"authority_ref\":null,\"decision_ref\":null,\"payload\":{\"coreId\":\"chosen\",\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"personId\":\"leaving-person\",\"stage\":\"EXPORT_READY\"},\"result_ref\":null,\"provenance\":{\"source\":null,\"author\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"recorded_at\":\"2026-09-26T00:00:00Z\",\"derived_from\":[]},\"content_hash\":\"8f9d51ab9a3c086e7451e20783141aea1667d2c6f6cccaa6264eb208c24fc3a1\",\"signature\":\"ed25519:X/CSFlBsSix2MWZ8aQJUz6llFFazLRjobNJngIt2UPtxfIBHlj/AEF6IqTHBgHQKKunQ8VfmP7xeBdOyDuinBg\",\"corrects_event_id\":null},\"assertion\":null}",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "key_id": "historical-exit-key",
+                "public_key_base64": "MCowBQYDK2VwAyEAzoDx1IrI9vIVWKZmAx2dOzPzEsDKwJVRw9S/RBvM7gQ=",
+                "verified_at": "2026-09-26T00:00:00Z",
+                "historical_approval_target": null
+            }
+        },
+        {
+            "table": "verified_sync_record",
+            "values": {
+                "event_id": "exit:e10b7e41-30d1-4996-9279-d75f7c47c456:COMPLETED",
+                "canonical_record": "{\"version\":1,\"origin\":\"historical-exit-node\",\"parents\":[\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:EXPORT_READY\"],\"event\":{\"id\":\"exit:e10b7e41-30d1-4996-9279-d75f7c47c456:COMPLETED\",\"type\":\"P10.COMPLETED\",\"actor\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"timestamp\":\"2026-09-26T00:00:00Z\",\"context\":{\"domain\":\"core-exit\",\"mission\":null,\"description\":\"core:chosen\"},\"authority_ref\":null,\"decision_ref\":null,\"payload\":{\"coreId\":\"chosen\",\"exitId\":\"e10b7e41-30d1-4996-9279-d75f7c47c456\",\"personId\":\"leaving-person\",\"stage\":\"COMPLETED\"},\"result_ref\":null,\"provenance\":{\"source\":null,\"author\":{\"kind\":\"PERSON\",\"id\":\"leaving-person\"},\"recorded_at\":\"2026-09-26T00:00:00Z\",\"derived_from\":[]},\"content_hash\":\"bb4ba440b65706e94f4310d4d1d5fcec8fea93bd7bce050e7ce70d65c16a9c6b\",\"signature\":\"ed25519:k3mnhku8t+xiCA4fajkMfSu6dIiLRGgqBhgfH/8Mx+qs9RXfh87r4zsx+kWPue30P49qaLxUW3Z3b0UYD2HwBw\",\"corrects_event_id\":null},\"assertion\":null}",
+                "actor_kind": "PERSON",
+                "actor_id": "leaving-person",
+                "key_id": "historical-exit-key",
+                "public_key_base64": "MCowBQYDK2VwAyEAzoDx1IrI9vIVWKZmAx2dOzPzEsDKwJVRw9S/RBvM7gQ=",
+                "verified_at": "2026-09-26T00:00:00Z",
+                "historical_approval_target": null
+            }
+        }
+    ]
+}

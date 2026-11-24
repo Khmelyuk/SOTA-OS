@@ -19,7 +19,10 @@ internal enum class HistoricalSchema(val directory: String, val revision: String
         "51732f8a5e9a3a2776e5543ab59df49ac20045307b8fbdad4543a6ee5f4be362"),
     RUNTIME_SIGNED("runtime-signed", "3c1a4aa1d20cf77179e3c37580ddd682b329d018",
         "74766c02dc2b391b7c8ca9d1b67c8d734749fc45f306eeeb2dbd269724cd407c",
-        "6bf6b014e8c83d51fbe2e2d42a8a15ef651fb30435ac7d3e3e637ca4abbe572a")
+        "6bf6b014e8c83d51fbe2e2d42a8a15ef651fb30435ac7d3e3e637ca4abbe572a"),
+    RUNTIME_P10("runtime-p10", "3c1a4aa1d20cf77179e3c37580ddd682b329d018",
+        "16014f87d9fe009b7e29e69eed8b4ef3d00cb6f7614212e6a2a19d338465fc3e",
+        "64be74e2a862aa72e80f42c9289cbb72475947c2dbed0e88e625724615a7731c")
 }
 
 internal val declaredSchemas = listOf(HistoricalSchema.DURABLE_P09, HistoricalSchema.KNOWLEDGE_VERSIONS)
@@ -35,12 +38,7 @@ internal class HistoricalFixture(val schema: HistoricalSchema) : AutoCloseable {
         require(ddl.getValue("revision").jsonPrimitive.content == schema.revision)
         val data = resource("data.json", schema.dataHash)
         require(data.getValue("fixtureOnly").jsonPrimitive.boolean)
-        sql { connection ->
-            ddl.getValue("statements").jsonArray.forEach { statement ->
-                connection.createStatement().use { it.execute(statement.jsonPrimitive.content) }
-            }
-            data.getValue("rows").jsonArray.forEach { row -> connection.seed(row.jsonObject) }
-        }
+        sql { it.restoreSnapshot(ddl, data) }
     }
 
     fun <T> sql(block: (Connection) -> T): T = DriverManager.getConnection("jdbc:sqlite:$path").use { connection ->
@@ -81,6 +79,25 @@ internal class HistoricalFixture(val schema: HistoricalSchema) : AutoCloseable {
         val actual = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
         check(actual == expectedHash) { "Frozen fixture checksum mismatch: ${schema.directory}/$name" }
         return Json.parseToJsonElement(bytes.toString(Charsets.UTF_8)).jsonObject
+    }
+}
+
+/** Restore final historical rows before guards that would correctly deny replaying past inserts today. */
+private fun Connection.restoreSnapshot(ddl: JsonObject, data: JsonObject) {
+    val (guards, structures) = ddl.getValue("statements").jsonArray.map { it.jsonPrimitive.content }
+        .partition { it.trimStart().startsWith("CREATE TRIGGER", ignoreCase = true) }
+    autoCommit = false
+    try {
+        createStatement().use { it.execute("PRAGMA defer_foreign_keys = ON") }
+        structures.forEach { sql -> createStatement().use { it.execute(sql) } }
+        data.getValue("rows").jsonArray.forEach { seed(it.jsonObject) }
+        guards.forEach { sql -> createStatement().use { it.execute(sql) } }
+        commit() // Foreign keys remain enabled; deferred references must be valid before testing starts.
+    } catch (failure: Throwable) {
+        rollback()
+        throw failure
+    } finally {
+        autoCommit = true
     }
 }
 
