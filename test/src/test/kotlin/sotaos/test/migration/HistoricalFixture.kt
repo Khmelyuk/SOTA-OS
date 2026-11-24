@@ -16,8 +16,13 @@ internal enum class HistoricalSchema(val directory: String, val revision: String
         "21d8fcc118d3fdd609819f48b08f032ad4e02c951483c7b07f72abf015a6cb3d"),
     KNOWLEDGE_VERSIONS("knowledge-versions", "3c1a4aa1d20cf77179e3c37580ddd682b329d018",
         "b001a70f649e388c888b5d6515b4ddd96eca9442ffacea66b8967bbdc060e0a2",
-        "51732f8a5e9a3a2776e5543ab59df49ac20045307b8fbdad4543a6ee5f4be362")
+        "51732f8a5e9a3a2776e5543ab59df49ac20045307b8fbdad4543a6ee5f4be362"),
+    RUNTIME_SIGNED("runtime-signed", "3c1a4aa1d20cf77179e3c37580ddd682b329d018",
+        "74766c02dc2b391b7c8ca9d1b67c8d734749fc45f306eeeb2dbd269724cd407c",
+        "6bf6b014e8c83d51fbe2e2d42a8a15ef651fb30435ac7d3e3e637ca4abbe572a")
 }
+
+internal val declaredSchemas = listOf(HistoricalSchema.DURABLE_P09, HistoricalSchema.KNOWLEDGE_VERSIONS)
 
 /** Builds only frozen historical DDL and raw synthetic rows, before current migration code can run. */
 internal class HistoricalFixture(val schema: HistoricalSchema) : AutoCloseable {
@@ -70,7 +75,7 @@ internal class HistoricalFixture(val schema: HistoricalSchema) : AutoCloseable {
         Files.deleteIfExists(path)
     }
 
-    private fun resource(name: String, expectedHash: String): JsonObject {
+    fun resource(name: String, expectedHash: String): JsonObject {
         val bytes = requireNotNull(javaClass.getResourceAsStream("/migrations/${schema.directory}/$name"))
             .use { it.readBytes() }
         val actual = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }

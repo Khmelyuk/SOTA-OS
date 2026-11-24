@@ -1,7 +1,7 @@
-# Development roadmap — updated 2026-11-23
+# Development roadmap — updated 2026-11-24
 
-Published baseline before this increment: GitHub `main` at `c87e7c8`
-(P05 Decision/Mission snapshot binding), with successful CI. The earlier integration
+Published baseline before this increment: GitHub `main` at `f22a615`
+(frozen historical declared-schema acceptance), with successful CI. The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
@@ -41,6 +41,9 @@ tracks the integrated implementation and subsequent bounded increments.
 - Two frozen historical declared-schema profiles with synthetic governance/memory/
   credential rows, exact preservation checks, current service behavior, schema
   contracts and failed-opening retry coverage ([migration acceptance](persistence-migrations.md)).
+- One captured historical runtime profile with 50 startup triggers, signed verification
+  receipts, old-key approvals/revocation and key/peer lifecycle; six additional
+  migration, restart, admission and transactional retry tests.
 - Local credential lifecycle and a human-invoked, candidate-only Research CLI
   (ADR-018). Research draft approval does not publish externally.
 
@@ -69,7 +72,7 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 | 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state checks, P05 mode propagation, local P07 lifecycle audit, explicit Knowledge revision and Decision/Mission snapshot binding implemented under ADR-020/021/022/023/024/025/026/027. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/numeric revision/mode-change governance and P07 validation mandates/general branch-conflict governance |
 | 3 | P09 operational lifecycle | Governed certificate renewal and configuration changes, old/new material recovery, failure diagnostics and deployment runbooks; automated historical attestations only with explicit provenance policy |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
-| 5 — in progress | Broader persistence and release acceptance | Two pinned declared-schema profiles and seven migration tests implemented. Remaining: captured runtime guards, signed key/receipt/peer history profiles, versioned release migrations, further failure points, missing conformance tests, public API/GUI scope and release evidence |
+| 5 — in progress | Broader persistence and release acceptance | Two pinned declared-schema profiles plus one runtime profile and 13 migration tests implemented, including signed key/receipt/peer history. Remaining: populated P10 history, versioned release migrations, further failure points, missing conformance tests, public API/GUI scope and release evidence |
 
 P07 now uses the existing P05/P10 signed-runtime pattern. Research remains
 separate from canonical P06/P09 history. Receiving a fact does not validate
@@ -122,13 +125,15 @@ remain readable and cannot execute. This is equality of modeled content, not a
 monotonic revision counter; restoring identical ACTIVE terms matches again.
 
 Historical SQLite acceptance now includes two frozen declared-schema profiles with
-SHA-256 pins and seven tests. Current store opening preserves their original rows
+SHA-256 pins and seven tests, plus a captured runtime profile and six further tests. Current store opening preserves their original rows
 and supports existing governance/memory services after upgrade and restart. The
 catalog deliberately does not derive old schemas or seed encodings from today's code.
 
-Next independent persistence increment: capture historical runtime-only guards and
-signed verification/provisioning histories in additional reviewed profiles. Broader
-failure-point coverage and versioned release migrations remain separate work.
+Historical runtime guards and bounded signed verification/provisioning histories are
+now captured from an isolated old build and tested with current services.
+Next independent persistence increment: populated historical P10 exit and retained-
+obligation acceptance with preservation, restart and failure checks. Broader opening-
+failure coverage and versioned release migrations remain separate work.
 Keep P05 participation and collective mandate decisions explicit; do not infer a
 quorum or Mission ownership authority from the current model. P09 operational
 lifecycle and extended P10 settlement remain the subsequent functional tracks.

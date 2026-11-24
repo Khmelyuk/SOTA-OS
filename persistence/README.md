@@ -53,6 +53,13 @@ compatibility sequence is not a single schema transaction. See
 [historical migration acceptance](../docs/persistence-migrations.md) for evidence,
 fixture provenance and remaining runtime-schema coverage.
 
+A third profile captures an actual historical runtime: 38 tables, two indexes,
+50 startup triggers and synthetic P09 key/peer/receipt/approval history. Six further
+tests retain all captured guard definitions, check populated audit immutability,
+preserve exact signed replay and revocations, and exercise rollback/retry of an
+approved historical import after upgrade. Production schema/bootstrap code is
+unchanged; populated historical P10 and broader opening failures remain open.
+
 `actor_signing_key` stores one active Ed25519 public key per actor as Base64
 X.509 material; private keys are never persisted. Lifecycle changes are
 recorded in append-only `actor_signing_key_audit` with explicit timestamps and

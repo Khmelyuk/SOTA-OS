@@ -8,7 +8,7 @@ import java.sql.DriverManager
 
 class HistoricalMigrationTest : FunSpec({
     test("frozen Git schemas are healthy populated databases before current initialization") {
-        for (schema in HistoricalSchema.entries) HistoricalFixture(schema).use { f ->
+        for (schema in declaredSchemas) HistoricalFixture(schema).use { f ->
             f.sql { connection ->
                 connection.query("PRAGMA integrity_check") shouldBe listOf(listOf("ok"))
                 connection.query("PRAGMA foreign_key_check") shouldBe emptyList()
@@ -23,7 +23,7 @@ class HistoricalMigrationTest : FunSpec({
     }
 
     test("upgrades preserve every historical column and row without invented authority or signed evidence") {
-        for (schema in HistoricalSchema.entries) HistoricalFixture(schema).use { f ->
+        for (schema in declaredSchemas) HistoricalFixture(schema).use { f ->
             val before = f.sql { it.capture() }
             f.open()
             repeat(3) {
@@ -50,7 +50,7 @@ class HistoricalMigrationTest : FunSpec({
         val expected = SignedActionFixture().use { fresh ->
             DriverManager.getConnection("jdbc:sqlite:${fresh.path}").use { it.schemaShape() }
         }
-        for (schema in HistoricalSchema.entries) HistoricalFixture(schema).use { f ->
+        for (schema in declaredSchemas) HistoricalFixture(schema).use { f ->
             f.open()
             f.sql { it.schemaShape() } shouldBe expected
         }

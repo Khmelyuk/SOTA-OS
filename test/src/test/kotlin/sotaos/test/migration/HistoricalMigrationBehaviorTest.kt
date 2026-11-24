@@ -16,7 +16,7 @@ import java.util.UUID
 
 class HistoricalMigrationBehaviorTest : FunSpec({
     test("migrated Core Loop supports fresh decisions and Knowledge revision without rewriting unsigned history") {
-        for (schema in HistoricalSchema.entries) HistoricalFixture(schema).use { f ->
+        for (schema in declaredSchemas) HistoricalFixture(schema).use { f ->
             var store = f.open()
             var repos = SqlDelightRepositories(store.database)
             val old = requireNotNull(repos.decisions.findById(DecisionId("old-decision")))
@@ -54,7 +54,7 @@ class HistoricalMigrationBehaviorTest : FunSpec({
     }
 
     test("historical lockout verifiers revocation and credential attribution retain their meaning") {
-        for (schema in HistoricalSchema.entries) HistoricalFixture(schema).use { f ->
+        for (schema in declaredSchemas) HistoricalFixture(schema).use { f ->
             val store = f.open()
             val repository = SqlDelightAuthenticationRepository(store.database)
             val provider = LocalPassphraseAuthenticationProvider(repository)
@@ -80,7 +80,7 @@ class HistoricalMigrationBehaviorTest : FunSpec({
     }
 
     test("post-upgrade governance and history guards reject rewriting or reviving historical records") {
-        for (schema in HistoricalSchema.entries) HistoricalFixture(schema).use { f ->
+        for (schema in declaredSchemas) HistoricalFixture(schema).use { f ->
             val repos = SqlDelightRepositories(f.open().database)
             val forbidden = listOf("UPDATE event SET payload_json = '{}'", "DELETE FROM event",
                 "UPDATE sync_journal SET record_json = '{}'", "DELETE FROM sync_journal",

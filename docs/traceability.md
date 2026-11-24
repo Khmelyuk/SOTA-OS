@@ -1,5 +1,13 @@
 # Traceability Matrix — Code ↔ Specification
 
+Historical runtime acceptance update 2026-11-24: RuntimeSchemaMigrationTest and
+RuntimeSignedMigrationTest add six tests against a captured `3c1a4aa` runtime.
+They retain 50 startup guards and raw P09 history, exercise exact receipt replay,
+retired-key/peer/approval denials and approved-import rollback/retry under
+ADR-007/011/012/016. The old build generated the signed vectors; current test setup
+neither re-signs them nor recreates old schemas through current bootstrap code.
+See [migration acceptance](persistence-migrations.md) for provenance and limits.
+
 Historical migration acceptance update 2026-11-23: two immutable Git-declared
 SQLite schemas and synthetic raw rows exercise ADR-007's real-persistence testing
 boundary independently of the current schema/encoders. HistoricalMigrationTest and

@@ -1,8 +1,9 @@
 # Historical SQLite migration acceptance
 
-Updated: 2026-11-23
+Updated: 2026-11-24
 
-The migration suite adds two frozen declared-schema baselines to the existing
+The migration suite adds two frozen declared-schema baselines and one captured
+runtime profile to the existing
 targeted compatibility tests. It addresses the risk that tests constructed by
 removing columns from today's schema can follow today's assumptions instead of
 preserving a genuinely older layout. Existing credential, historical-signature and
@@ -52,6 +53,35 @@ These tests run as part of the ordinary JDK 21 `./gradlew build`, including Dete
 and the existing SQLDelight migration verification task. They need neither Git
 history nor Node at test time. The Node exporter is only a fixture-authoring tool.
 
+## Historical runtime and signed history
+
+The `runtime-signed` profile was captured from an isolated build of `3c1a4aa`,
+using that revision's SqlDelightStore, P09 services, codecs and test helpers. Its
+38 tables, two indexes and 50 triggers include guards installed by Kotlin startup.
+The 27 synthetic rows include key retirement, an active key, peer rotation and
+revocation, provisioning audit, a locally verified receipt and historical approvals.
+No production code was changed in the archived build; an authoring main and a
+JavaExec task were added. The [capture recipe](../scripts/historical-runtime/README.md)
+records the procedure and public bearer substitutions. Private signing keys are
+never exported. The frozen manifests and all four signed vectors have SHA-256 pins.
+
+Six tests in `RuntimeSchemaMigrationTest` and `RuntimeSignedMigrationTest` verify:
+
+- Original columns/rows and all 50 trigger definitions survive upgrade and three
+  reopens. Populated key/provisioning/receipt/approval audit tables reject updates
+  and deletes both before and after upgrade. SQLite checks and current column/FK
+  shape comparison pass; full table/index/CHECK text equivalence is not claimed.
+- Exact replay retains the pre-retirement receipt, original key and verification
+  time. Changed records and a cryptographically valid but unknown old-key record
+  remain denied without writes.
+- An independent exact-record approval still permits import; its receipt records
+  the original approval target and the new verification time. An injected receipt
+  insertion failure rolls back Event, journal and checkpoint changes, and retry
+  succeeds after removing the fault.
+- A revoked approval remains denied and gains no receipt or Event during opening.
+  Active key/peer state, peer revisions and revoked-peer authentication denial
+  survive restart. A retained receipt cannot bypass live peer authentication.
+
 ## Operational and coverage limits
 
 SqlDelightStore currently applies additive compatibility steps during opening.
@@ -60,13 +90,14 @@ remain after a later step fails. The failure test proves preservation and safe r
 for the injected baseline-write failure, not universal recovery from arbitrary
 malformed databases, storage exhaustion or process death at every statement.
 
-The frozen resources capture historical SQLDelight declarations, not all runtime-only
-guards installed by the old Kotlin bootstrap. They are synthetic acceptance profiles,
-not production database backups. Existing focused tests cover additional signed-key,
-receipt and approval cases; this catalog does not yet freeze all those histories.
+These are synthetic acceptance profiles, not production database backups. The
+runtime profile covers one historical revision and a bounded P09 history. It does
+not exercise every captured trigger, P10 history or every provisioning transition.
+Verification receipts remain local to their original node; fixture restoration is
+not authorization to copy trust evidence between production nodes.
 
 No production migration code, schema or governance policy is changed by this
-increment. Versioned `.sqm` release migrations, captured runtime schemas and broader
-failure-point coverage remain open. The next independent persistence increment is
-to freeze runtime-only guards and signed verification/provisioning histories in
-additional reviewed profiles.
+increment. Versioned `.sqm` release migrations and broader opening-failure coverage
+remain open. The next independent persistence increment is populated historical
+P10 exit/retained-obligation acceptance, with preservation, restart and failure
+checks. P09 operational lifecycle remains the next functional track.

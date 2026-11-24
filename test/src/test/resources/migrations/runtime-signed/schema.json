@@ -1,0 +1,722 @@
+{
+  "revision": "3c1a4aa1d20cf77179e3c37580ddd682b329d018",
+  "capture": "sqlite_master after historical SqlDelightStore initialization and synthetic P09 operations",
+  "objects": [
+    {
+      "type": "table",
+      "name": "action",
+      "sql": "CREATE TABLE action (\n    action_id     TEXT NOT NULL PRIMARY KEY,\n    actor_kind    TEXT NOT NULL,\n    actor_id      TEXT NOT NULL,\n    authority_ref TEXT NOT NULL,\n    decision_ref  TEXT,\n    context_json  TEXT NOT NULL,\n    timestamp     TEXT NOT NULL,\n    mode          TEXT NOT NULL,\n    target        TEXT,\n    FOREIGN KEY (authority_ref) REFERENCES authority(authority_id),\n    FOREIGN KEY (decision_ref) REFERENCES decision(decision_id)\n)"
+    },
+    {
+      "type": "table",
+      "name": "actor_signing_key",
+      "sql": "CREATE TABLE actor_signing_key (\n        actor_kind TEXT NOT NULL,\n        actor_id TEXT NOT NULL,\n        key_id TEXT NOT NULL,\n        public_key_base64 TEXT NOT NULL,\n        PRIMARY KEY (actor_kind, actor_id)\n    )"
+    },
+    {
+      "type": "table",
+      "name": "actor_signing_key_audit",
+      "sql": "CREATE TABLE actor_signing_key_audit (\n        audit_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n        actor_kind TEXT NOT NULL,\n        actor_id TEXT NOT NULL,\n        key_id TEXT NOT NULL,\n        operation TEXT NOT NULL,\n        public_key_base64 TEXT,\n        occurred_at TEXT NOT NULL\n    )"
+    },
+    {
+      "type": "table",
+      "name": "authentication_binding",
+      "sql": "CREATE TABLE authentication_binding (\n    unit_id TEXT NOT NULL,\n    provider_id TEXT NOT NULL,\n    provider_subject TEXT NOT NULL,\n    person_id TEXT NOT NULL,\n    linked_at TEXT NOT NULL,\n    PRIMARY KEY (unit_id, provider_id, provider_subject),\n    FOREIGN KEY (person_id) REFERENCES person(person_id)\n)"
+    },
+    {
+      "type": "table",
+      "name": "authority",
+      "sql": "CREATE TABLE authority (\n    authority_id     TEXT NOT NULL PRIMARY KEY,\n    issuer_kind      TEXT NOT NULL,\n    issuer_id        TEXT NOT NULL,\n    subject_kind     TEXT NOT NULL,\n    subject_id       TEXT NOT NULL,\n    scope_json       TEXT NOT NULL,\n    context_json     TEXT NOT NULL,\n    basis_json       TEXT NOT NULL,\n    valid_from       TEXT NOT NULL,\n    valid_until      TEXT,\n    accountable_kind TEXT NOT NULL,\n    accountable_id   TEXT NOT NULL,\n    state            TEXT NOT NULL,\n    parent_authority_id TEXT REFERENCES authority(authority_id)\n)"
+    },
+    {
+      "type": "table",
+      "name": "authority_revocation",
+      "sql": "CREATE TABLE authority_revocation (\n revocation_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n authority_id TEXT NOT NULL REFERENCES authority(authority_id),\n cascade_root TEXT NOT NULL REFERENCES authority(authority_id),\n actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL,\n reason TEXT NOT NULL, occurred_at TEXT NOT NULL\n)"
+    },
+    {
+      "type": "table",
+      "name": "consent",
+      "sql": "CREATE TABLE consent (\n    consent_id TEXT NOT NULL PRIMARY KEY,\n    subject_person_id TEXT NOT NULL,\n    recipient_kind TEXT NOT NULL,\n    recipient_id TEXT NOT NULL,\n    purpose TEXT NOT NULL,\n    context_json TEXT NOT NULL,\n    scope_json TEXT NOT NULL,\n    notice TEXT NOT NULL,\n    affirmation TEXT NOT NULL,\n    granted_at TEXT NOT NULL,\n    valid_until TEXT,\n    revoked_at TEXT,\n    FOREIGN KEY (subject_person_id) REFERENCES person(person_id)\n)"
+    },
+    {
+      "type": "table",
+      "name": "core",
+      "sql": "CREATE TABLE core (\n    core_id     TEXT NOT NULL PRIMARY KEY,\n    name        TEXT NOT NULL,\n    created_at  TEXT NOT NULL,\n    state       TEXT NOT NULL\n)"
+    },
+    {
+      "type": "table",
+      "name": "core_exit_relation",
+      "sql": "CREATE TABLE core_exit_relation (\n relation_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),\n core_id TEXT NOT NULL REFERENCES core(core_id), kind TEXT NOT NULL, description TEXT NOT NULL,\n state TEXT NOT NULL CHECK(state IN ('ACTIVE','CLOSED')))"
+    },
+    {
+      "type": "table",
+      "name": "decision",
+      "sql": "CREATE TABLE decision (\n    decision_id   TEXT NOT NULL PRIMARY KEY,\n    subject_kind  TEXT NOT NULL,\n    subject_id    TEXT NOT NULL,\n    intent_ref    TEXT NOT NULL,\n    options_json  TEXT NOT NULL,\n    chosen_option TEXT NOT NULL,\n    authority_ref TEXT NOT NULL,\n    timestamp     TEXT NOT NULL,\n    purpose       TEXT NOT NULL DEFAULT 'Execute mission action',\n    affected_persons_json TEXT NOT NULL DEFAULT '[]',\n    FOREIGN KEY (authority_ref) REFERENCES authority(authority_id)\n)"
+    },
+    {
+      "type": "table",
+      "name": "event",
+      "sql": "CREATE TABLE event (\n    event_id        TEXT NOT NULL PRIMARY KEY,\n    type            TEXT NOT NULL,\n    actor_kind      TEXT NOT NULL,\n    actor_id        TEXT NOT NULL,\n    timestamp       TEXT NOT NULL,\n    context_json    TEXT NOT NULL,\n    authority_ref   TEXT,\n    decision_ref    TEXT,\n    payload_json    TEXT NOT NULL,\n    result_ref      TEXT,\n    provenance_json TEXT NOT NULL,\n    content_hash    TEXT NOT NULL,\n    signature       TEXT,\n    corrects_event_id TEXT\n)"
+    },
+    {
+      "type": "table",
+      "name": "exit_archive",
+      "sql": "CREATE TABLE exit_archive (\n exit_id TEXT NOT NULL PRIMARY KEY REFERENCES exit_process(exit_id),\n document_json TEXT NOT NULL, sha256 TEXT NOT NULL)"
+    },
+    {
+      "type": "table",
+      "name": "exit_export_grant",
+      "sql": "CREATE TABLE exit_export_grant (\n person_id TEXT NOT NULL, core_id TEXT NOT NULL, kind TEXT NOT NULL, artifact_id TEXT NOT NULL,\n artifact_json TEXT NOT NULL, PRIMARY KEY(person_id, core_id, kind, artifact_id))"
+    },
+    {
+      "type": "table",
+      "name": "exit_governance_audit",
+      "sql": "CREATE TABLE exit_governance_audit (\n id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, person_id TEXT NOT NULL, core_id TEXT NOT NULL,\n operation TEXT NOT NULL, actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL,\n authority_id TEXT NOT NULL, evidence TEXT NOT NULL, occurred_at TEXT NOT NULL)"
+    },
+    {
+      "type": "table",
+      "name": "exit_obligation",
+      "sql": "CREATE TABLE exit_obligation (\n obligation_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),\n core_id TEXT NOT NULL REFERENCES core(core_id), description TEXT NOT NULL,\n state TEXT NOT NULL CHECK(state IN ('OPEN','RETAINED','FULFILLED')), resolution TEXT, resolved_at TEXT)"
+    },
+    {
+      "type": "table",
+      "name": "exit_process",
+      "sql": "CREATE TABLE exit_process (\n exit_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),\n core_id TEXT NOT NULL REFERENCES core(core_id), requested_at TEXT NOT NULL,\n updated_at TEXT NOT NULL, stage TEXT NOT NULL)"
+    },
+    {
+      "type": "table",
+      "name": "exit_transition",
+      "sql": "CREATE TABLE exit_transition (\n exit_id TEXT NOT NULL REFERENCES exit_process(exit_id), stage TEXT NOT NULL,\n actor_id TEXT NOT NULL, occurred_at TEXT NOT NULL, PRIMARY KEY(exit_id, stage))"
+    },
+    {
+      "type": "table",
+      "name": "experience",
+      "sql": "CREATE TABLE experience (\n    experience_id        TEXT NOT NULL PRIMARY KEY,\n    derived_events_json  TEXT NOT NULL,\n    context_json         TEXT NOT NULL,\n    what_was_tried        TEXT NOT NULL,\n    outcome               TEXT NOT NULL,\n    conclusion            TEXT NOT NULL,\n    applicability         TEXT NOT NULL,\n    confidence             TEXT NOT NULL,\n    provenance_json        TEXT NOT NULL\n)"
+    },
+    {
+      "type": "table",
+      "name": "historical_record_approval",
+      "sql": "CREATE TABLE historical_record_approval (\n event_id TEXT NOT NULL PRIMARY KEY, canonical_record TEXT NOT NULL,\n actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL, key_id TEXT NOT NULL, public_key_base64 TEXT NOT NULL,\n target TEXT NOT NULL, operator_kind TEXT NOT NULL, operator_id TEXT NOT NULL, authority_id TEXT NOT NULL,\n purpose TEXT NOT NULL, approved_at TEXT NOT NULL, evidence_reference TEXT NOT NULL)"
+    },
+    {
+      "type": "table",
+      "name": "historical_record_revocation",
+      "sql": "CREATE TABLE historical_record_revocation (\n event_id TEXT NOT NULL PRIMARY KEY REFERENCES historical_record_approval(event_id),\n target TEXT NOT NULL, operator_kind TEXT NOT NULL, operator_id TEXT NOT NULL, authority_id TEXT NOT NULL,\n purpose TEXT NOT NULL, revoked_at TEXT NOT NULL)"
+    },
+    {
+      "type": "table",
+      "name": "identity",
+      "sql": "CREATE TABLE identity (\n    identity_id  TEXT NOT NULL PRIMARY KEY,\n    person_id    TEXT NOT NULL,\n    local_handle TEXT NOT NULL,\n    external_refs_json TEXT NOT NULL DEFAULT '[]',\n    FOREIGN KEY (person_id) REFERENCES person(person_id)\n)"
+    },
+    {
+      "type": "table",
+      "name": "knowledge",
+      "sql": "CREATE TABLE knowledge (\n    knowledge_id             TEXT NOT NULL PRIMARY KEY,\n    statement                TEXT NOT NULL,\n    derived_experience_json  TEXT NOT NULL,\n    evidence_json            TEXT NOT NULL,\n    context_json             TEXT NOT NULL,\n    status                   TEXT NOT NULL,\n    version                  INTEGER NOT NULL DEFAULT 1,\n    supersedes               TEXT,\n    provenance_json          TEXT NOT NULL,\n    validated_by_kind        TEXT,\n    validated_by_id          TEXT\n)"
+    },
+    {
+      "type": "table",
+      "name": "local_credential",
+      "sql": "CREATE TABLE local_credential (\n    unit_id TEXT NOT NULL,\n    provider_id TEXT NOT NULL DEFAULT 'local-passphrase',\n    login_handle TEXT NOT NULL,\n    salt_base64 TEXT NOT NULL,\n    hash_base64 TEXT NOT NULL,\n    iterations INTEGER NOT NULL,\n    failed_attempts INTEGER NOT NULL DEFAULT 0,\n    locked_until TEXT,\n    created_at TEXT NOT NULL,\n    revision INTEGER NOT NULL DEFAULT 1,\n    revoked_at TEXT,\n    PRIMARY KEY (unit_id, login_handle),\n    FOREIGN KEY (unit_id, provider_id, login_handle)\n        REFERENCES authentication_binding(unit_id, provider_id, provider_subject)\n    )"
+    },
+    {
+      "type": "table",
+      "name": "local_credential_audit",
+      "sql": "CREATE TABLE local_credential_audit (\n    audit_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n    unit_id TEXT NOT NULL,\n    login_handle TEXT NOT NULL,\n    revision INTEGER NOT NULL,\n    operation TEXT NOT NULL,\n    actor_person_id TEXT,\n    occurred_at TEXT NOT NULL,\n    FOREIGN KEY(unit_id, login_handle) REFERENCES local_credential(unit_id, login_handle)\n)"
+    },
+    {
+      "type": "table",
+      "name": "membership",
+      "sql": "CREATE TABLE membership (\n    membership_id   TEXT NOT NULL PRIMARY KEY,\n    person_id       TEXT NOT NULL,\n    collective_kind TEXT NOT NULL,\n    collective_id   TEXT NOT NULL,\n    role_id         TEXT,\n    start_at        TEXT NOT NULL,\n    end_at          TEXT,\n    state           TEXT NOT NULL,\n    FOREIGN KEY (person_id) REFERENCES person(person_id)\n)"
+    },
+    {
+      "type": "table",
+      "name": "mission",
+      "sql": "CREATE TABLE mission (\n    mission_id        TEXT NOT NULL PRIMARY KEY,\n    owner_kind        TEXT NOT NULL,\n    owner_id          TEXT NOT NULL,\n    intent            TEXT NOT NULL,\n    objectives_json   TEXT NOT NULL,\n    participants_json TEXT NOT NULL,\n    mode              TEXT NOT NULL,\n    state             TEXT NOT NULL\n)"
+    },
+    {
+      "type": "table",
+      "name": "owned_exit_evidence",
+      "sql": "CREATE TABLE owned_exit_evidence (\n evidence_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),\n core_id TEXT NOT NULL REFERENCES core(core_id), description TEXT NOT NULL,\n source_event_id TEXT, recorded_at TEXT NOT NULL)"
+    },
+    {
+      "type": "table",
+      "name": "person",
+      "sql": "CREATE TABLE person (\n    person_id   TEXT NOT NULL PRIMARY KEY,\n    created_at  TEXT NOT NULL\n)"
+    },
+    {
+      "type": "table",
+      "name": "provisioning_audit",
+      "sql": "CREATE TABLE provisioning_audit (\n    audit_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n    target TEXT NOT NULL,\n    operation TEXT NOT NULL,\n    actor_kind TEXT NOT NULL,\n    actor_id TEXT NOT NULL,\n    authority_id TEXT NOT NULL,\n    purpose TEXT NOT NULL,\n    occurred_at TEXT NOT NULL\n)"
+    },
+    {
+      "type": "table",
+      "name": "relation_obligation",
+      "sql": "CREATE TABLE relation_obligation (\n relation_id TEXT NOT NULL REFERENCES relation_terms(relation_id),\n obligation_id TEXT NOT NULL UNIQUE REFERENCES exit_obligation(obligation_id),\n PRIMARY KEY(relation_id, obligation_id))"
+    },
+    {
+      "type": "table",
+      "name": "relation_terms",
+      "sql": "CREATE TABLE relation_terms (\n relation_id TEXT NOT NULL PRIMARY KEY REFERENCES core_exit_relation(relation_id),\n terms_json TEXT NOT NULL, exit_policy TEXT NOT NULL)"
+    },
+    {
+      "type": "table",
+      "name": "result",
+      "sql": "CREATE TABLE result (\n    result_id   TEXT NOT NULL PRIMARY KEY,\n    action_id   TEXT NOT NULL,\n    description TEXT NOT NULL,\n    outcome     TEXT NOT NULL,\n    timestamp   TEXT NOT NULL,\n    FOREIGN KEY (action_id) REFERENCES action(action_id)\n)"
+    },
+    {
+      "type": "table",
+      "name": "right_record",
+      "sql": "CREATE TABLE right_record (\n    right_id TEXT NOT NULL PRIMARY KEY,\n    subject_kind TEXT NOT NULL,\n    subject_id TEXT NOT NULL,\n    right_type TEXT NOT NULL,\n    scope_json TEXT NOT NULL,\n    source TEXT NOT NULL,\n    status TEXT NOT NULL,\n    constraints_json TEXT NOT NULL\n)"
+    },
+    {
+      "type": "table",
+      "name": "sync_checkpoint",
+      "sql": "CREATE TABLE sync_checkpoint (\n    peer_id TEXT NOT NULL PRIMARY KEY,\n    sent INTEGER NOT NULL,\n    received INTEGER NOT NULL\n)"
+    },
+    {
+      "type": "table",
+      "name": "sync_conflict",
+      "sql": "CREATE TABLE sync_conflict (\n    entity_kind TEXT NOT NULL,\n    entity_id TEXT NOT NULL,\n    left_event_id TEXT NOT NULL REFERENCES event(event_id),\n    right_event_id TEXT NOT NULL REFERENCES event(event_id),\n    PRIMARY KEY(entity_kind, entity_id, left_event_id, right_event_id)\n)"
+    },
+    {
+      "type": "table",
+      "name": "sync_journal",
+      "sql": "CREATE TABLE sync_journal (\n    position INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n    event_id TEXT NOT NULL UNIQUE REFERENCES event(event_id),\n    record_json TEXT NOT NULL\n)"
+    },
+    {
+      "type": "table",
+      "name": "trusted_peer",
+      "sql": "CREATE TABLE trusted_peer (\n    peer_id TEXT NOT NULL PRIMARY KEY,\n    policy_json TEXT NOT NULL,\n    credential_hash TEXT NOT NULL UNIQUE,\n    revision INTEGER NOT NULL,\n    active INTEGER NOT NULL\n)"
+    },
+    {
+      "type": "table",
+      "name": "verified_sync_record",
+      "sql": "CREATE TABLE verified_sync_record (\n event_id TEXT NOT NULL PRIMARY KEY REFERENCES event(event_id),\n canonical_record TEXT NOT NULL,\n actor_kind TEXT NOT NULL,\n actor_id TEXT NOT NULL,\n key_id TEXT NOT NULL,\n public_key_base64 TEXT NOT NULL,\n verified_at TEXT NOT NULL,\n historical_approval_target TEXT\n)"
+    },
+    {
+      "type": "index",
+      "name": "authority_parent_idx",
+      "sql": "CREATE INDEX authority_parent_idx ON authority(parent_authority_id)"
+    },
+    {
+      "type": "index",
+      "name": "exit_one_open",
+      "sql": "CREATE UNIQUE INDEX exit_one_open ON exit_process(person_id, core_id) WHERE stage != 'COMPLETED'"
+    },
+    {
+      "type": "trigger",
+      "name": "actor_signing_key_audit_no_delete",
+      "sql": "CREATE TRIGGER actor_signing_key_audit_no_delete\n            BEFORE DELETE ON actor_signing_key_audit\n            BEGIN SELECT RAISE(ABORT, 'actor signing key audit is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "actor_signing_key_audit_no_update",
+      "sql": "CREATE TRIGGER actor_signing_key_audit_no_update\n            BEFORE UPDATE ON actor_signing_key_audit\n            BEGIN SELECT RAISE(ABORT, 'actor signing key audit is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "authority_ancestor_exit_insert",
+      "sql": "CREATE TRIGGER authority_ancestor_exit_insert BEFORE INSERT ON authority\nWHEN NEW.parent_authority_id IS NOT NULL\nAND NEW.state NOT IN ('REVOKED','COMPLETED','REJECTED','ABORTED','FAILED')\nAND EXISTS (\n WITH RECURSIVE ancestors(authority_id, parent_authority_id, issuer_kind, issuer_id, subject_kind, subject_id) AS (\n  SELECT authority_id, parent_authority_id, issuer_kind, issuer_id, subject_kind, subject_id\n  FROM authority WHERE authority_id = NEW.parent_authority_id\n  UNION\n  SELECT p.authority_id, p.parent_authority_id, p.issuer_kind, p.issuer_id, p.subject_kind, p.subject_id\n  FROM authority p JOIN ancestors a ON p.authority_id = a.parent_authority_id\n )\n SELECT 1 FROM ancestors a JOIN exit_process e ON e.stage != 'COMPLETED'\n WHERE NEW.accountable_kind = 'CORE' AND e.core_id = NEW.accountable_id\n AND ((a.issuer_kind = 'PERSON' AND a.issuer_id = e.person_id)\n OR (a.subject_kind = 'PERSON' AND a.subject_id = e.person_id)))\nBEGIN SELECT RAISE(ABORT, 'ancestor is exiting this Core'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "authority_ancestor_exit_update",
+      "sql": "CREATE TRIGGER authority_ancestor_exit_update BEFORE UPDATE ON authority\nWHEN NEW.parent_authority_id IS NOT NULL\nAND NEW.state NOT IN ('REVOKED','COMPLETED','REJECTED','ABORTED','FAILED')\nAND EXISTS (\n WITH RECURSIVE ancestors(authority_id, parent_authority_id, issuer_kind, issuer_id, subject_kind, subject_id) AS (\n  SELECT authority_id, parent_authority_id, issuer_kind, issuer_id, subject_kind, subject_id\n  FROM authority WHERE authority_id = NEW.parent_authority_id\n  UNION\n  SELECT p.authority_id, p.parent_authority_id, p.issuer_kind, p.issuer_id, p.subject_kind, p.subject_id\n  FROM authority p JOIN ancestors a ON p.authority_id = a.parent_authority_id\n )\n SELECT 1 FROM ancestors a JOIN exit_process e ON e.stage != 'COMPLETED'\n WHERE NEW.accountable_kind = 'CORE' AND e.core_id = NEW.accountable_id\n AND ((a.issuer_kind = 'PERSON' AND a.issuer_id = e.person_id)\n OR (a.subject_kind = 'PERSON' AND a.subject_id = e.person_id)))\nBEGIN SELECT RAISE(ABORT, 'ancestor is exiting this Core'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "authority_exit_guard_insert",
+      "sql": "CREATE TRIGGER authority_exit_guard_insert BEFORE INSERT ON authority\nWHEN NEW.state NOT IN ('REVOKED','COMPLETED','REJECTED','ABORTED','FAILED')\nAND NEW.accountable_kind = 'CORE'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.accountable_id\nAND ((NEW.subject_kind = 'PERSON'\nAND e.person_id = NEW.subject_id)\nOR (NEW.issuer_kind = 'PERSON'\nAND e.person_id = NEW.issuer_id)))\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "authority_exit_guard_update",
+      "sql": "CREATE TRIGGER authority_exit_guard_update BEFORE UPDATE ON authority\nWHEN NEW.state NOT IN ('REVOKED','COMPLETED','REJECTED','ABORTED','FAILED')\nAND NEW.accountable_kind = 'CORE'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.accountable_id\nAND ((NEW.subject_kind = 'PERSON'\nAND e.person_id = NEW.subject_id)\nOR (NEW.issuer_kind = 'PERSON'\nAND e.person_id = NEW.issuer_id)))\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "authority_lineage_terms_immutable",
+      "sql": "CREATE TRIGGER authority_lineage_terms_immutable BEFORE UPDATE ON authority\nWHEN (OLD.parent_authority_id IS NOT NULL OR EXISTS (\n SELECT 1 FROM authority child WHERE child.parent_authority_id = OLD.authority_id))\nAND (OLD.issuer_kind != NEW.issuer_kind OR OLD.issuer_id != NEW.issuer_id\n OR OLD.subject_kind != NEW.subject_kind OR OLD.subject_id != NEW.subject_id\n OR OLD.accountable_kind != NEW.accountable_kind OR OLD.accountable_id != NEW.accountable_id\n OR OLD.context_json != NEW.context_json OR OLD.scope_json != NEW.scope_json\n OR OLD.valid_from != NEW.valid_from OR OLD.valid_until IS NOT NEW.valid_until)\nBEGIN SELECT RAISE(ABORT, 'delegation terms are immutable; revoke and issue a new grant'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "authority_parent_binding",
+      "sql": "CREATE TRIGGER authority_parent_binding BEFORE INSERT ON authority\nWHEN NEW.parent_authority_id IS NOT NULL AND (\n NEW.parent_authority_id = NEW.authority_id OR NOT EXISTS (\n  SELECT 1 FROM authority p WHERE p.authority_id = NEW.parent_authority_id\n  AND p.subject_kind = NEW.issuer_kind AND p.subject_id = NEW.issuer_id\n  AND p.accountable_kind = NEW.accountable_kind AND p.accountable_id = NEW.accountable_id\n  AND p.context_json = NEW.context_json AND p.state = 'ACTIVE'))\nBEGIN SELECT RAISE(ABORT, 'invalid delegation parent'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "authority_parent_immutable",
+      "sql": "CREATE TRIGGER authority_parent_immutable BEFORE UPDATE ON authority\nWHEN OLD.parent_authority_id IS NOT NEW.parent_authority_id\nBEGIN SELECT RAISE(ABORT, 'authority parent is immutable'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "authority_revocation_no_delete",
+      "sql": "CREATE TRIGGER authority_revocation_no_delete BEFORE DELETE ON authority_revocation\nBEGIN SELECT RAISE(ABORT, 'authority revocation audit is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "authority_revocation_no_update",
+      "sql": "CREATE TRIGGER authority_revocation_no_update BEFORE UPDATE ON authority_revocation\nBEGIN SELECT RAISE(ABORT, 'authority revocation audit is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "consent_no_unrevoke",
+      "sql": "CREATE TRIGGER consent_no_unrevoke\n            BEFORE UPDATE OF revoked_at ON consent\n            WHEN OLD.revoked_at IS NOT NULL AND NEW.revoked_at IS NULL\n            BEGIN SELECT RAISE(ABORT, 'consent revocation is irreversible'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "core_exit_relation_exit_guard_insert",
+      "sql": "CREATE TRIGGER core_exit_relation_exit_guard_insert BEFORE INSERT ON core_exit_relation\nWHEN NEW.state = 'ACTIVE'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.core_id\nAND e.person_id = NEW.person_id)\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "core_exit_relation_exit_guard_update",
+      "sql": "CREATE TRIGGER core_exit_relation_exit_guard_update BEFORE UPDATE ON core_exit_relation\nWHEN NEW.state = 'ACTIVE'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.core_id\nAND e.person_id = NEW.person_id)\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "credential_audit_no_delete",
+      "sql": "CREATE TRIGGER credential_audit_no_delete BEFORE DELETE ON local_credential_audit\nBEGIN SELECT RAISE(ABORT, 'credential audit is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "credential_audit_no_update",
+      "sql": "CREATE TRIGGER credential_audit_no_update BEFORE UPDATE ON local_credential_audit\nBEGIN SELECT RAISE(ABORT, 'credential audit is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "event_no_delete",
+      "sql": "CREATE TRIGGER event_no_delete BEFORE DELETE ON event\nBEGIN SELECT RAISE(ABORT, 'event rows are append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "event_no_update",
+      "sql": "CREATE TRIGGER event_no_update BEFORE UPDATE ON event\nBEGIN SELECT RAISE(ABORT, 'event rows are append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "exit_archive_no_delete",
+      "sql": "CREATE TRIGGER exit_archive_no_delete BEFORE DELETE ON exit_archive\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "exit_archive_no_update",
+      "sql": "CREATE TRIGGER exit_archive_no_update BEFORE UPDATE ON exit_archive\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "exit_governance_audit_no_delete",
+      "sql": "CREATE TRIGGER exit_governance_audit_no_delete BEFORE DELETE ON exit_governance_audit\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "exit_governance_audit_no_update",
+      "sql": "CREATE TRIGGER exit_governance_audit_no_update BEFORE UPDATE ON exit_governance_audit\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "exit_obligation_exit_guard_insert",
+      "sql": "CREATE TRIGGER exit_obligation_exit_guard_insert BEFORE INSERT ON exit_obligation\nWHEN NEW.state = 'OPEN'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.core_id\nAND e.person_id = NEW.person_id)\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "exit_obligation_exit_guard_update",
+      "sql": "CREATE TRIGGER exit_obligation_exit_guard_update BEFORE UPDATE ON exit_obligation\nWHEN NEW.state = 'OPEN'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.core_id\nAND e.person_id = NEW.person_id)\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "exit_transition_no_delete",
+      "sql": "CREATE TRIGGER exit_transition_no_delete BEFORE DELETE ON exit_transition\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "exit_transition_no_update",
+      "sql": "CREATE TRIGGER exit_transition_no_update BEFORE UPDATE ON exit_transition\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "historical_record_approval_no_delete",
+      "sql": "CREATE TRIGGER historical_record_approval_no_delete\nBEFORE DELETE ON historical_record_approval BEGIN SELECT RAISE(ABORT, 'historical governance is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "historical_record_approval_no_update",
+      "sql": "CREATE TRIGGER historical_record_approval_no_update\nBEFORE UPDATE ON historical_record_approval BEGIN SELECT RAISE(ABORT, 'historical governance is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "historical_record_revocation_no_delete",
+      "sql": "CREATE TRIGGER historical_record_revocation_no_delete\nBEFORE DELETE ON historical_record_revocation BEGIN SELECT RAISE(ABORT, 'historical governance is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "historical_record_revocation_no_update",
+      "sql": "CREATE TRIGGER historical_record_revocation_no_update\nBEFORE UPDATE ON historical_record_revocation BEGIN SELECT RAISE(ABORT, 'historical governance is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "linked_obligation_no_delete",
+      "sql": "CREATE TRIGGER linked_obligation_no_delete\nBEFORE DELETE ON exit_obligation WHEN EXISTS (\nSELECT 1 FROM relation_obligation WHERE obligation_id = OLD.obligation_id)\nBEGIN SELECT RAISE(ABORT, 'agreement obligations are retained'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "linked_obligation_no_rewrite",
+      "sql": "CREATE TRIGGER linked_obligation_no_rewrite\nBEFORE UPDATE ON exit_obligation WHEN EXISTS (\nSELECT 1 FROM relation_obligation WHERE obligation_id = OLD.obligation_id)\nAND (NEW.obligation_id != OLD.obligation_id OR NEW.person_id != OLD.person_id OR NEW.core_id != OLD.core_id\nOR NEW.description != OLD.description OR (OLD.state = 'RETAINED' AND NEW.state = 'OPEN')\nOR (OLD.state = 'FULFILLED' AND NEW.state != 'FULFILLED'))\nBEGIN SELECT RAISE(ABORT, 'agreement obligations cannot be rewritten'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "membership_exit_guard_insert",
+      "sql": "CREATE TRIGGER membership_exit_guard_insert BEFORE INSERT ON membership\nWHEN NEW.state = 'ACTIVE'\nAND NEW.collective_kind = 'CORE'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.collective_id\nAND e.person_id = NEW.person_id)\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "membership_exit_guard_update",
+      "sql": "CREATE TRIGGER membership_exit_guard_update BEFORE UPDATE ON membership\nWHEN NEW.state = 'ACTIVE'\nAND NEW.collective_kind = 'CORE'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.collective_id\nAND e.person_id = NEW.person_id)\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "owned_exit_evidence_no_delete",
+      "sql": "CREATE TRIGGER owned_exit_evidence_no_delete BEFORE DELETE ON owned_exit_evidence\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "owned_exit_evidence_no_update",
+      "sql": "CREATE TRIGGER owned_exit_evidence_no_update BEFORE UPDATE ON owned_exit_evidence\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "provisioning_audit_no_delete",
+      "sql": "CREATE TRIGGER provisioning_audit_no_delete\nBEFORE DELETE ON provisioning_audit\nBEGIN SELECT RAISE(ABORT, 'provisioning audit is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "provisioning_audit_no_update",
+      "sql": "CREATE TRIGGER provisioning_audit_no_update\nBEFORE UPDATE ON provisioning_audit\nBEGIN SELECT RAISE(ABORT, 'provisioning audit is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "relation_obligation_no_delete",
+      "sql": "CREATE TRIGGER relation_obligation_no_delete\nBEFORE DELETE ON relation_obligation BEGIN SELECT RAISE(ABORT, 'relation terms are immutable'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "relation_obligation_no_update",
+      "sql": "CREATE TRIGGER relation_obligation_no_update\nBEFORE UPDATE ON relation_obligation BEGIN SELECT RAISE(ABORT, 'relation terms are immutable'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "relation_terms_no_delete",
+      "sql": "CREATE TRIGGER relation_terms_no_delete\nBEFORE DELETE ON relation_terms BEGIN SELECT RAISE(ABORT, 'relation terms are immutable'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "relation_terms_no_update",
+      "sql": "CREATE TRIGGER relation_terms_no_update\nBEFORE UPDATE ON relation_terms BEGIN SELECT RAISE(ABORT, 'relation terms are immutable'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "sync_conflict_no_delete",
+      "sql": "CREATE TRIGGER sync_conflict_no_delete BEFORE DELETE ON sync_conflict\nBEGIN SELECT RAISE(ABORT, 'conflicts are historical facts'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "sync_conflict_no_update",
+      "sql": "CREATE TRIGGER sync_conflict_no_update BEFORE UPDATE ON sync_conflict\nBEGIN SELECT RAISE(ABORT, 'conflicts are historical facts'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "sync_journal_no_delete",
+      "sql": "CREATE TRIGGER sync_journal_no_delete BEFORE DELETE ON sync_journal\nBEGIN SELECT RAISE(ABORT, 'sync history is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "sync_journal_no_update",
+      "sql": "CREATE TRIGGER sync_journal_no_update BEFORE UPDATE ON sync_journal\nBEGIN SELECT RAISE(ABORT, 'sync history is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "typed_relation_no_delete",
+      "sql": "CREATE TRIGGER typed_relation_no_delete\nBEFORE DELETE ON core_exit_relation WHEN EXISTS (\nSELECT 1 FROM relation_terms WHERE relation_id = OLD.relation_id)\nBEGIN SELECT RAISE(ABORT, 'typed relation history is retained'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "typed_relation_no_rewrite",
+      "sql": "CREATE TRIGGER typed_relation_no_rewrite\nBEFORE UPDATE ON core_exit_relation WHEN EXISTS (\nSELECT 1 FROM relation_terms WHERE relation_id = OLD.relation_id)\nAND (NEW.relation_id != OLD.relation_id OR NEW.person_id != OLD.person_id OR NEW.core_id != OLD.core_id\nOR NEW.kind != OLD.kind OR NEW.description != OLD.description OR OLD.state = 'CLOSED')\nBEGIN SELECT RAISE(ABORT, 'typed relation cannot be rewritten or reopened'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "verified_record_no_delete",
+      "sql": "CREATE TRIGGER verified_record_no_delete\n            BEFORE DELETE ON verified_sync_record\n            BEGIN SELECT RAISE(ABORT, 'verification evidence is append-only'); END"
+    },
+    {
+      "type": "trigger",
+      "name": "verified_record_no_update",
+      "sql": "CREATE TRIGGER verified_record_no_update\n            BEFORE UPDATE ON verified_sync_record\n            BEGIN SELECT RAISE(ABORT, 'verification evidence is append-only'); END"
+    }
+  ],
+  "statements": [
+    "CREATE TABLE action (\n    action_id     TEXT NOT NULL PRIMARY KEY,\n    actor_kind    TEXT NOT NULL,\n    actor_id      TEXT NOT NULL,\n    authority_ref TEXT NOT NULL,\n    decision_ref  TEXT,\n    context_json  TEXT NOT NULL,\n    timestamp     TEXT NOT NULL,\n    mode          TEXT NOT NULL,\n    target        TEXT,\n    FOREIGN KEY (authority_ref) REFERENCES authority(authority_id),\n    FOREIGN KEY (decision_ref) REFERENCES decision(decision_id)\n)",
+    "CREATE TABLE actor_signing_key (\n        actor_kind TEXT NOT NULL,\n        actor_id TEXT NOT NULL,\n        key_id TEXT NOT NULL,\n        public_key_base64 TEXT NOT NULL,\n        PRIMARY KEY (actor_kind, actor_id)\n    )",
+    "CREATE TABLE actor_signing_key_audit (\n        audit_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n        actor_kind TEXT NOT NULL,\n        actor_id TEXT NOT NULL,\n        key_id TEXT NOT NULL,\n        operation TEXT NOT NULL,\n        public_key_base64 TEXT,\n        occurred_at TEXT NOT NULL\n    )",
+    "CREATE TABLE authentication_binding (\n    unit_id TEXT NOT NULL,\n    provider_id TEXT NOT NULL,\n    provider_subject TEXT NOT NULL,\n    person_id TEXT NOT NULL,\n    linked_at TEXT NOT NULL,\n    PRIMARY KEY (unit_id, provider_id, provider_subject),\n    FOREIGN KEY (person_id) REFERENCES person(person_id)\n)",
+    "CREATE TABLE authority (\n    authority_id     TEXT NOT NULL PRIMARY KEY,\n    issuer_kind      TEXT NOT NULL,\n    issuer_id        TEXT NOT NULL,\n    subject_kind     TEXT NOT NULL,\n    subject_id       TEXT NOT NULL,\n    scope_json       TEXT NOT NULL,\n    context_json     TEXT NOT NULL,\n    basis_json       TEXT NOT NULL,\n    valid_from       TEXT NOT NULL,\n    valid_until      TEXT,\n    accountable_kind TEXT NOT NULL,\n    accountable_id   TEXT NOT NULL,\n    state            TEXT NOT NULL,\n    parent_authority_id TEXT REFERENCES authority(authority_id)\n)",
+    "CREATE TABLE authority_revocation (\n revocation_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n authority_id TEXT NOT NULL REFERENCES authority(authority_id),\n cascade_root TEXT NOT NULL REFERENCES authority(authority_id),\n actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL,\n reason TEXT NOT NULL, occurred_at TEXT NOT NULL\n)",
+    "CREATE TABLE consent (\n    consent_id TEXT NOT NULL PRIMARY KEY,\n    subject_person_id TEXT NOT NULL,\n    recipient_kind TEXT NOT NULL,\n    recipient_id TEXT NOT NULL,\n    purpose TEXT NOT NULL,\n    context_json TEXT NOT NULL,\n    scope_json TEXT NOT NULL,\n    notice TEXT NOT NULL,\n    affirmation TEXT NOT NULL,\n    granted_at TEXT NOT NULL,\n    valid_until TEXT,\n    revoked_at TEXT,\n    FOREIGN KEY (subject_person_id) REFERENCES person(person_id)\n)",
+    "CREATE TABLE core (\n    core_id     TEXT NOT NULL PRIMARY KEY,\n    name        TEXT NOT NULL,\n    created_at  TEXT NOT NULL,\n    state       TEXT NOT NULL\n)",
+    "CREATE TABLE core_exit_relation (\n relation_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),\n core_id TEXT NOT NULL REFERENCES core(core_id), kind TEXT NOT NULL, description TEXT NOT NULL,\n state TEXT NOT NULL CHECK(state IN ('ACTIVE','CLOSED')))",
+    "CREATE TABLE decision (\n    decision_id   TEXT NOT NULL PRIMARY KEY,\n    subject_kind  TEXT NOT NULL,\n    subject_id    TEXT NOT NULL,\n    intent_ref    TEXT NOT NULL,\n    options_json  TEXT NOT NULL,\n    chosen_option TEXT NOT NULL,\n    authority_ref TEXT NOT NULL,\n    timestamp     TEXT NOT NULL,\n    purpose       TEXT NOT NULL DEFAULT 'Execute mission action',\n    affected_persons_json TEXT NOT NULL DEFAULT '[]',\n    FOREIGN KEY (authority_ref) REFERENCES authority(authority_id)\n)",
+    "CREATE TABLE event (\n    event_id        TEXT NOT NULL PRIMARY KEY,\n    type            TEXT NOT NULL,\n    actor_kind      TEXT NOT NULL,\n    actor_id        TEXT NOT NULL,\n    timestamp       TEXT NOT NULL,\n    context_json    TEXT NOT NULL,\n    authority_ref   TEXT,\n    decision_ref    TEXT,\n    payload_json    TEXT NOT NULL,\n    result_ref      TEXT,\n    provenance_json TEXT NOT NULL,\n    content_hash    TEXT NOT NULL,\n    signature       TEXT,\n    corrects_event_id TEXT\n)",
+    "CREATE TABLE exit_archive (\n exit_id TEXT NOT NULL PRIMARY KEY REFERENCES exit_process(exit_id),\n document_json TEXT NOT NULL, sha256 TEXT NOT NULL)",
+    "CREATE TABLE exit_export_grant (\n person_id TEXT NOT NULL, core_id TEXT NOT NULL, kind TEXT NOT NULL, artifact_id TEXT NOT NULL,\n artifact_json TEXT NOT NULL, PRIMARY KEY(person_id, core_id, kind, artifact_id))",
+    "CREATE TABLE exit_governance_audit (\n id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, person_id TEXT NOT NULL, core_id TEXT NOT NULL,\n operation TEXT NOT NULL, actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL,\n authority_id TEXT NOT NULL, evidence TEXT NOT NULL, occurred_at TEXT NOT NULL)",
+    "CREATE TABLE exit_obligation (\n obligation_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),\n core_id TEXT NOT NULL REFERENCES core(core_id), description TEXT NOT NULL,\n state TEXT NOT NULL CHECK(state IN ('OPEN','RETAINED','FULFILLED')), resolution TEXT, resolved_at TEXT)",
+    "CREATE TABLE exit_process (\n exit_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),\n core_id TEXT NOT NULL REFERENCES core(core_id), requested_at TEXT NOT NULL,\n updated_at TEXT NOT NULL, stage TEXT NOT NULL)",
+    "CREATE TABLE exit_transition (\n exit_id TEXT NOT NULL REFERENCES exit_process(exit_id), stage TEXT NOT NULL,\n actor_id TEXT NOT NULL, occurred_at TEXT NOT NULL, PRIMARY KEY(exit_id, stage))",
+    "CREATE TABLE experience (\n    experience_id        TEXT NOT NULL PRIMARY KEY,\n    derived_events_json  TEXT NOT NULL,\n    context_json         TEXT NOT NULL,\n    what_was_tried        TEXT NOT NULL,\n    outcome               TEXT NOT NULL,\n    conclusion            TEXT NOT NULL,\n    applicability         TEXT NOT NULL,\n    confidence             TEXT NOT NULL,\n    provenance_json        TEXT NOT NULL\n)",
+    "CREATE TABLE historical_record_approval (\n event_id TEXT NOT NULL PRIMARY KEY, canonical_record TEXT NOT NULL,\n actor_kind TEXT NOT NULL, actor_id TEXT NOT NULL, key_id TEXT NOT NULL, public_key_base64 TEXT NOT NULL,\n target TEXT NOT NULL, operator_kind TEXT NOT NULL, operator_id TEXT NOT NULL, authority_id TEXT NOT NULL,\n purpose TEXT NOT NULL, approved_at TEXT NOT NULL, evidence_reference TEXT NOT NULL)",
+    "CREATE TABLE historical_record_revocation (\n event_id TEXT NOT NULL PRIMARY KEY REFERENCES historical_record_approval(event_id),\n target TEXT NOT NULL, operator_kind TEXT NOT NULL, operator_id TEXT NOT NULL, authority_id TEXT NOT NULL,\n purpose TEXT NOT NULL, revoked_at TEXT NOT NULL)",
+    "CREATE TABLE identity (\n    identity_id  TEXT NOT NULL PRIMARY KEY,\n    person_id    TEXT NOT NULL,\n    local_handle TEXT NOT NULL,\n    external_refs_json TEXT NOT NULL DEFAULT '[]',\n    FOREIGN KEY (person_id) REFERENCES person(person_id)\n)",
+    "CREATE TABLE knowledge (\n    knowledge_id             TEXT NOT NULL PRIMARY KEY,\n    statement                TEXT NOT NULL,\n    derived_experience_json  TEXT NOT NULL,\n    evidence_json            TEXT NOT NULL,\n    context_json             TEXT NOT NULL,\n    status                   TEXT NOT NULL,\n    version                  INTEGER NOT NULL DEFAULT 1,\n    supersedes               TEXT,\n    provenance_json          TEXT NOT NULL,\n    validated_by_kind        TEXT,\n    validated_by_id          TEXT\n)",
+    "CREATE TABLE local_credential (\n    unit_id TEXT NOT NULL,\n    provider_id TEXT NOT NULL DEFAULT 'local-passphrase',\n    login_handle TEXT NOT NULL,\n    salt_base64 TEXT NOT NULL,\n    hash_base64 TEXT NOT NULL,\n    iterations INTEGER NOT NULL,\n    failed_attempts INTEGER NOT NULL DEFAULT 0,\n    locked_until TEXT,\n    created_at TEXT NOT NULL,\n    revision INTEGER NOT NULL DEFAULT 1,\n    revoked_at TEXT,\n    PRIMARY KEY (unit_id, login_handle),\n    FOREIGN KEY (unit_id, provider_id, login_handle)\n        REFERENCES authentication_binding(unit_id, provider_id, provider_subject)\n    )",
+    "CREATE TABLE local_credential_audit (\n    audit_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n    unit_id TEXT NOT NULL,\n    login_handle TEXT NOT NULL,\n    revision INTEGER NOT NULL,\n    operation TEXT NOT NULL,\n    actor_person_id TEXT,\n    occurred_at TEXT NOT NULL,\n    FOREIGN KEY(unit_id, login_handle) REFERENCES local_credential(unit_id, login_handle)\n)",
+    "CREATE TABLE membership (\n    membership_id   TEXT NOT NULL PRIMARY KEY,\n    person_id       TEXT NOT NULL,\n    collective_kind TEXT NOT NULL,\n    collective_id   TEXT NOT NULL,\n    role_id         TEXT,\n    start_at        TEXT NOT NULL,\n    end_at          TEXT,\n    state           TEXT NOT NULL,\n    FOREIGN KEY (person_id) REFERENCES person(person_id)\n)",
+    "CREATE TABLE mission (\n    mission_id        TEXT NOT NULL PRIMARY KEY,\n    owner_kind        TEXT NOT NULL,\n    owner_id          TEXT NOT NULL,\n    intent            TEXT NOT NULL,\n    objectives_json   TEXT NOT NULL,\n    participants_json TEXT NOT NULL,\n    mode              TEXT NOT NULL,\n    state             TEXT NOT NULL\n)",
+    "CREATE TABLE owned_exit_evidence (\n evidence_id TEXT NOT NULL PRIMARY KEY, person_id TEXT NOT NULL REFERENCES person(person_id),\n core_id TEXT NOT NULL REFERENCES core(core_id), description TEXT NOT NULL,\n source_event_id TEXT, recorded_at TEXT NOT NULL)",
+    "CREATE TABLE person (\n    person_id   TEXT NOT NULL PRIMARY KEY,\n    created_at  TEXT NOT NULL\n)",
+    "CREATE TABLE provisioning_audit (\n    audit_id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n    target TEXT NOT NULL,\n    operation TEXT NOT NULL,\n    actor_kind TEXT NOT NULL,\n    actor_id TEXT NOT NULL,\n    authority_id TEXT NOT NULL,\n    purpose TEXT NOT NULL,\n    occurred_at TEXT NOT NULL\n)",
+    "CREATE TABLE relation_obligation (\n relation_id TEXT NOT NULL REFERENCES relation_terms(relation_id),\n obligation_id TEXT NOT NULL UNIQUE REFERENCES exit_obligation(obligation_id),\n PRIMARY KEY(relation_id, obligation_id))",
+    "CREATE TABLE relation_terms (\n relation_id TEXT NOT NULL PRIMARY KEY REFERENCES core_exit_relation(relation_id),\n terms_json TEXT NOT NULL, exit_policy TEXT NOT NULL)",
+    "CREATE TABLE result (\n    result_id   TEXT NOT NULL PRIMARY KEY,\n    action_id   TEXT NOT NULL,\n    description TEXT NOT NULL,\n    outcome     TEXT NOT NULL,\n    timestamp   TEXT NOT NULL,\n    FOREIGN KEY (action_id) REFERENCES action(action_id)\n)",
+    "CREATE TABLE right_record (\n    right_id TEXT NOT NULL PRIMARY KEY,\n    subject_kind TEXT NOT NULL,\n    subject_id TEXT NOT NULL,\n    right_type TEXT NOT NULL,\n    scope_json TEXT NOT NULL,\n    source TEXT NOT NULL,\n    status TEXT NOT NULL,\n    constraints_json TEXT NOT NULL\n)",
+    "CREATE TABLE sync_checkpoint (\n    peer_id TEXT NOT NULL PRIMARY KEY,\n    sent INTEGER NOT NULL,\n    received INTEGER NOT NULL\n)",
+    "CREATE TABLE sync_conflict (\n    entity_kind TEXT NOT NULL,\n    entity_id TEXT NOT NULL,\n    left_event_id TEXT NOT NULL REFERENCES event(event_id),\n    right_event_id TEXT NOT NULL REFERENCES event(event_id),\n    PRIMARY KEY(entity_kind, entity_id, left_event_id, right_event_id)\n)",
+    "CREATE TABLE sync_journal (\n    position INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,\n    event_id TEXT NOT NULL UNIQUE REFERENCES event(event_id),\n    record_json TEXT NOT NULL\n)",
+    "CREATE TABLE trusted_peer (\n    peer_id TEXT NOT NULL PRIMARY KEY,\n    policy_json TEXT NOT NULL,\n    credential_hash TEXT NOT NULL UNIQUE,\n    revision INTEGER NOT NULL,\n    active INTEGER NOT NULL\n)",
+    "CREATE TABLE verified_sync_record (\n event_id TEXT NOT NULL PRIMARY KEY REFERENCES event(event_id),\n canonical_record TEXT NOT NULL,\n actor_kind TEXT NOT NULL,\n actor_id TEXT NOT NULL,\n key_id TEXT NOT NULL,\n public_key_base64 TEXT NOT NULL,\n verified_at TEXT NOT NULL,\n historical_approval_target TEXT\n)",
+    "CREATE INDEX authority_parent_idx ON authority(parent_authority_id)",
+    "CREATE UNIQUE INDEX exit_one_open ON exit_process(person_id, core_id) WHERE stage != 'COMPLETED'",
+    "CREATE TRIGGER actor_signing_key_audit_no_delete\n            BEFORE DELETE ON actor_signing_key_audit\n            BEGIN SELECT RAISE(ABORT, 'actor signing key audit is append-only'); END",
+    "CREATE TRIGGER actor_signing_key_audit_no_update\n            BEFORE UPDATE ON actor_signing_key_audit\n            BEGIN SELECT RAISE(ABORT, 'actor signing key audit is append-only'); END",
+    "CREATE TRIGGER authority_ancestor_exit_insert BEFORE INSERT ON authority\nWHEN NEW.parent_authority_id IS NOT NULL\nAND NEW.state NOT IN ('REVOKED','COMPLETED','REJECTED','ABORTED','FAILED')\nAND EXISTS (\n WITH RECURSIVE ancestors(authority_id, parent_authority_id, issuer_kind, issuer_id, subject_kind, subject_id) AS (\n  SELECT authority_id, parent_authority_id, issuer_kind, issuer_id, subject_kind, subject_id\n  FROM authority WHERE authority_id = NEW.parent_authority_id\n  UNION\n  SELECT p.authority_id, p.parent_authority_id, p.issuer_kind, p.issuer_id, p.subject_kind, p.subject_id\n  FROM authority p JOIN ancestors a ON p.authority_id = a.parent_authority_id\n )\n SELECT 1 FROM ancestors a JOIN exit_process e ON e.stage != 'COMPLETED'\n WHERE NEW.accountable_kind = 'CORE' AND e.core_id = NEW.accountable_id\n AND ((a.issuer_kind = 'PERSON' AND a.issuer_id = e.person_id)\n OR (a.subject_kind = 'PERSON' AND a.subject_id = e.person_id)))\nBEGIN SELECT RAISE(ABORT, 'ancestor is exiting this Core'); END",
+    "CREATE TRIGGER authority_ancestor_exit_update BEFORE UPDATE ON authority\nWHEN NEW.parent_authority_id IS NOT NULL\nAND NEW.state NOT IN ('REVOKED','COMPLETED','REJECTED','ABORTED','FAILED')\nAND EXISTS (\n WITH RECURSIVE ancestors(authority_id, parent_authority_id, issuer_kind, issuer_id, subject_kind, subject_id) AS (\n  SELECT authority_id, parent_authority_id, issuer_kind, issuer_id, subject_kind, subject_id\n  FROM authority WHERE authority_id = NEW.parent_authority_id\n  UNION\n  SELECT p.authority_id, p.parent_authority_id, p.issuer_kind, p.issuer_id, p.subject_kind, p.subject_id\n  FROM authority p JOIN ancestors a ON p.authority_id = a.parent_authority_id\n )\n SELECT 1 FROM ancestors a JOIN exit_process e ON e.stage != 'COMPLETED'\n WHERE NEW.accountable_kind = 'CORE' AND e.core_id = NEW.accountable_id\n AND ((a.issuer_kind = 'PERSON' AND a.issuer_id = e.person_id)\n OR (a.subject_kind = 'PERSON' AND a.subject_id = e.person_id)))\nBEGIN SELECT RAISE(ABORT, 'ancestor is exiting this Core'); END",
+    "CREATE TRIGGER authority_exit_guard_insert BEFORE INSERT ON authority\nWHEN NEW.state NOT IN ('REVOKED','COMPLETED','REJECTED','ABORTED','FAILED')\nAND NEW.accountable_kind = 'CORE'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.accountable_id\nAND ((NEW.subject_kind = 'PERSON'\nAND e.person_id = NEW.subject_id)\nOR (NEW.issuer_kind = 'PERSON'\nAND e.person_id = NEW.issuer_id)))\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END",
+    "CREATE TRIGGER authority_exit_guard_update BEFORE UPDATE ON authority\nWHEN NEW.state NOT IN ('REVOKED','COMPLETED','REJECTED','ABORTED','FAILED')\nAND NEW.accountable_kind = 'CORE'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.accountable_id\nAND ((NEW.subject_kind = 'PERSON'\nAND e.person_id = NEW.subject_id)\nOR (NEW.issuer_kind = 'PERSON'\nAND e.person_id = NEW.issuer_id)))\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END",
+    "CREATE TRIGGER authority_lineage_terms_immutable BEFORE UPDATE ON authority\nWHEN (OLD.parent_authority_id IS NOT NULL OR EXISTS (\n SELECT 1 FROM authority child WHERE child.parent_authority_id = OLD.authority_id))\nAND (OLD.issuer_kind != NEW.issuer_kind OR OLD.issuer_id != NEW.issuer_id\n OR OLD.subject_kind != NEW.subject_kind OR OLD.subject_id != NEW.subject_id\n OR OLD.accountable_kind != NEW.accountable_kind OR OLD.accountable_id != NEW.accountable_id\n OR OLD.context_json != NEW.context_json OR OLD.scope_json != NEW.scope_json\n OR OLD.valid_from != NEW.valid_from OR OLD.valid_until IS NOT NEW.valid_until)\nBEGIN SELECT RAISE(ABORT, 'delegation terms are immutable; revoke and issue a new grant'); END",
+    "CREATE TRIGGER authority_parent_binding BEFORE INSERT ON authority\nWHEN NEW.parent_authority_id IS NOT NULL AND (\n NEW.parent_authority_id = NEW.authority_id OR NOT EXISTS (\n  SELECT 1 FROM authority p WHERE p.authority_id = NEW.parent_authority_id\n  AND p.subject_kind = NEW.issuer_kind AND p.subject_id = NEW.issuer_id\n  AND p.accountable_kind = NEW.accountable_kind AND p.accountable_id = NEW.accountable_id\n  AND p.context_json = NEW.context_json AND p.state = 'ACTIVE'))\nBEGIN SELECT RAISE(ABORT, 'invalid delegation parent'); END",
+    "CREATE TRIGGER authority_parent_immutable BEFORE UPDATE ON authority\nWHEN OLD.parent_authority_id IS NOT NEW.parent_authority_id\nBEGIN SELECT RAISE(ABORT, 'authority parent is immutable'); END",
+    "CREATE TRIGGER authority_revocation_no_delete BEFORE DELETE ON authority_revocation\nBEGIN SELECT RAISE(ABORT, 'authority revocation audit is append-only'); END",
+    "CREATE TRIGGER authority_revocation_no_update BEFORE UPDATE ON authority_revocation\nBEGIN SELECT RAISE(ABORT, 'authority revocation audit is append-only'); END",
+    "CREATE TRIGGER consent_no_unrevoke\n            BEFORE UPDATE OF revoked_at ON consent\n            WHEN OLD.revoked_at IS NOT NULL AND NEW.revoked_at IS NULL\n            BEGIN SELECT RAISE(ABORT, 'consent revocation is irreversible'); END",
+    "CREATE TRIGGER core_exit_relation_exit_guard_insert BEFORE INSERT ON core_exit_relation\nWHEN NEW.state = 'ACTIVE'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.core_id\nAND e.person_id = NEW.person_id)\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END",
+    "CREATE TRIGGER core_exit_relation_exit_guard_update BEFORE UPDATE ON core_exit_relation\nWHEN NEW.state = 'ACTIVE'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.core_id\nAND e.person_id = NEW.person_id)\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END",
+    "CREATE TRIGGER credential_audit_no_delete BEFORE DELETE ON local_credential_audit\nBEGIN SELECT RAISE(ABORT, 'credential audit is append-only'); END",
+    "CREATE TRIGGER credential_audit_no_update BEFORE UPDATE ON local_credential_audit\nBEGIN SELECT RAISE(ABORT, 'credential audit is append-only'); END",
+    "CREATE TRIGGER event_no_delete BEFORE DELETE ON event\nBEGIN SELECT RAISE(ABORT, 'event rows are append-only'); END",
+    "CREATE TRIGGER event_no_update BEFORE UPDATE ON event\nBEGIN SELECT RAISE(ABORT, 'event rows are append-only'); END",
+    "CREATE TRIGGER exit_archive_no_delete BEFORE DELETE ON exit_archive\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END",
+    "CREATE TRIGGER exit_archive_no_update BEFORE UPDATE ON exit_archive\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END",
+    "CREATE TRIGGER exit_governance_audit_no_delete BEFORE DELETE ON exit_governance_audit\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END",
+    "CREATE TRIGGER exit_governance_audit_no_update BEFORE UPDATE ON exit_governance_audit\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END",
+    "CREATE TRIGGER exit_obligation_exit_guard_insert BEFORE INSERT ON exit_obligation\nWHEN NEW.state = 'OPEN'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.core_id\nAND e.person_id = NEW.person_id)\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END",
+    "CREATE TRIGGER exit_obligation_exit_guard_update BEFORE UPDATE ON exit_obligation\nWHEN NEW.state = 'OPEN'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.core_id\nAND e.person_id = NEW.person_id)\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END",
+    "CREATE TRIGGER exit_transition_no_delete BEFORE DELETE ON exit_transition\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END",
+    "CREATE TRIGGER exit_transition_no_update BEFORE UPDATE ON exit_transition\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END",
+    "CREATE TRIGGER historical_record_approval_no_delete\nBEFORE DELETE ON historical_record_approval BEGIN SELECT RAISE(ABORT, 'historical governance is append-only'); END",
+    "CREATE TRIGGER historical_record_approval_no_update\nBEFORE UPDATE ON historical_record_approval BEGIN SELECT RAISE(ABORT, 'historical governance is append-only'); END",
+    "CREATE TRIGGER historical_record_revocation_no_delete\nBEFORE DELETE ON historical_record_revocation BEGIN SELECT RAISE(ABORT, 'historical governance is append-only'); END",
+    "CREATE TRIGGER historical_record_revocation_no_update\nBEFORE UPDATE ON historical_record_revocation BEGIN SELECT RAISE(ABORT, 'historical governance is append-only'); END",
+    "CREATE TRIGGER linked_obligation_no_delete\nBEFORE DELETE ON exit_obligation WHEN EXISTS (\nSELECT 1 FROM relation_obligation WHERE obligation_id = OLD.obligation_id)\nBEGIN SELECT RAISE(ABORT, 'agreement obligations are retained'); END",
+    "CREATE TRIGGER linked_obligation_no_rewrite\nBEFORE UPDATE ON exit_obligation WHEN EXISTS (\nSELECT 1 FROM relation_obligation WHERE obligation_id = OLD.obligation_id)\nAND (NEW.obligation_id != OLD.obligation_id OR NEW.person_id != OLD.person_id OR NEW.core_id != OLD.core_id\nOR NEW.description != OLD.description OR (OLD.state = 'RETAINED' AND NEW.state = 'OPEN')\nOR (OLD.state = 'FULFILLED' AND NEW.state != 'FULFILLED'))\nBEGIN SELECT RAISE(ABORT, 'agreement obligations cannot be rewritten'); END",
+    "CREATE TRIGGER membership_exit_guard_insert BEFORE INSERT ON membership\nWHEN NEW.state = 'ACTIVE'\nAND NEW.collective_kind = 'CORE'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.collective_id\nAND e.person_id = NEW.person_id)\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END",
+    "CREATE TRIGGER membership_exit_guard_update BEFORE UPDATE ON membership\nWHEN NEW.state = 'ACTIVE'\nAND NEW.collective_kind = 'CORE'\nAND EXISTS (SELECT 1 FROM exit_process e WHERE e.stage != 'COMPLETED'\nAND e.core_id = NEW.collective_id\nAND e.person_id = NEW.person_id)\nBEGIN SELECT RAISE(ABORT, 'cannot add live commitments during exit'); END",
+    "CREATE TRIGGER owned_exit_evidence_no_delete BEFORE DELETE ON owned_exit_evidence\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END",
+    "CREATE TRIGGER owned_exit_evidence_no_update BEFORE UPDATE ON owned_exit_evidence\nBEGIN SELECT RAISE(ABORT, 'exit history is append-only'); END",
+    "CREATE TRIGGER provisioning_audit_no_delete\nBEFORE DELETE ON provisioning_audit\nBEGIN SELECT RAISE(ABORT, 'provisioning audit is append-only'); END",
+    "CREATE TRIGGER provisioning_audit_no_update\nBEFORE UPDATE ON provisioning_audit\nBEGIN SELECT RAISE(ABORT, 'provisioning audit is append-only'); END",
+    "CREATE TRIGGER relation_obligation_no_delete\nBEFORE DELETE ON relation_obligation BEGIN SELECT RAISE(ABORT, 'relation terms are immutable'); END",
+    "CREATE TRIGGER relation_obligation_no_update\nBEFORE UPDATE ON relation_obligation BEGIN SELECT RAISE(ABORT, 'relation terms are immutable'); END",
+    "CREATE TRIGGER relation_terms_no_delete\nBEFORE DELETE ON relation_terms BEGIN SELECT RAISE(ABORT, 'relation terms are immutable'); END",
+    "CREATE TRIGGER relation_terms_no_update\nBEFORE UPDATE ON relation_terms BEGIN SELECT RAISE(ABORT, 'relation terms are immutable'); END",
+    "CREATE TRIGGER sync_conflict_no_delete BEFORE DELETE ON sync_conflict\nBEGIN SELECT RAISE(ABORT, 'conflicts are historical facts'); END",
+    "CREATE TRIGGER sync_conflict_no_update BEFORE UPDATE ON sync_conflict\nBEGIN SELECT RAISE(ABORT, 'conflicts are historical facts'); END",
+    "CREATE TRIGGER sync_journal_no_delete BEFORE DELETE ON sync_journal\nBEGIN SELECT RAISE(ABORT, 'sync history is append-only'); END",
+    "CREATE TRIGGER sync_journal_no_update BEFORE UPDATE ON sync_journal\nBEGIN SELECT RAISE(ABORT, 'sync history is append-only'); END",
+    "CREATE TRIGGER typed_relation_no_delete\nBEFORE DELETE ON core_exit_relation WHEN EXISTS (\nSELECT 1 FROM relation_terms WHERE relation_id = OLD.relation_id)\nBEGIN SELECT RAISE(ABORT, 'typed relation history is retained'); END",
+    "CREATE TRIGGER typed_relation_no_rewrite\nBEFORE UPDATE ON core_exit_relation WHEN EXISTS (\nSELECT 1 FROM relation_terms WHERE relation_id = OLD.relation_id)\nAND (NEW.relation_id != OLD.relation_id OR NEW.person_id != OLD.person_id OR NEW.core_id != OLD.core_id\nOR NEW.kind != OLD.kind OR NEW.description != OLD.description OR OLD.state = 'CLOSED')\nBEGIN SELECT RAISE(ABORT, 'typed relation cannot be rewritten or reopened'); END",
+    "CREATE TRIGGER verified_record_no_delete\n            BEFORE DELETE ON verified_sync_record\n            BEGIN SELECT RAISE(ABORT, 'verification evidence is append-only'); END",
+    "CREATE TRIGGER verified_record_no_update\n            BEFORE UPDATE ON verified_sync_record\n            BEGIN SELECT RAISE(ABORT, 'verification evidence is append-only'); END"
+  ],
+  "sources": [
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/AgreementJsonMapping.kt",
+      "sha256": "b1564b8844543161a4b93272e56c0295ffc10a42d084907ebd647fb7e47b4bc0"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/AuthorityBasisJsonMapping.kt",
+      "sha256": "64814acd9ebb3d9ed5797348dde4386d67222b3130c77579fa526a5030e00124"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/AuthorityLineageSchemaCompatibility.kt",
+      "sha256": "d03c2624b721c864ec9c3262386f649ee964df11fdb997c7f5ddd9e016614ef4"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/ExitArchiveMapping.kt",
+      "sha256": "55be314a71be570519357f90d0b071931ab0d4049a9b47c854cf7a061b87194f"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/ExitArtifactMapping.kt",
+      "sha256": "3ae38a3a2b42a57c24a512e15ac5049ebb5a25575b1563d2ea7fdbe89472c536"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/ExitEventMapping.kt",
+      "sha256": "8cca986784722bd29bed92dc0219b32dff53edc2ec2efe3c3a4c2beb98606303"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/ExitSchemaCompatibility.kt",
+      "sha256": "08a38dff95bc0f60673d326437abd0a7765e2eb00e59dd80931bfabad201e609"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/HistoricalApprovalSchemaCompatibility.kt",
+      "sha256": "a547b83fb337a94ce9a46242cb48adb8ac4865425951f3578e15a37b06cd3462"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/JsonMapping.kt",
+      "sha256": "36152134e4ff9768284029bcdf8e938027857420a0de2896c71dfb59e63ab8e8"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/LocalCredentialLifecycleSchema.kt",
+      "sha256": "d09999639c5c786b4eaee355e85f7738e2717edbcd56c6a18858c09dc5cdbdbb"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/LocalExitEventRecorder.kt",
+      "sha256": "0acc0d05c6f297aa13ff6cf43c3a67e0f456e87db7e151017c61169a09fb5d50"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/LocalPassphraseAuthenticationProvider.kt",
+      "sha256": "a352b1f451d40dae798efa9fe2bc4d27c96df2dda67d695e7f00b636aef5312a"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/PayloadJsonMapping.kt",
+      "sha256": "53ed7e75827b19428ab769c30ad4e036577737c1828ce5f39ec8193f4ac84a13"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/PeerPolicyJson.kt",
+      "sha256": "c8b9b6a0cb43b27fcb2a5ad78032fc4424bdb4e080c640a69e9b3cd875273954"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/PeerTrustSchemaCompatibility.kt",
+      "sha256": "8c85fc31b272eb21222bdbbc625eafb84ad9fcbeaa71a183897f73c29ed34ccc"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/RelationInventorySchemaCompatibility.kt",
+      "sha256": "ee94f56a5429ba24a4d231d13c8eb8459341a8e952ebe9eee20d006e5faa53ad"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/SqlDelightAuthenticationRepository.kt",
+      "sha256": "5d3be721589ee6da38fd1a8857f28740781bdbe5ca5145b1a8f3973761bf2d14"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/SqlDelightAuthorityRepository.kt",
+      "sha256": "ac332dbe2e6d2f96eaf5719d7e9671d44c96329b48c24f716e7407d94344774f"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/SqlDelightExitInventoryRepository.kt",
+      "sha256": "6db9730a689488444653196bec3041431a54bc054617c0ae5544de795e0b380c"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/SqlDelightExitRepository.kt",
+      "sha256": "7970154e914d37b93d299b84c9ba44f6ba064e450dce58c0776501aa6a128586"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/SqlDelightExitScopeRepository.kt",
+      "sha256": "c1168a2d6494b5298b5968753475ee13ad4f764c5c265dce880700b8b6078d89"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/SqlDelightHistoricalApprovalRepository.kt",
+      "sha256": "aaa6b927d4388bb03b6003461d60976d19198b6f3da8b40e53d7b0d5de1b84e0"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/SqlDelightLocalCredentialLifecycleRepository.kt",
+      "sha256": "e1a0267ca5b796ce6185dc29eb883c0c7a2411b9c54ed81a08143b0036f0dd26"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/SqlDelightPeerTrustRepository.kt",
+      "sha256": "db31434f994347dd1924a1f4385bf86cd1fb07d1928fc203d321c0f1511d5fa8"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/SqlDelightRelationInventory.kt",
+      "sha256": "7fb9c004f69b2ee795dbb3d4fe3a87ea74d0ada3555d39fd04d3df4a2a8c4de4"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/SqlDelightRepositories.kt",
+      "sha256": "d944c34b8345c77a93d6b1cda96038ac55763011dd6816aaa3789275d98706fa"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/SqlDelightSyncRepository.kt",
+      "sha256": "68ba3c49e8dc00df2eece8a22de02ba9337d7dc6a2fe2b163ad3ffbed10f3198"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/SqlDelightVerifiedRecordRepository.kt",
+      "sha256": "f662c90f2cdbe4e48e4370a94df085782939db0c5484ccea87f6333d0ee7dc56"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/SyncSchemaCompatibility.kt",
+      "sha256": "f8317e28aaf53fe19171d960befcc079ad158f92d31d0bfe52cde4cb63698340"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/ValueJsonMapping.kt",
+      "sha256": "3d383a3ee4918e5f432b4c0d13f6a04100d26b9814d3eea2c47db7403ca1bd9e"
+    },
+    {
+      "path": "persistence/src/main/kotlin/sotaos/persistence/VerifiedRecordSchemaCompatibility.kt",
+      "sha256": "85729ccdf0f2332d50df0d54544a9df4c4005e7f907cbe6e33a3095492a9f367"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/AuthorityLineage.sq",
+      "sha256": "046b40861e9b98b89ad8cee7df5a7780f79ca64eff5972538d2ed38af9bd9f9a"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/Exit.sq",
+      "sha256": "16ef5b765fc5e2092dba692e78443d0f9387551c6be8323a9490df4cde4ad533"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/HistoricalApproval.sq",
+      "sha256": "ccc8006e55c4cfca4aff923942dda3b401f170a0efd0d1bd7529891c50cc45d4"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/LocalCredentialLifecycle.sq",
+      "sha256": "063985d903d35399de50c9c4ab4599eda945a39344d72ed108a69b2c0ee9bcff"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/PeerTrust.sq",
+      "sha256": "dc60dcddbc42bc7cd0733a4a33aaa0736c07c2e75d566cde5772264bad3d5233"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/RelationInventory.sq",
+      "sha256": "c9186f532b7a208c7635bccbf5ea638a3a08c2d3f1a85841861ff55e9190e018"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/Schema.sq",
+      "sha256": "79283cb6ba4dd5085fc3ce86843aee1530c9843cad1e4d804e7d41c99e44f89f"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/Sync.sq",
+      "sha256": "bba9c06ac5bfa93766075dbb3984580fad10ca2d540e7217ac162f924a76bfc8"
+    },
+    {
+      "path": "persistence/src/main/sqldelight/sotaos/persistence/VerifiedRecord.sq",
+      "sha256": "3ee9616aba192fdc82b1b323997e2678e3d9f2b60bd5e951b231cfc29f385d48"
+    },
+    {
+      "path": "test/src/test/kotlin/sotaos/test/p09/HistoricalApprovalFixtures.kt",
+      "sha256": "824dbb199cbd96c4db4f9cac44e3a09242fe56dcf06c4937eac262ad5fe0e311"
+    },
+    {
+      "path": "test/src/test/kotlin/sotaos/test/p09/ProductionFixtures.kt",
+      "sha256": "c222f4347aebeee7f585813cec2a7cc48eb46c303e0d982e2d5b5a067b2cca08"
+    }
+  ],
+  "authoring": {
+    "path": "scripts/historical-runtime/CaptureRuntime.kt",
+    "sha256": "5bbee81a1c4c7f68c86e425c18e060096ef721a3ccc4666edbf86c3a39ce8979"
+  }
+}
