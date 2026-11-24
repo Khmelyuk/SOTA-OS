@@ -1,5 +1,11 @@
 # Traceability Matrix — Code ↔ Specification
 
+P09 bundle comparison update 2026-11-24: [ADR-029](adr/ADR-029-p09-tls-bundle-comparison.md)
+adds read-only current/staged TLS comparison under ADR-015/017/028. Six API tests and
+the real CLI smoke cover certificate/trust deltas, stable node settings, invalid
+candidate/recovery material and unchanged files. Recovery remains operator-driven:
+recheck the previous bundle and verify authenticated exchange after restart.
+
 P09 certificate diagnostics update 2026-11-24: ADR-028 extends ADR-015/017's local
 material preflight with alias-sorted leaf fingerprints, UTC validity and an advisory
 30-day renewal window. P09CertificatePreflightTest and the CLI smoke verify exact

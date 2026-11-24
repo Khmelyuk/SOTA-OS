@@ -68,9 +68,9 @@ private fun parseArguments(args: Array<String>): Arguments {
     return Arguments(command, subcommand, databasePath, options)
 }
 
-private fun printHelp() {
-    println(
-        """
+private fun printHelp() = println(HELP_TEXT)
+
+private val HELP_TEXT = """
         SOTA OS local CLI
 
         Usage:
@@ -115,6 +115,8 @@ private fun printHelp() {
           sync run|serve|once --config PATH
                  Load versioned non-secret node settings; no CLI overrides. Secrets remain in environment.
                  Optional config field reload-config=true reloads scheduling at each status interval.
+          sync compare --config CURRENT --candidate STAGED
+                 Compare locally valid TLS bundles; shared password. No replacement or peer verification.
           research setup --handle HANDLE [--db PATH]
                  Create a new local research Core and a 24-hour research authority after confirmation.
           research import|search|argument|report|draft|approve|fetch-moltbook|revoke
@@ -124,5 +126,3 @@ private fun printHelp() {
         The default database path is ${'$'}XDG_DATA_HOME/sota-os/sota-os.db,
         or ~/.local/share/sota-os/sota-os.db when XDG_DATA_HOME is unset.
         """.trimIndent()
-    )
-}

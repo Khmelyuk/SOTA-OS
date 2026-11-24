@@ -9,6 +9,7 @@ import java.util.Date
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
+import javax.net.ssl.X509TrustManager
 
 /** Explicit PKCS12 key/trust material; no trust-all manager or hostname-verification bypass. */
 object P09Tls {
@@ -38,11 +39,19 @@ object P09Tls {
         return SSLContext.getInstance("TLS").also { it.init(keys.keyManagers, null, null) }
     }
 
-    fun client(path: Path, password: CharArray): SSLContext {
+    fun client(path: Path, password: CharArray): SSLContext = clientContext(path, password, null)
+
+    /** Fingerprints of effective X.509 trust anchors, not proof that any remote chain is accepted. */
+    fun clientWithDiagnostics(path: Path, password: CharArray, report: (List<String>) -> Unit): SSLContext =
+        clientContext(path, password, report)
+
+    private fun clientContext(path: Path, password: CharArray, report: ((List<String>) -> Unit)?): SSLContext {
         val store = load(path, password)
         require(store.size() > 0) { "An explicit TLS trust store is required." }
         val trust = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
         trust.init(store)
+        report?.invoke(trust.trustManagers.filterIsInstance<X509TrustManager>()
+            .flatMap { it.acceptedIssuers.toList() }.map(::certificateFingerprint).distinct().sorted())
         return SSLContext.getInstance("TLS").also { it.init(null, trust.trustManagers, null) }
     }
 

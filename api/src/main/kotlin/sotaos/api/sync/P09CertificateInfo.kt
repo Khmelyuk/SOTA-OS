@@ -28,9 +28,10 @@ internal fun certificateInfo(alias: String, certificate: X509Certificate, at: In
         remaining <= Duration.ofDays(RENEWAL_WARNING_DAYS) -> P09CertificateState.RENEW_SOON
         else -> P09CertificateState.VALID
     }
-    val digest = MessageDigest.getInstance("SHA-256").digest(certificate.encoded)
-        .joinToString("") { "%02x".format(it) }
-    return P09CertificateInfo(alias, digest, start, end, at, remaining.seconds, state)
+    return P09CertificateInfo(alias, certificateFingerprint(certificate), start, end, at, remaining.seconds, state)
 }
+
+internal fun certificateFingerprint(certificate: X509Certificate): String =
+    MessageDigest.getInstance("SHA-256").digest(certificate.encoded).joinToString("") { "%02x".format(it) }
 
 const val RENEWAL_WARNING_DAYS = 30L

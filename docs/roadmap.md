@@ -1,7 +1,7 @@
 # Development roadmap — updated 2026-11-24
 
-Published baseline before this increment: GitHub `main` at `9ac83da`
-(historical P10 exit and obligation migration acceptance), with successful CI. The earlier integration
+Published baseline before this increment: GitHub `main` at `7c70fc3`
+(P09 local certificate-expiry diagnostics), with successful CI. The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
@@ -17,6 +17,8 @@ tracks the integrated implementation and subsequent bounded increments.
   rotation (ADR-003a/011/012/015/016/017).
 - Local server certificate inventory, fingerprint/validity diagnostics and advisory
   30-day renewal warning in `sync check`, with strict expired/future denial (ADR-028).
+- Read-only current/staged TLS bundle comparison with certificate/trust fingerprint
+  deltas, stable node settings and explicit operator recovery checks (ADR-029).
 - Signed P05 Action/Result and P07 Experience/Knowledge producers, including
   human validation/deprecation, and a reproducible two-node HTTPS rehearsal.
 - P08 persisted invitations, target-collective issuance, exact-record lifecycle
@@ -75,7 +77,7 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 |---|---|---|
 | Done 2026-11-18 | Signed P07 Experience/Knowledge producers | Exact persisted source checks, full signed snapshots, causal parents, local non-Agent governance, atomic entity/Event/journal/receipt writes; SignedMemory acceptance tests and ten-record HTTPS rehearsal. Host authentication remains required; see ADR-019 |
 | 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state checks, P05 mode propagation, local P07 lifecycle audit, explicit Knowledge revision and Decision/Mission snapshot binding implemented under ADR-020/021/022/023/024/025/026/027. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/numeric revision/mode-change governance and P07 validation mandates/general branch-conflict governance |
-| 3 — in progress | P09 operational lifecycle | Certificate-expiry diagnostics and advisory renewal warnings implemented under ADR-028. Next: current/staged bundle comparison and explicit recovery checks. Governed renewal/configuration changes, deployment runbooks and automated historical attestations still require their respective policies |
+| 3 — in progress | P09 operational lifecycle | Certificate-expiry diagnostics and current/staged bundle comparison implemented under ADR-028/029. Next: independent current/candidate TLS password sources for staged password changes. Governed renewal/configuration changes and automated historical attestations still require their respective policies |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
 | 5 — in progress | Broader persistence and release acceptance | Four pinned profiles and 20 migration tests implemented, including signed key/receipt/peer and populated P10 history. Remaining: additional historical states, versioned release migrations, further failure points, missing conformance tests, public API/GUI scope and release evidence |
 
@@ -141,9 +143,11 @@ resumption, signed-history and failure/retry checks. Broader opening-failure cov
 and versioned release migrations remain separate work.
 P09 certificate-expiry diagnostics now report all configured server leaves with
 fingerprints, exact validity and an advisory 30-day window; invalid dates still fail.
-Next functional increment: compare current and staged TLS bundles before replacement
-and verify operator recovery steps. Issuer selection and automatic issuance remain
-separate decisions; diagnostics do not establish remote acceptance.
+Current/staged TLS bundle comparison now reports leaf/trust deltas and checks previous
+material locally; the runbook requires revalidation and authenticated exchange during recovery.
+Next functional increment: independent current/candidate TLS password sources for staged
+password changes. Issuer selection and automatic issuance remain separate decisions;
+local comparison does not establish remote acceptance.
 Keep P05 participation and collective mandate decisions explicit; do not infer a
 quorum or Mission ownership authority from the current model. P09 operational
 lifecycle and extended P10 settlement remain the subsequent functional tracks.

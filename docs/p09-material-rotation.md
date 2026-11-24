@@ -76,6 +76,34 @@ alias a future handshake will select. It does not prove remote trust, hostname
 acceptance, revocation status or peer authorization. See
 [ADR-028](adr/ADR-028-p09-certificate-diagnostics.md) for the contract and evidence.
 
+## Compare current and staged bundles
+
+For a TLS-only replacement using the same password, run:
+
+```text
+api sync compare --config /private/sota/releases/current/node.conf --candidate /private/sota/releases/new/node.conf
+```
+
+Both files must be full `sync run` configurations with identical resolved settings
+except `keystore` and `truststore`. Relative paths resolve against each configuration's
+directory, so both database paths must resolve to the same path. Explicit defaults
+must match too. Other flags and `--db` overrides are rejected. Both bundles use the
+same existing TLS password source; independent candidate passwords are not yet supported.
+
+After both bundles pass local validation, one `P09 TLS comparison ` JSON record
+reports both server-leaf inventories and client-trust fingerprints, plus sorted
+`added`, `removed` and `retained` fingerprint sets. Trust additions and removals
+need operator review on both peers; the command does not approve a trust policy.
+Duplicate certificate fingerprints are collapsed in sets; aliases remain visible
+in the leaf inventories. The record contains public metadata only.
+
+`currentRecovery=LOCAL_MATERIAL_VALID` means the previous bundle passed local
+checks at the reported time. It does not guarantee later recovery, remote trust,
+hostname acceptance or an authenticated exchange. If either bundle is invalid,
+comparison fails without a success record; run `sync check` separately to diagnose it.
+Keep versioned files stable: comparison observes supplied files, not the running
+process's loaded context. Details: [ADR-029](adr/ADR-029-p09-tls-bundle-comparison.md).
+
 ## TLS replacement sequence
 
 1. Obtain replacement TLS material through your existing trusted issuer/operator.
@@ -83,14 +111,19 @@ acceptance, revocation status or peer authorization. See
    switching servers; for the same trusted CA, a client trust change may be unnecessary.
 2. Stage the server key/certificate, truststore, password and configuration together
    under versioned paths. Keep the previous valid bundle available for rollback.
-3. Run `sync check` with the candidate environment/configuration. Resolve validation
+3. Run `sync check` with the candidate environment/configuration, then `sync compare`
+   against the previous bundle when both use the same password. Review the leaf and
+   client-trust changes on both peers. Resolve validation
    errors before stopping the current node. The running process keeps its loaded TLS
    context while files are staged.
 4. Stop the old host cleanly. Start `sync run --config ...` with the candidate bundle,
    the same database and node/actor IDs. Do not run two hosts over the same SQLite file.
-5. Verify a successful exchange in status/metrics on each side. On failure, stop the
-   candidate and restart with the previous still-valid bundle; never disable trust or
-   hostname verification. Journals/checkpoints survive either restart.
+5. Verify a successful exchange and journal checkpoints in status/metrics on each side.
+   On failure, stop the candidate, rerun `sync check` with the previous environment
+   and configuration, and restart with that still-valid bundle. If the previous material
+   has expired or no longer works with peer trust, obtain valid material and coordinate
+   trust recovery; never disable trust or hostname verification. Confirm an authenticated
+   exchange after recovery. Journals/checkpoints survive either restart.
 
 There is no live SSLContext swap, certificate issuance, ACME client or expiry daemon.
 Rejected TLS connections do not advance the local sync checkpoint. Local preflight
@@ -130,6 +163,11 @@ asserting that the SQLite file remains byte-for-byte unchanged.
 renewal boundaries, invalid material, escaped aliases and read-only/secret-safe output.
 The CLI smoke also checks the real certificate fingerprint and renewal hint, and
 requires nonzero exit for expired and not-yet-valid replacement certificates.
+
+`P09MaterialComparisonTest` adds six cases for fingerprint deltas, overlapping/removed
+trust, stable node settings, invalid material and read-only comparison. The CLI smoke
+also compares real unchanged/replaced bundles, rejects configuration drift/overrides
+and invalid dates in either bundle, and verifies unchanged files with an occupied port.
 
 Verification — 2026-10-07: full JDK 21 build, Detekt, migrations and 206 tests
 passed with no failures/errors/skips. Extended CLI smoke passed.

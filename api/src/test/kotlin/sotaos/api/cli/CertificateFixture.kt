@@ -8,7 +8,7 @@ import java.security.MessageDigest
 import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
 
-internal class CertificateFixture : AutoCloseable {
+internal class CertificateFixture(validityDays: Int = 90) : AutoCloseable {
     val directory: Path = Files.createTempDirectory("sota-certificate-check-")
     val server: Path = directory.resolve("server.p12")
     val trustOnly: Path = directory.resolve("trust-only.p12")
@@ -22,7 +22,8 @@ internal class CertificateFixture : AutoCloseable {
 
     init {
         val command = listOf(Path.of(System.getProperty("java.home"), "bin", "keytool").toString(),
-            "-genkeypair", "-alias", "server", "-keyalg", "EC", "-groupname", "secp256r1", "-validity", "90",
+            "-genkeypair", "-alias", "server", "-keyalg", "EC", "-groupname", "secp256r1",
+            "-validity", validityDays.toString(),
             "-dname", "CN=localhost", "-ext", "SAN=dns:localhost", "-storetype", "PKCS12",
             "-keystore", server.toString(), "-storepass", String(password), "-noprompt")
         val process = ProcessBuilder(command).redirectOutput(ProcessBuilder.Redirect.DISCARD)

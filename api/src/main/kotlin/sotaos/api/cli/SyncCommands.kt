@@ -18,6 +18,10 @@ import java.util.UUID
 
 /** Node host configuration is trusted local input. Provisioning remains a separate governed operation. */
 internal fun runSyncCommand(input: Arguments) {
+    if (input.subcommand == "compare") {
+        compareSyncMaterial(input)
+        return
+    }
     if (input.subcommand == "check") {
         require(input.databasePath == null && input.options.keys == setOf("config")) {
             "Use sync check --config PATH with a full sync run configuration."

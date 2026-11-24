@@ -28,7 +28,9 @@ internal fun checkSyncMaterial(arguments: Arguments, secrets: P09Secrets = P09Se
     output("P09 local configuration and TLS/credential material are readable; no peer exchange performed.")
 }
 
-private fun certificateJson(certificate: P09CertificateInfo): String = buildJsonObject {
+internal fun certificateJson(certificate: P09CertificateInfo): String = certificateMetadata(certificate).toString()
+
+internal fun certificateMetadata(certificate: P09CertificateInfo): JsonObject = buildJsonObject {
     put("alias", certificate.alias)
     put("sha256", certificate.sha256)
     put("notBefore", certificate.notBefore.toString())
@@ -36,4 +38,4 @@ private fun certificateJson(certificate: P09CertificateInfo): String = buildJson
     put("observedAt", certificate.observedAt.toString())
     put("secondsRemaining", certificate.secondsRemaining)
     put("state", certificate.state.name)
-}.toString()
+}

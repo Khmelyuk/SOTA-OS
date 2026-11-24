@@ -108,6 +108,48 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
     assert b'P09 TLS renewal:' in checked.stdout
     assert env['SOTA_P09_TLS_PASSWORD'].encode() not in checked.stdout + checked.stderr
     assert env['SOTA_P09_PEER_TOKEN'].encode() not in checked.stdout + checked.stderr
+    compare_command = java + ['sync', 'compare', '--config', str(config), '--candidate', str(config)]
+    with socket.socket() as occupied:
+        occupied.bind(('127.0.0.1', port))
+        compared = subprocess.run(compare_command, env=file_env, capture_output=True, timeout=15)
+        assert compared.returncode == 0, 'Comparison must not bind the occupied listener port'
+    comparison_prefix = 'P09 TLS comparison '
+    comparison = json.loads(compared.stdout.decode().splitlines()[0][len(comparison_prefix):])
+    for field in ('serverLeaves', 'clientTrust'):
+        assert comparison[field] == {'added': [], 'removed': [], 'retained': [diagnostic['sha256']]}
+    assert comparison['currentRecovery'] == 'LOCAL_MATERIAL_VALID'
+    replacement = folder/'replacement.p12'
+    replacement_pem = folder/'replacement.pem'
+    subprocess.run([keytool, '-genkeypair', '-alias', 'replacement', '-keyalg', 'EC', '-groupname', 'secp256r1',
+                    '-validity', '2', '-dname', 'CN=localhost', '-ext', 'SAN=dns:localhost',
+                    '-storetype', 'PKCS12', '-keystore', str(replacement),
+                    '-storepass:env', 'SOTA_P09_TLS_PASSWORD', '-noprompt'],
+                   env=env, check=True, capture_output=True, timeout=30)
+    subprocess.run([keytool, '-exportcert', '-rfc', '-alias', 'replacement', '-keystore', str(replacement),
+                    '-storepass:env', 'SOTA_P09_TLS_PASSWORD', '-file', str(replacement_pem)],
+                   env=env, check=True, capture_output=True, timeout=30)
+    staged_config = folder/'staged.conf'
+    staged_settings = dict(settings, keystore=replacement.name, truststore=replacement.name)
+    staged_config.write_text('version=1\n' + '\n'.join(key+'='+value for key, value in staged_settings.items()))
+    replacement_hash = hashlib.sha256(ssl.PEM_cert_to_DER_cert(replacement_pem.read_text())).hexdigest()
+    compared_paths = (database, keystore, replacement, config, staged_config, password_file, token_file)
+    snapshots = {path: hashlib.sha256(path.read_bytes()).digest() for path in compared_paths}
+    compared = subprocess.run(compare_command[:-1] + [str(staged_config)], env=file_env,
+                              capture_output=True, timeout=15)
+    assert compared.returncode == 0
+    comparison = json.loads(compared.stdout.decode().splitlines()[0][len(comparison_prefix):])
+    for field in ('serverLeaves', 'clientTrust'):
+        assert comparison[field] == {'added': [replacement_hash], 'removed': [diagnostic['sha256']], 'retained': []}
+    assert comparison['candidate']['serverLeaves'][0]['sha256'] == replacement_hash
+    assert env['SOTA_P09_TLS_PASSWORD'].encode() not in compared.stdout + compared.stderr
+    assert env['SOTA_P09_PEER_TOKEN'].encode() not in compared.stdout + compared.stderr
+    assert {path: hashlib.sha256(path.read_bytes()).digest() for path in compared_paths} == snapshots
+    drift_config = folder/'drift.conf'
+    drift_config.write_text(staged_config.read_text().replace('node=smoke-node', 'node=another-node'))
+    for command_suffix in ([str(drift_config)], [str(staged_config), '--db', str(database)]):
+        rejected = subprocess.run(compare_command[:-1] + command_suffix, env=file_env,
+                                  capture_output=True, timeout=15)
+        assert rejected.returncode != 0 and comparison_prefix.encode() not in rejected.stdout
     for state, start in (('EXPIRED', '-2d'), ('NOT_YET_VALID', '+1d')):
         invalid_store = folder / (state.lower() + '.p12')
         subprocess.run([keytool, '-genkeypair', '-alias', 'p09', '-keyalg', 'EC', '-groupname', 'secp256r1',
@@ -127,6 +169,12 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
         assert b'P09 local configuration' not in rejected.stdout
         assert b'P09 TLS renewal:' not in rejected.stdout
         assert hashlib.sha256(database.read_bytes()).digest() == before
+        for current_path, candidate_path in ((config, invalid_dates), (invalid_dates, config)):
+            rejected = subprocess.run(java + ['sync', 'compare', '--config', str(current_path),
+                                             '--candidate', str(candidate_path)],
+                                      env=file_env, capture_output=True, timeout=15)
+            assert rejected.returncode != 0 and comparison_prefix.encode() not in rejected.stdout
+            assert hashlib.sha256(database.read_bytes()).digest() == before
     ambiguous = dict(file_env, SOTA_P09_PEER_TOKEN='must-not-fallback')
     failed = subprocess.run(check_command, env=ambiguous, capture_output=True, timeout=15)
     assert failed.returncode != 0
@@ -237,4 +285,4 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
     import sqlite3
     with sqlite3.connect(database) as db:
         assert db.execute('SELECT count(*) FROM sync_journal').fetchone()[0] == 0
-    print('CLI status smoke passed: validation, periodic output, secrets excluded, SIGTERM, restart, default quiet mode, configuration file, inbound JSON metrics, file secrets, read-only certificate diagnostics, invalid certificate denial, live scheduling reload.')
+    print('CLI status smoke passed: validation, periodic output, secrets excluded, SIGTERM, restart, default quiet mode, configuration file, inbound JSON metrics, file secrets, read-only certificate diagnostics and bundle comparison, invalid certificate denial, live scheduling reload.')

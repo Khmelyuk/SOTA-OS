@@ -66,5 +66,6 @@ The CLI smoke uses real PKCS12 files and checks fingerprint matching, the renewa
 hint, expired/future rejection, occupied-port operation and unchanged SQLite bytes.
 Existing strict HTTPS trust/hostname and rotation tests remain in the full suite.
 
-Next: compare current and staged TLS bundles before replacement, with explicit
-operator recovery checks. Automatic issuance and issuer selection remain separate.
+Follow-up implemented in [ADR-029](ADR-029-p09-tls-bundle-comparison.md): compare
+current and staged TLS bundles before replacement, with explicit operator recovery
+checks. Automatic issuance and issuer selection remain separate.
