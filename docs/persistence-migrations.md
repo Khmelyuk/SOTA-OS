@@ -135,6 +135,6 @@ not authorization to copy trust evidence between production nodes.
 No production migration code, schema or governance policy is changed by this
 increment. Versioned `.sqm` release migrations and broader opening-failure coverage
 remain open. Populated historical P10 exit/retained-obligation acceptance is now
-covered for the scenarios above. The next functional increment is P09 certificate
-expiry diagnostics and operator readiness for renewal, building on existing staged
-material validation. Certificate issuance policy remains a separate decision.
+covered for the scenarios above. P09 operational work continues in the
+[development roadmap](roadmap.md); local certificate diagnostics are implemented
+under [ADR-028](adr/ADR-028-p09-certificate-diagnostics.md).

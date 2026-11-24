@@ -92,6 +92,10 @@ What exists and is source-complete:
   scenario also verifies that Core Loop records survive closing and
   reopening the database.
 
+- P09 `sync check` reports server certificate fingerprints, UTC validity, remaining
+  time and an advisory 30-day renewal warning; expired/future certificates still fail
+  ([ADR-028](docs/adr/ADR-028-p09-certificate-diagnostics.md)).
+
 What is **not yet done**:
 
 - `persistence/` has Core Loop and two-node sync integration coverage,
@@ -131,8 +135,9 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
 Local verification on 2026-11-24: the full build, Detekt, migration and
-module-layering checks passed with **366 tests** (zero failures, errors or
-skips), including seven declared-schema, six signed-runtime and seven P10 migration tests,
+module-layering checks passed with **372 tests** (zero failures, errors or
+skips), including six certificate-preflight tests,
+seven declared-schema, six signed-runtime and seven P10 migration tests,
 nine Decision/Mission snapshot tests, 12 Knowledge revision/lineage tests,
 five local-memory audit tests,
 five Mission-mode tests, nine ordinary-memory tests,
@@ -149,8 +154,8 @@ The signed-memory recovery test exchanged seven facts including revision and sep
 Research CLI smoke passed during the
 persisted-membership increment.
 P09 status, signed P10 and credential lifecycle smoke scenarios passed during
-integration on 2026-11-17 and remain part of CI. The published runtime-history migration
-baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/45404199784).
+integration on 2026-11-17 and remain part of CI. The published P10-history migration
+baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/45409401525).
 This verifies the integrated local tree; the CI link
 above records the result for each published commit.
 
@@ -210,11 +215,12 @@ authentication port and per-Sota provider allowlist are described in
 [ADR-009](docs/adr/ADR-009-provider-based-authentication.md). Only the local
 provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
-The next increments, updated after P10 migration acceptance on 2026-11-24, are recorded
+The next increments, updated after P09 certificate diagnostics on 2026-11-24, are recorded
 in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
 admission, signatures and HTTPS hosting are already implemented. The next independent
-engineering increment is P09 certificate-expiry diagnostics and operator readiness
-for renewal, extending existing staged material validation. Four historical profiles
+engineering increment is comparing current and staged TLS bundles before replacement,
+with explicit operator recovery checks. Local certificate-expiry diagnostics are now
+implemented under ADR-028. Four historical profiles
 now cover reopen, runtime guards, signed provisioning history and populated P10 exits.
 Further functional priorities are:
 

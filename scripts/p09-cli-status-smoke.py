@@ -95,6 +95,38 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
         checked = subprocess.run(check_command, env=file_env, capture_output=True, timeout=15)
         assert checked.returncode == 0, 'Preflight must not bind the occupied listener port'
     assert hashlib.sha256(database.read_bytes()).digest() == before
+    certificate_prefix = 'P09 TLS certificate '
+    diagnostics = [json.loads(line[len(certificate_prefix):]) for line in checked.stdout.decode().splitlines()
+                   if line.startswith(certificate_prefix)]
+    assert len(diagnostics) == 1
+    diagnostic = diagnostics[0]
+    assert diagnostic['alias'] == 'p09'
+    assert diagnostic['sha256'] == hashlib.sha256(ssl.PEM_cert_to_DER_cert(certificate.read_text())).hexdigest()
+    assert diagnostic['state'] == 'RENEW_SOON'
+    assert 0 < diagnostic['secondsRemaining'] <= 86400
+    assert all(diagnostic[field].endswith('Z') for field in ('notBefore', 'notAfter', 'observedAt'))
+    assert b'P09 TLS renewal:' in checked.stdout
+    assert env['SOTA_P09_TLS_PASSWORD'].encode() not in checked.stdout + checked.stderr
+    assert env['SOTA_P09_PEER_TOKEN'].encode() not in checked.stdout + checked.stderr
+    for state, start in (('EXPIRED', '-2d'), ('NOT_YET_VALID', '+1d')):
+        invalid_store = folder / (state.lower() + '.p12')
+        subprocess.run([keytool, '-genkeypair', '-alias', 'p09', '-keyalg', 'EC', '-groupname', 'secp256r1',
+                        '-validity', '1', '-startdate', start, '-dname', 'CN=localhost',
+                        '-storetype', 'PKCS12', '-keystore', str(invalid_store),
+                        '-storepass:env', 'SOTA_P09_TLS_PASSWORD', '-noprompt'],
+                       env=env, check=True, capture_output=True, timeout=30)
+        invalid_settings = dict(settings, keystore=invalid_store.name)
+        invalid_dates = folder / (state.lower() + '.conf')
+        invalid_dates.write_text('version=1\n' + '\n'.join(key+'='+value for key, value in invalid_settings.items()))
+        rejected = subprocess.run(java + ['sync', 'check', '--config', str(invalid_dates)],
+                                  env=file_env, capture_output=True, timeout=15)
+        assert rejected.returncode != 0
+        rows = [json.loads(line[len(certificate_prefix):]) for line in rejected.stdout.decode().splitlines()
+                if line.startswith(certificate_prefix)]
+        assert len(rows) == 1 and rows[0]['state'] == state
+        assert b'P09 local configuration' not in rejected.stdout
+        assert b'P09 TLS renewal:' not in rejected.stdout
+        assert hashlib.sha256(database.read_bytes()).digest() == before
     ambiguous = dict(file_env, SOTA_P09_PEER_TOKEN='must-not-fallback')
     failed = subprocess.run(check_command, env=ambiguous, capture_output=True, timeout=15)
     assert failed.returncode != 0
@@ -205,4 +237,4 @@ with tempfile.TemporaryDirectory(prefix='sota-https-cli-') as folder:
     import sqlite3
     with sqlite3.connect(database) as db:
         assert db.execute('SELECT count(*) FROM sync_journal').fetchone()[0] == 0
-    print('CLI status smoke passed: validation, periodic output, secrets excluded, SIGTERM, restart, default quiet mode, configuration file, inbound JSON metrics, file secrets, read-only preflight, live scheduling reload.')
+    print('CLI status smoke passed: validation, periodic output, secrets excluded, SIGTERM, restart, default quiet mode, configuration file, inbound JSON metrics, file secrets, read-only certificate diagnostics, invalid certificate denial, live scheduling reload.')

@@ -1,7 +1,7 @@
 # Development roadmap — updated 2026-11-24
 
-Published baseline before this increment: GitHub `main` at `da2964e`
-(captured runtime and signed-history migration acceptance), with successful CI. The earlier integration
+Published baseline before this increment: GitHub `main` at `9ac83da`
+(historical P10 exit and obligation migration acceptance), with successful CI. The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
@@ -15,6 +15,8 @@ tracks the integrated implementation and subsequent bounded increments.
 - Ed25519 signing, governed peer/key admission, exact historical evidence,
   bounded HTTPS hosting, background retry/shutdown, metrics and staged material
   rotation (ADR-003a/011/012/015/016/017).
+- Local server certificate inventory, fingerprint/validity diagnostics and advisory
+  30-day renewal warning in `sync check`, with strict expired/future denial (ADR-028).
 - Signed P05 Action/Result and P07 Experience/Knowledge producers, including
   human validation/deprecation, and a reproducible two-node HTTPS rehearsal.
 - P08 persisted invitations, target-collective issuance, exact-record lifecycle
@@ -73,7 +75,7 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 |---|---|---|
 | Done 2026-11-18 | Signed P07 Experience/Knowledge producers | Exact persisted source checks, full signed snapshots, causal parents, local non-Agent governance, atomic entity/Event/journal/receipt writes; SignedMemory acceptance tests and ten-record HTTPS rehearsal. Host authentication remains required; see ADR-019 |
 | 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state checks, P05 mode propagation, local P07 lifecycle audit, explicit Knowledge revision and Decision/Mission snapshot binding implemented under ADR-020/021/022/023/024/025/026/027. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/numeric revision/mode-change governance and P07 validation mandates/general branch-conflict governance |
-| 3 | P09 operational lifecycle | Governed certificate renewal and configuration changes, old/new material recovery, failure diagnostics and deployment runbooks; automated historical attestations only with explicit provenance policy |
+| 3 — in progress | P09 operational lifecycle | Certificate-expiry diagnostics and advisory renewal warnings implemented under ADR-028. Next: current/staged bundle comparison and explicit recovery checks. Governed renewal/configuration changes, deployment runbooks and automated historical attestations still require their respective policies |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
 | 5 — in progress | Broader persistence and release acceptance | Four pinned profiles and 20 migration tests implemented, including signed key/receipt/peer and populated P10 history. Remaining: additional historical states, versioned release migrations, further failure points, missing conformance tests, public API/GUI scope and release evidence |
 
@@ -137,9 +139,11 @@ now captured from an isolated old build and tested with current services.
 Populated P10 history now has a separate runtime profile with seven preservation,
 resumption, signed-history and failure/retry checks. Broader opening-failure coverage
 and versioned release migrations remain separate work.
-Next functional increment: P09 certificate-expiry diagnostics and operator readiness
-for renewal, extending existing staged material validation without choosing an issuer
-or enabling automatic certificate issuance.
+P09 certificate-expiry diagnostics now report all configured server leaves with
+fingerprints, exact validity and an advisory 30-day window; invalid dates still fail.
+Next functional increment: compare current and staged TLS bundles before replacement
+and verify operator recovery steps. Issuer selection and automatic issuance remain
+separate decisions; diagnostics do not establish remote acceptance.
 Keep P05 participation and collective mandate decisions explicit; do not infer a
 quorum or Mission ownership authority from the current model. P09 operational
 lifecycle and extended P10 settlement remain the subsequent functional tracks.

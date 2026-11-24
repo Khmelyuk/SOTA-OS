@@ -1,5 +1,11 @@
 # Traceability Matrix — Code ↔ Specification
 
+P09 certificate diagnostics update 2026-11-24: ADR-028 extends ADR-015/017's local
+material preflight with alias-sorted leaf fingerprints, UTC validity and an advisory
+30-day renewal window. P09CertificatePreflightTest and the CLI smoke verify exact
+boundaries, invalid-certificate denial, read-only behavior and escaped public metadata.
+No issuer, trust mutation, peer probe or automatic renewal policy is added.
+
 Historical P10 acceptance update 2026-11-24: P10HistoryMigrationTest,
 P10ResumeMigrationTest and P10ObligationMigrationTest add seven tests against
 captured `3c1a4aa` P10 state under ADR-007/010/014. Completed signed exit history,

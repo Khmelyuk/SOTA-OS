@@ -53,6 +53,29 @@ be explicit and nonempty. It does not open SQLite, bind the port, contact a peer
 inspect peer registry/key authority or prove hostname/connectivity/remote acceptance.
 A successful check is not a promise that files changed afterward remain valid.
 
+The check now prints one `P09 TLS certificate ` line followed by JSON for each
+server private-key entry, sorted by alias. Fields include the alias, SHA-256 leaf
+fingerprint, UTC `notBefore`, `notAfter`, `observedAt`, signed `secondsRemaining`
+and `state`. Alias text is JSON-escaped. Only public certificate metadata is printed.
+
+| State | Meaning | Local check |
+|---|---|---|
+| VALID | Valid with more than 30 days remaining | May succeed |
+| RENEW_SOON | Valid with 30 days or less remaining | May succeed; stage a replacement |
+| NOT_YET_VALID | Before the certificate's start time | Fails |
+| EXPIRED | After the certificate's end time | Fails |
+
+The 30-day window is advisory. Validity endpoints are inclusive; remaining seconds
+are rounded down, while validity checks use millisecond precision. Diagnostics and
+validation use the same loaded keystore. Rows may be printed before a later failure;
+the final local-success summary appears only after all material checks complete.
+A renewal hint is printed after a successful check when at least one leaf is near expiry.
+
+This inventory covers configured server leaves, not chain/anchor validity or the
+alias a future handshake will select. It does not prove remote trust, hostname
+acceptance, revocation status or peer authorization. See
+[ADR-028](adr/ADR-028-p09-certificate-diagnostics.md) for the contract and evidence.
+
 ## TLS replacement sequence
 
 1. Obtain replacement TLS material through your existing trusted issuer/operator.
@@ -102,6 +125,11 @@ client, revocation, new TLS certificates, trust rejection and recovery after bot
 stores reopen. `P09TlsTest` rejects an expired replacement certificate before listening.
 The CLI smoke checks file sources and preflight while the candidate port is occupied,
 asserting that the SQLite file remains byte-for-byte unchanged.
+
+`P09CertificatePreflightTest` adds six cases for fingerprint inventory, validity and
+renewal boundaries, invalid material, escaped aliases and read-only/secret-safe output.
+The CLI smoke also checks the real certificate fingerprint and renewal hint, and
+requires nonzero exit for expired and not-yet-valid replacement certificates.
 
 Verification — 2026-10-07: full JDK 21 build, Detekt, migrations and 206 tests
 passed with no failures/errors/skips. Extended CLI smoke passed.
