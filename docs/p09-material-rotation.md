@@ -173,6 +173,12 @@ provisioning. There is no automatic rollback to an old credential after rotation
 
 ## Verification
 
+Run the [failed replacement and rollback rehearsal](p09-tls-rollback.md) with
+`./scripts/p09-tls-rollback.sh` on JDK 21. It uses real CLI listeners and preflight,
+independent passwords, TLS rejection in both directions, unchanged journals/checkpoints
+on failure, and authenticated recovery to eight matching signed records. The same
+scenario is included in the ordinary test suite as `TlsRollbackTest`.
+
 `P09SecretsTest` verifies explicit source selection, bounded UTF-8 files, malformed
 and missing material, rereading and password whitespace. `P09MaterialRotationTest`
 uses real HTTPS to verify old-token rejection, atomic replacement with the same

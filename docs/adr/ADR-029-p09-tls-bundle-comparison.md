@@ -95,6 +95,13 @@ both candidate stores, and unchanged public certificate fingerprints after passw
 re-encryption. Real CLI smoke also checks independent sources, absence of secret values,
 explicit activation/recovery source selection and no fallback or file mutation.
 
-Next bounded increment: a reproducible failed TLS replacement and rollback rehearsal
-with previous certificates, trust and password, checking journals and authenticated exchange.
+The [TLS rollback rehearsal](../p09-tls-rollback.md) now exercises real CLI preflight,
+comparison and listeners: valid local candidate material fails peer TLS trust in both
+directions, leaving both journals/checkpoints unchanged. Previous certificate/trust/password
+recovery delivers eight matching signed records with `(8, 8)` checkpoints; wrong bearer
+authentication remains denied. The scenario runs in the ordinary test suite and as
+`:test:tlsRollback`. It is fixture evidence, not automatic rollout or rollback.
+
+Next bounded increment: a successful overlapping-trust transition, followed by retiring
+old trust after both peers switch.
 Automatic issuance, issuer choice and broader configuration rollout remain separate.

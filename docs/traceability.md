@@ -1,5 +1,11 @@
 # Traceability Matrix — Code ↔ Specification
 
+P09 TLS rollback evidence update 2026-11-24: `TlsRollbackTest` and `:test:tlsRollback`
+exercise ADR-015/017/029 through real CLI preflight/comparison/listeners. Locally valid
+candidate material fails TLS trust in both directions without journal/checkpoint changes;
+previous material restores authenticated exchange and eight matching signed records.
+Wrong recovery password and bearer remain denied; see [rehearsal](p09-tls-rollback.md).
+
 P09 comparison passwords update 2026-11-24: ADR-029 now supports independent candidate
 TLS password sources, with shared-mode compatibility and no fallback from a selected
 invalid source. Seven new tests and CLI smoke cover source selection, password-only

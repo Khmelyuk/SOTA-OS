@@ -10,6 +10,8 @@ Specification, Traceability Matrix, ADR-007).
 
 Run the [two-node Core Loop rehearsal](docs/getting-started.md) with JDK 21:
 `./scripts/two-node-core-loop.sh` verifies signed actions and memory, HTTPS recovery and signed exit.
+The [TLS rollback rehearsal](docs/p09-tls-rollback.md), `./scripts/p09-tls-rollback.sh`,
+checks failed replacement, unchanged journals and recovery using the previous TLS bundle.
 
 ## Status: Phase 3 — signed Core Loop, P09 node, P10 exit and Research CLI
 
@@ -138,8 +140,9 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
 Local verification on 2026-11-24: the full JDK 21 build, Detekt, migration and
-module-layering checks passed with **385 tests** (zero failures, errors or
-skips), including seven independent-password tests, six TLS bundle-comparison and six certificate-preflight tests,
+module-layering checks passed with **386 tests** (zero failures, errors or
+skips), including the real CLI TLS rollback scenario, seven independent-password tests,
+six TLS bundle-comparison and six certificate-preflight tests,
 seven declared-schema, six signed-runtime and seven P10 migration tests,
 nine Decision/Mission snapshot tests, 12 Knowledge revision/lineage tests,
 five local-memory audit tests,
@@ -147,7 +150,9 @@ five Mission-mode tests, nine ordinary-memory tests,
 six Mission-boundary tests, 13 authenticated-admission tests,
 13 persisted-membership tests and 11 signed-memory tests. The CLI distribution
 and two-node HTTPS rehearsal passed with ten matching signed records and
-checkpoints `(10, 10)`. During the Decision/Mission snapshot increment,
+checkpoints `(10, 10)`. The separate TLS rollback rehearsal passed with eight matching
+signed records and checkpoints `(8, 8)` after trust failures in both directions.
+During the Decision/Mission snapshot increment,
 ordinary CLI `init` and `demo` passed on a new
 temporary SQLite database with Decision/Mission snapshots, local P07 audit and immutable Knowledge versions enabled;
 repeated `init` reopened that database successfully. The historical migration profiles retain
@@ -157,8 +162,8 @@ The signed-memory recovery test exchanged seven facts including revision and sep
 Research CLI smoke passed during the
 persisted-membership increment.
 P09 status, signed P10 and credential lifecycle smoke scenarios passed during
-integration on 2026-11-17 and remain part of CI. The published TLS bundle-comparison
-baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/45449714572).
+integration on 2026-11-17 and remain part of CI. The published independent-password
+baseline also passed [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/45459289165).
 This verifies the integrated local tree; the CI link
 above records the result for each published commit.
 
@@ -218,11 +223,12 @@ authentication port and per-Sota provider allowlist are described in
 [ADR-009](docs/adr/ADR-009-provider-based-authentication.md). Only the local
 provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
-The next increments, updated after independent P09 TLS passwords on 2026-11-24, are recorded
+The next increments, updated after the P09 TLS rollback rehearsal on 2026-11-24, are recorded
 in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
 admission, signatures and HTTPS hosting are already implemented. The next independent
-engineering increment is a reproducible failed TLS replacement and rollback rehearsal,
-with previous certificates/trust/password and journal continuity checks. Independent
+engineering increment is a successful transition with overlapping TLS trust, followed
+by retiring old trust after both peers switch. Failed replacement and previous-bundle
+recovery now have a [reproducible rehearsal](docs/p09-tls-rollback.md). Independent
 candidate password sources, bundle comparison and operator recovery checks are documented
 under ADR-029; local certificate-expiry diagnostics are implemented under ADR-028. Four historical profiles
 now cover reopen, runtime guards, signed provisioning history and populated P10 exits.

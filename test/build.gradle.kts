@@ -23,3 +23,11 @@ tasks.register<JavaExec>("twoNodeCoreLoop") {
     classpath = sourceSets["test"].runtimeClasspath
     mainClass.set("sotaos.test.rehearsal.TwoNodeCoreLoopKt")
 }
+
+tasks.register<JavaExec>("tlsRollback") {
+    group = "verification"
+    description = "Rehearse failed TLS replacement and previous-bundle recovery through real CLI hosts"
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("sotaos.test.rehearsal.TlsRollbackKt")
+}

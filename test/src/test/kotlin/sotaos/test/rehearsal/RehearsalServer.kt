@@ -12,8 +12,10 @@ import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 /** Runs the real production CLI in a different JVM; no open parent store shares its database. */
-internal class RehearsalServer(node: RehearsalNode, tls: RehearsalTls, client: HttpClient) : AutoCloseable {
-    private val port = ServerSocket(0, 1, InetAddress.getByName("127.0.0.1")).use { it.localPort }
+internal class RehearsalServer(node: RehearsalNode, tls: RehearsalTls, client: HttpClient,
+    listenPort: Int = 0, passwordFile: Path? = null) : AutoCloseable {
+    private val port = if (listenPort == 0)
+        ServerSocket(0, 1, InetAddress.getByName("127.0.0.1")).use { it.localPort } else listenPort
     val endpoint: URI = URI("https://localhost:$port/p09")
     private val log = node.path.resolveSibling("${node.name}-server.log")
     private val process = ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "java").toString(),
@@ -24,7 +26,8 @@ internal class RehearsalServer(node: RehearsalNode, tls: RehearsalTls, client: H
         .redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.appendTo(log.toFile()))
         .apply {
             environment().keys.removeIf { it.startsWith("SOTA_P09_") }
-            environment()["SOTA_P09_TLS_PASSWORD"] = tls.password
+            if (passwordFile == null) environment()["SOTA_P09_TLS_PASSWORD"] = tls.password
+            else environment()["SOTA_P09_TLS_PASSWORD_FILE"] = passwordFile.toString()
         }.start()
 
     init {

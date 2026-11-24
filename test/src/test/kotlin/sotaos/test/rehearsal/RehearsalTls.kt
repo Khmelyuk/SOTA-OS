@@ -20,10 +20,12 @@ internal class RehearsalTls(directory: Path) : AutoCloseable {
 
     fun keyStore(name: String): Path = folder.resolve("$name.p12")
 
+    fun trustStore(name: String): Path = folder.resolve("$name-trust.p12")
+
     fun client(name: String): HttpClient {
         val secret = password.toCharArray()
         return try {
-            HttpClient.newBuilder().sslContext(P09Tls.client(folder.resolve("$name-trust.p12"), secret))
+            HttpClient.newBuilder().sslContext(P09Tls.client(trustStore(name), secret))
                 .connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NEVER).build()
         } finally {
             secret.fill('\u0000')
