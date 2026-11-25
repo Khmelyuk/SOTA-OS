@@ -15,6 +15,16 @@ dependencies {
     testImplementation("app.cash.sqldelight:sqlite-driver:2.0.2")
 }
 
+// The same frozen-profile tests also run in the ordinary test task.
+tasks.register<Test>("migrationAcceptance") {
+    group = "verification"
+    description = "Verify pinned historical upgrades, preservation, opening failures and retry"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    filter { includeTestsMatching("sotaos.test.migration.*") }
+    shouldRunAfter(tasks.test)
+}
+
 // Disposable fixture host using real runtimes and a separate HTTPS CLI process.
 tasks.register<JavaExec>("twoNodeCoreLoop") {
     group = "verification"

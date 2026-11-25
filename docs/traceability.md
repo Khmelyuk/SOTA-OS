@@ -1,5 +1,13 @@
 # Traceability Matrix — Code ↔ Specification
 
+Migration acceptance update 2026-11-25: the [upgrade matrix](release-upgrade-matrix.md)
+maps four pinned commit/profile sources to preservation and failure/retry evidence
+under ADR-007/009/027. Eight `OpeningRetryMigrationTest` cases interrupt initialization
+after completed Decision DDL or credential-baseline writes, preserve historical rows
+and guards, and compare retry/reopen with uninterrupted upgrades. The focused
+`:test:migrationAcceptance` task runs all 28 historical tests; ordinary CI includes
+them too. Named release upgrades, schema-version recognition and crash recovery remain open.
+
 P09 TLS rollout evidence update 2026-11-25: `TlsRolloutTest` and `:test:tlsRollout`
 exercise ADR-015/017/029 with old/old, new/old and new/new certificates under overlap
 trust, then new-only trust. Fresh signed Core Loops survive each transition; retired

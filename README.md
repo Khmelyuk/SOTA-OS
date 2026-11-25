@@ -14,6 +14,8 @@ The [TLS rollback rehearsal](docs/p09-tls-rollback.md), `./scripts/p09-tls-rollb
 checks failed replacement, unchanged journals and recovery using the previous TLS bundle.
 The [TLS rollout rehearsal](docs/p09-tls-rollout.md), `./scripts/p09-tls-rollout.sh`,
 checks staged replacement under overlapping trust and rejection of retired certificates.
+Run `./gradlew :test:migrationAcceptance :test:detekt` for the 28-test historical
+SQLite [upgrade matrix](docs/release-upgrade-matrix.md), including interrupted opening and retry.
 
 ## Status: Phase 3 — signed Core Loop, P09 node, P10 exit and Research CLI
 
@@ -111,6 +113,8 @@ What is **not yet done**:
   row preservation, schema contracts, current service behavior and retry after a
   failed upgrade. Six additional tests preserve runtime guards, signed receipts and
   key/peer history; seven more cover completed/pending P10 exits and retained obligations.
+  Eight opening-interruption cases now cover all four profiles at two completed-statement
+  boundaries, with full comparison against uninterrupted upgrade after retry/reopen.
   See [migration acceptance](docs/persistence-migrations.md); broader
   repository and release-migration coverage is still open.
 - P09 public hosting operations, automatic historical attestations, producer adoption and additional
@@ -141,6 +145,9 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
+Focused migration verification on 2026-11-25 passed **28 tests** (zero failures,
+errors or skips), including eight new opening/retry cases, and Detekt. Reports are
+separate from the prior full-suite run described below; production code is unchanged.
 Local verification on 2026-11-25: JDK 21 compilation, Detekt, migration and
 module-layering checks passed with **387 tests** (zero failures, errors or
 skips), including the real CLI TLS rollout and rollback scenarios, seven independent-password tests,
@@ -227,11 +234,13 @@ authentication port and per-Sota provider allowlist are described in
 [ADR-009](docs/adr/ADR-009-provider-based-authentication.md). Only the local
 provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
-The next increments, updated after the P09 TLS rollout rehearsal on 2026-11-25, are recorded
+The next increments, updated after the migration upgrade matrix on 2026-11-25, are recorded
 in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
 admission, signatures and HTTPS hosting are already implemented. The next independent
-engineering increment is release-migration acceptance: supported source versions,
-an explicit upgrade matrix and failure/retry criteria. Successful overlapping-trust
+engineering increment is a persisted schema-version baseline and an inventory of database
+opening paths, ahead of numbered release migrations. The [upgrade matrix](docs/release-upgrade-matrix.md)
+now defines four verified commit/profile sources and preservation/failure/retry criteria;
+named release-to-release support remains open. Successful overlapping-trust
 replacement and retirement now have a [reproducible rehearsal](docs/p09-tls-rollout.md).
 Failed replacement and previous-bundle
 recovery now have a [reproducible rehearsal](docs/p09-tls-rollback.md). Independent

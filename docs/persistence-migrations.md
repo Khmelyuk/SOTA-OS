@@ -1,6 +1,11 @@
 # Historical SQLite migration acceptance
 
-Updated: 2026-11-24
+Updated: 2026-11-25
+
+The [upgrade matrix](release-upgrade-matrix.md) identifies the four verified source
+profiles, their direct upgrade paths, failure/retry requirements and unverified
+release paths. Run `./gradlew :test:migrationAcceptance :test:detekt` with JDK 21
+for the focused 28-test acceptance suite; ordinary `build` also includes these tests.
 
 The migration suite adds two frozen declared-schema baselines and two captured
 runtime profiles to the existing
@@ -122,9 +127,13 @@ This restoration transaction is separate from production compatibility migration
 
 SqlDelightStore currently applies additive compatibility steps during opening.
 The entire sequence is not a single schema transaction: successful earlier DDL can
-remain after a later step fails. The failure test proves preservation and safe retry
-for the injected baseline-write failure, not universal recovery from arbitrary
-malformed databases, storage exhaustion or process death at every statement.
+remain after a later step fails. Eight `OpeningRetryMigrationTest` cases interrupt
+all four profiles after completed Decision-column DDL and credential-baseline writes.
+They verify original rows/guards immediately after failure, then complete equality
+with an uninterrupted upgrade after retry and three reopens. The baseline-insert
+rejection test additionally covers a statement that did not commit. These are bounded
+exception/reopen checks, not universal recovery from arbitrary malformed databases,
+storage exhaustion or process death at every statement.
 
 These are synthetic acceptance profiles, not production database backups. The
 runtime profiles cover one historical revision and bounded P09/P10 histories. They
@@ -133,8 +142,8 @@ Verification receipts remain local to their original node; fixture restoration i
 not authorization to copy trust evidence between production nodes.
 
 No production migration code, schema or governance policy is changed by this
-increment. Versioned `.sqm` release migrations and broader opening-failure coverage
-remain open. Populated historical P10 exit/retained-obligation acceptance is now
+increment. Versioned `.sqm` release migrations, source-version recognition and broader
+opening-failure coverage remain open. Populated historical P10 exit/retained-obligation acceptance is now
 covered for the scenarios above. P09 operational work continues in the
 [development roadmap](roadmap.md); local certificate diagnostics are implemented
 under [ADR-028](adr/ADR-028-p09-certificate-diagnostics.md).
