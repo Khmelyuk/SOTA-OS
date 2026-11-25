@@ -31,3 +31,11 @@ tasks.register<JavaExec>("tlsRollback") {
     classpath = sourceSets["test"].runtimeClasspath
     mainClass.set("sotaos.test.rehearsal.TlsRollbackKt")
 }
+
+tasks.register<JavaExec>("tlsRollout") {
+    group = "verification"
+    description = "Rehearse overlapping TLS trust, staged peer replacement and retirement of old trust"
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("sotaos.test.rehearsal.TlsRolloutKt")
+}

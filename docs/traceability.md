@@ -1,5 +1,11 @@
 # Traceability Matrix — Code ↔ Specification
 
+P09 TLS rollout evidence update 2026-11-25: `TlsRolloutTest` and `:test:tlsRollout`
+exercise ADR-015/017/029 with old/old, new/old and new/new certificates under overlap
+trust, then new-only trust. Fresh signed Core Loops survive each transition; retired
+certificates fail without journal/checkpoint changes, and final authenticated exchange
+converges to 24 records. See [rollout rehearsal](p09-tls-rollout.md) for scope and limits.
+
 P09 TLS rollback evidence update 2026-11-24: `TlsRollbackTest` and `:test:tlsRollback`
 exercise ADR-015/017/029 through real CLI preflight/comparison/listeners. Locally valid
 candidate material fails TLS trust in both directions without journal/checkpoint changes;

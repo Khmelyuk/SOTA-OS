@@ -173,6 +173,13 @@ provisioning. There is no automatic rollback to an old credential after rotation
 
 ## Verification
 
+Run the [overlapping-trust rollout rehearsal](p09-tls-rollout.md) with
+`./scripts/p09-tls-rollout.sh` on JDK 21. It proves exchange with old/old, new/old and
+new/new server certificates under explicit overlap trust, then rejects retired old
+certificates in both directions. Fresh signed records are exchanged at every stage;
+the final journals contain 24 matching records and checkpoints `(24, 24)`. It is also
+part of the ordinary test suite as `TlsRolloutTest`.
+
 Run the [failed replacement and rollback rehearsal](p09-tls-rollback.md) with
 `./scripts/p09-tls-rollback.sh` on JDK 21. It uses real CLI listeners and preflight,
 independent passwords, TLS rejection in both directions, unchanged journals/checkpoints

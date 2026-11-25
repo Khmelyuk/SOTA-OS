@@ -26,7 +26,8 @@ internal class RollbackCli(private val directory: Path, current: RehearsalTls,
     }
 
     fun configuration(name: String, node: RehearsalNode, peer: RehearsalNode,
-        tls: RehearsalTls, port: Int): Path = directory.resolve("$name.conf").also { path ->
+        tls: RehearsalTls, port: Int, trust: Path = tls.trustStore(peer.name)): Path =
+        directory.resolve("$name.conf").also { path ->
         Files.writeString(path, """
             version=1
             db=${node.path}
@@ -36,7 +37,7 @@ internal class RollbackCli(private val directory: Path, current: RehearsalTls,
             peer=${peer.name}
             endpoint=https://localhost:1/p09
             keystore=${tls.keyStore(node.name)}
-            truststore=${tls.trustStore(peer.name)}
+            truststore=$trust
             bind=127.0.0.1
             port=$port
         """.trimIndent())
@@ -45,8 +46,10 @@ internal class RollbackCli(private val directory: Path, current: RehearsalTls,
     fun check(config: Path, password: Path, name: String, succeeds: Boolean = true) =
         run(listOf("sync", "check", "--config", config.toString()), password, name, succeeds)
 
-    fun compare(current: Path, candidate: Path) = run(listOf("sync", "compare", "--config", current.toString(),
-        "--candidate", candidate.toString()), currentPassword, "compare", true, candidatePassword)
+    fun compare(current: Path, candidate: Path, name: String = "compare",
+        currentSecret: Path = currentPassword, candidateSecret: Path = candidatePassword) =
+        run(listOf("sync", "compare", "--config", current.toString(), "--candidate", candidate.toString()),
+            currentSecret, name, true, candidateSecret)
 
     private fun run(arguments: List<String>, password: Path, name: String, succeeds: Boolean,
         candidate: Path? = null) {

@@ -102,6 +102,10 @@ recovery delivers eight matching signed records with `(8, 8)` checkpoints; wrong
 authentication remains denied. The scenario runs in the ordinary test suite and as
 `:test:tlsRollback`. It is fixture evidence, not automatic rollout or rollback.
 
-Next bounded increment: a successful overlapping-trust transition, followed by retiring
-old trust after both peers switch.
+The [overlapping-trust rollout rehearsal](../p09-tls-rollout.md) now verifies old/old,
+new/old and new/new server combinations with fresh signed records at every stage.
+After retiring old trust, live old certificates fail in both directions without journal
+or checkpoint changes. New material then converges to 24 matching signed records and
+`(24, 24)` checkpoints. It runs as `TlsRolloutTest` and `:test:tlsRollout`; its explicit
+self-signed leaf trust does not establish a general CA rollout or issuance policy.
 Automatic issuance, issuer choice and broader configuration rollout remain separate.

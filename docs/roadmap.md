@@ -1,7 +1,7 @@
-# Development roadmap — updated 2026-11-24
+# Development roadmap — updated 2026-11-25
 
-Published baseline before this increment: GitHub `main` at `af5c2d2`
-(independent candidate TLS password sources), with successful CI. The earlier integration
+Published baseline before this increment: GitHub `main` at `eec74b6`
+(failed TLS replacement and rollback rehearsal), with successful CI. The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
@@ -24,6 +24,9 @@ tracks the integrated implementation and subsequent bounded increments.
 - A [real CLI TLS rollback rehearsal](p09-tls-rollback.md): candidate trust failures
   in both directions preserve journals/checkpoints; previous material restores eight
   identical signed records and authenticated exchange. Included in the test suite.
+- A [staged TLS rollout rehearsal](p09-tls-rollout.md): overlap trust supports old/old,
+  new/old and new/new peers; retired certificates are rejected in both directions.
+  Fresh signed records at each stage converge to 24 matching records and checkpoints.
 - Signed P05 Action/Result and P07 Experience/Knowledge producers, including
   human validation/deprecation, and a reproducible two-node HTTPS rehearsal.
 - P08 persisted invitations, target-collective issuance, exact-record lifecycle
@@ -82,9 +85,9 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 |---|---|---|
 | Done 2026-11-18 | Signed P07 Experience/Knowledge producers | Exact persisted source checks, full signed snapshots, causal parents, local non-Agent governance, atomic entity/Event/journal/receipt writes; SignedMemory acceptance tests and ten-record HTTPS rehearsal. Host authentication remains required; see ADR-019 |
 | 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state checks, P05 mode propagation, local P07 lifecycle audit, explicit Knowledge revision and Decision/Mission snapshot binding implemented under ADR-020/021/022/023/024/025/026/027. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/numeric revision/mode-change governance and P07 validation mandates/general branch-conflict governance |
-| 3 — in progress | P09 operational lifecycle | Certificate diagnostics, bundle comparison, independent candidate passwords and failed-replacement rollback rehearsal implemented under ADR-028/029. Next: successful overlapping-trust transition and retirement of old trust. Governed renewal/configuration changes and automated historical attestations still require their respective policies |
+| 3 — in progress | P09 operational lifecycle | Certificate diagnostics, bundle comparison, independent candidate passwords, rollback and overlapping-trust rollout rehearsals implemented under ADR-028/029. Public deployment, governed renewal/configuration changes and automated historical attestations remain open and require their respective policies |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
-| 5 — in progress | Broader persistence and release acceptance | Four pinned profiles and 20 migration tests implemented, including signed key/receipt/peer and populated P10 history. Remaining: additional historical states, versioned release migrations, further failure points, missing conformance tests, public API/GUI scope and release evidence |
+| 5 — next independent increment | Broader persistence and release acceptance | Four pinned profiles and 20 migration tests implemented, including signed key/receipt/peer and populated P10 history. Next: supported source versions, explicit release upgrade matrix and preservation/failure/retry criteria. Versioned release migrations, further historical states, conformance tests, public API/GUI scope and release evidence remain open |
 
 P07 now uses the existing P05/P10 signed-runtime pattern. Research remains
 separate from canonical P06/P09 history. Receiving a fact does not validate
@@ -153,8 +156,11 @@ material locally; the runbook requires revalidation and authenticated exchange d
 Independent candidate password sources now support staged password changes without
 implicit fallback. Failed TLS replacement and previous-bundle recovery now have a
 real CLI rehearsal with journal continuity and authenticated exchange checks.
-Next functional increment: a successful transition with overlapping trust, followed by
-retirement of old trust after both peers switch. Issuer selection and automatic issuance remain separate decisions;
+Overlapping-trust rollout and retirement now have a real CLI rehearsal with fresh
+signed records at each stage and explicit old-certificate rejection after retirement.
+Next independent increment: release-migration acceptance, beginning with supported
+source versions, an explicit upgrade matrix and preservation/failure/retry criteria.
+Issuer selection and automatic issuance remain separate decisions;
 local comparison does not establish remote acceptance.
 Keep P05 participation and collective mandate decisions explicit; do not infer a
 quorum or Mission ownership authority from the current model. P09 operational

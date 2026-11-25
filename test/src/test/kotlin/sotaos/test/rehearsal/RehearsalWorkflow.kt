@@ -61,7 +61,9 @@ internal fun executeCoreLoop(node: RehearsalNode, core: Core): Decision = node.l
     val decision = runtime.decide(invocation, node.actor, mission.id, authority.id, "rehearsal.execute", emptyList())
     val action = runtime.execute(invocation, decision)
     runtime.recordResult(invocation, action, Outcome.SUCCESS, "Offline action succeeded")
-    val event = repositories.events.findByActor(node.actor).single { it.type == "RESULT_RECORDED" }
+    val event = repositories.events.findByActor(node.actor).single {
+        it.type == "RESULT_RECORDED" && it.payload["actionId"] == action.id.value
+    }
     val memory = SignedP07Runtime(store, node.local, governance,
         rehearsalClock, rehearsalIds, { node.signer }, rehearsalRights)
     val experience = memory.createExperience(invocation, listOf(event), "Offline result", "Rehearsal only")

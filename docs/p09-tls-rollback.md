@@ -69,6 +69,7 @@ test inputs, not a new governance policy. Local preflight success still does not
 peer acceptance, as the rejected candidate demonstrates.
 
 For operator steps, see [TLS material rotation](p09-material-rotation.md) and
-[ADR-029](adr/ADR-029-p09-tls-bundle-comparison.md). The next operational rehearsal is
-a successful transition with overlapping trust, followed by removal of retired trust
-after both peers have switched. Issuer selection and automated issuance remain separate.
+[ADR-029](adr/ADR-029-p09-tls-bundle-comparison.md). The complementary
+[overlapping-trust rollout rehearsal](p09-tls-rollout.md) now verifies a successful
+transition and retirement of old trust after both peers switch. Issuer selection and
+automated issuance remain separate.
