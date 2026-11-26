@@ -7,12 +7,19 @@ storage behind the application-owned interfaces.
 
 ## Opening a database
 
-Create a `SqlDriver` for the local database file, create the schema once for
-a new database with `SotaOsDatabase.Schema.create(driver)`, then pass the
-driver to `SqlDelightStore`. For an existing database, use its migration
-path before constructing the store. Close the store when the node shuts
-down. The caller is responsible for configuring the driver to enforce
-SQLite foreign keys.
+Create a `SqlDriver`, enable SQLite foreign keys, then construct `SqlDelightStore`.
+The store now owns fresh schema creation and legacy compatibility initialization.
+It reads `PRAGMA user_version` before schema writes: unversioned `0` and baseline
+`1` are accepted, all other numbers are rejected. A new empty catalog at `0` gets
+the generated schema transactionally; existing catalogs must contain the core
+tables. Only completed compatibility initialization marks a legacy database `1`.
+See [ADR-030](../docs/adr/ADR-030-sqlite-schema-baseline.md) for the opening inventory
+and limits. The number is not a full schema fingerprint or a release version.
+
+Close the store when the node shuts down. The caller owns the driver and must also
+close it if construction fails. It remains responsible for configuring foreign keys.
+Production callers should not invoke generated `Schema.create` themselves; direct
+generated database/repository access does not apply the store's opening contract.
 
 `SqlDelightRepositories(store.database)` provides the repository instances
 for application-service wiring. JSON columns use explicit mappings in
@@ -40,10 +47,11 @@ for application-service wiring. JSON columns use explicit mappings in
   Ambiguous duplicate terms are rejected. P08 persists invitations and compares
   the full current record before transitions; see [ADR-020](../docs/adr/ADR-020-persisted-membership-admission.md).
 
-The SQLDelight schema is the current MVP schema. `SqlDelightStore` applies
+The SQLDelight schema is the current MVP declaration. `SqlDelightStore` additionally applies
 idempotent additive table creation for RIGHT and CONSENT so existing database
 files can open with these records available. Other future schema changes
-still need versioned SQLDelight migrations.
+still need versioned SQLDelight migrations. The baseline marker does not dispatch
+`.sqm` migrations; generated declarations and runtime guards must first be reconciled.
 
 Two frozen Git schema profiles now exercise this opening path with synthetic
 historical governance, memory and credential records. Seven tests cover exact row
@@ -57,8 +65,8 @@ A third profile captures an actual historical runtime: 38 tables, two indexes,
 50 startup triggers and synthetic P09 key/peer/receipt/approval history. Six further
 tests retain all captured guard definitions, check populated audit immutability,
 preserve exact signed replay and revocations, and exercise rollback/retry of an
-approved historical import after upgrade. Production schema/bootstrap code is
-unchanged; broader opening failures remain open.
+approved historical import after upgrade. These frozen profiles are unchanged;
+current bootstrap version handling is defined by ADR-030.
 
 A fourth profile captures 68 rows of historical P10 state: completed signed exit,
 approved portable snapshots, typed relation terms, retained/fulfilled obligations,
@@ -66,6 +74,12 @@ an unsigned pending exit and an unaffected Core. Seven tests cover exact preserv
 restart/resumption, archive and termination rollback/retry, and independent fulfillment
 after exit. Snapshot restoration installs old triggers after loading rows, with
 foreign keys checked at commit; this is test setup, not a production migration change.
+
+The focused `:test:migrationAcceptance` task now runs 36 tests. Twelve opening
+interruptions retain legacy version `0` until successful retry; four source-profile
+tests cover version rejection without byte changes and upgrade through CLI `init`.
+Seven additional API tests exercise the shared CLI opening boundary on fresh, unrelated
+and versioned databases. Existing schema/behavior and P09/P10 history checks remain.
 
 `actor_signing_key` stores one active Ed25519 public key per actor as Base64
 X.509 material; private keys are never persisted. Lifecycle changes are

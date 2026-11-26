@@ -39,6 +39,7 @@ class SqlDelightStore(private val driver: SqlDriver) : AutoCloseable {
     val database: SotaOsDatabase = SotaOsDatabase(driver)
 
     init {
+        val previousVersion = prepareStoreSchema(driver)
         createSyncSchemaIfMissing(driver)
         createPeerTrustSchemaIfMissing(driver)
         createExitSchemaIfMissing(driver)
@@ -106,6 +107,7 @@ class SqlDelightStore(private val driver: SqlDriver) : AutoCloseable {
         driver.execute(null, """CREATE TRIGGER IF NOT EXISTS actor_signing_key_audit_no_delete
             BEFORE DELETE ON actor_signing_key_audit
             BEGIN SELECT RAISE(ABORT, 'actor signing key audit is append-only'); END""", 0)
+        finishStoreSchema(driver, previousVersion)
     }
 
     /** Close the driver when the local node shuts down. */

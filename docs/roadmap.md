@@ -1,7 +1,7 @@
-# Development roadmap — updated 2026-11-25
+# Development roadmap — updated 2026-11-26
 
-Published baseline before this increment: GitHub `main` at `e5e97ea`
-(staged TLS rollout and trust retirement rehearsal), with successful CI. The earlier integration
+Published baseline before this increment: GitHub `main` at `d7d05b5`
+(upgrade matrix and interrupted-opening retry), with successful CI. The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
@@ -60,9 +60,13 @@ tracks the integrated implementation and subsequent bounded increments.
   typed terms, retained/fulfilled obligations, pending unsigned exit and unrelated
   Core; seven migration, resumption and rollback/retry tests.
 - An explicit [upgrade matrix](release-upgrade-matrix.md) for four commit/profile
-  sources, with preservation/failure/retry criteria and the focused 28-test
-  `:test:migrationAcceptance` task. Eight new cases verify recovery after completed
-  Decision DDL and credential-baseline statements across every profile.
+  sources, with preservation/failure/retry criteria and the focused 36-test
+  `:test:migrationAcceptance` task. Twelve cases verify recovery after completed
+  Decision DDL, credential-baseline statements and before the version marker.
+- Persisted SQLite baseline `1` and shared fresh/legacy store opening under ADR-030.
+  Unknown version numbers fail before schema writes; four historical-profile tests
+  exercise CLI upgrade and unchanged-byte rejection, and seven API tests cover fresh
+  creation and invalid opening paths. The opening inventory is documented.
 - Local credential lifecycle and a human-invoked, candidate-only Research CLI
   (ADR-018). Research draft approval does not publish externally.
 
@@ -91,7 +95,7 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 | 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state checks, P05 mode propagation, local P07 lifecycle audit, explicit Knowledge revision and Decision/Mission snapshot binding implemented under ADR-020/021/022/023/024/025/026/027. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/numeric revision/mode-change governance and P07 validation mandates/general branch-conflict governance |
 | 3 — in progress | P09 operational lifecycle | Certificate diagnostics, bundle comparison, independent candidate passwords, rollback and overlapping-trust rollout rehearsals implemented under ADR-028/029. Public deployment, governed renewal/configuration changes and automated historical attestations remain open and require their respective policies |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
-| 5 — in progress; next independent increment | Broader persistence and release acceptance | Four pinned profiles, an explicit commit/profile upgrade matrix and 28 migration tests implemented, including signed/P10 history and partial-opening retry. Next: persisted schema-version baseline and opening-path inventory before numbered release migrations. Named release-to-release support, further historical states, conformance tests, public API/GUI scope and release evidence remain open |
+| 5 — in progress; next independent increment | Broader persistence and release acceptance | Four pinned profiles, explicit upgrade matrix, 36 migration tests and persisted baseline/opening inventory implemented. Next: canonical version-one schema inventory reconciling generated declarations/runtime structures, then numbered migrations. Named release support, further historical states, conformance tests, public API/GUI scope and release evidence remain open |
 
 P07 now uses the existing P05/P10 signed-runtime pattern. Research remains
 separate from canonical P06/P09 history. Receiving a fact does not validate
@@ -151,10 +155,11 @@ catalog deliberately does not derive old schemas or seed encodings from today's 
 Historical runtime guards and bounded signed verification/provisioning histories are
 now captured from an isolated old build and tested with current services.
 Populated P10 history now has a separate runtime profile with seven preservation,
-resumption, signed-history and failure/retry checks. Eight additional opening cases
-cover completed Decision DDL and credential-baseline statements in every profile,
-then compare retry/reopen with an uninterrupted upgrade. Source-version recognition,
-abrupt process/storage failures and versioned release migrations remain separate work.
+resumption, signed-history and failure/retry checks. Twelve additional opening cases
+cover completed Decision DDL, credential-baseline statements and the completion marker
+in every profile, then compare retry/reopen with an uninterrupted upgrade. ADR-030
+adds version recognition and a minimum core-table preflight; complete malformed-schema
+validation, abrupt process/storage failures and versioned migrations remain separate work.
 P09 certificate-expiry diagnostics now report all configured server leaves with
 fingerprints, exact validity and an advisory 30-day window; invalid dates still fail.
 Current/staged TLS bundle comparison now reports leaf/trust deltas and checks previous
@@ -165,8 +170,9 @@ real CLI rehearsal with journal continuity and authenticated exchange checks.
 Overlapping-trust rollout and retirement now have a real CLI rehearsal with fresh
 signed records at each stage and explicit old-certificate rejection after retirement.
 The upgrade matrix now identifies the four verified sources and failure/retry criteria.
-Next independent increment: establish a persisted schema-version baseline and inventory
-every database opening path before introducing numbered release migrations. There are
+The persisted baseline and opening inventory are now implemented under ADR-030.
+Next independent increment: reconcile the generated schema and runtime structures
+into a canonical version-one inventory before numbered release migrations. There are
 no published release/tag identities yet; `0.1.0-mvp` alone cannot identify a schema.
 Issuer selection and automatic issuance remain separate decisions;
 local comparison does not establish remote acceptance.

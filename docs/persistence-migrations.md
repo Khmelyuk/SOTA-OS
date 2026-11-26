@@ -1,11 +1,13 @@
 # Historical SQLite migration acceptance
 
-Updated: 2026-11-25
+Updated: 2026-11-26
 
 The [upgrade matrix](release-upgrade-matrix.md) identifies the four verified source
 profiles, their direct upgrade paths, failure/retry requirements and unverified
 release paths. Run `./gradlew :test:migrationAcceptance :test:detekt` with JDK 21
-for the focused 28-test acceptance suite; ordinary `build` also includes these tests.
+for the focused 36-test acceptance suite; ordinary `build` also includes these tests.
+[ADR-030](adr/ADR-030-sqlite-schema-baseline.md) defines the shared opening boundary:
+legacy version `0` becomes baseline `1` only after compatibility initialization succeeds.
 
 The migration suite adds two frozen declared-schema baselines and two captured
 runtime profiles to the existing
@@ -127,8 +129,9 @@ This restoration transaction is separate from production compatibility migration
 
 SqlDelightStore currently applies additive compatibility steps during opening.
 The entire sequence is not a single schema transaction: successful earlier DDL can
-remain after a later step fails. Eight `OpeningRetryMigrationTest` cases interrupt
-all four profiles after completed Decision-column DDL and credential-baseline writes.
+remain after a later step fails. Twelve `OpeningRetryMigrationTest` cases interrupt
+all four profiles after completed Decision-column DDL, credential-baseline writes
+and before the final version marker.
 They verify original rows/guards immediately after failure, then complete equality
 with an uninterrupted upgrade after retry and three reopens. The baseline-insert
 rejection test additionally covers a statement that did not commit. These are bounded
@@ -141,8 +144,11 @@ do not exercise every trigger, every intermediate P10 state or every provisionin
 Verification receipts remain local to their original node; fixture restoration is
 not authorization to copy trust evidence between production nodes.
 
-No production migration code, schema or governance policy is changed by this
-increment. Versioned `.sqm` release migrations, source-version recognition and broader
+The historical fixtures remain frozen. Current production opening now checks the
+schema version, creates fresh schemas and stamps the completed baseline under ADR-030.
+Four `SchemaVersionMigrationTest` cases drive the pinned sources through CLI `init`
+and direct unknown-version rejection, including file-byte preservation. Versioned
+`.sqm` release migrations, complete malformed-schema validation and broader
 opening-failure coverage remain open. Populated historical P10 exit/retained-obligation acceptance is now
 covered for the scenarios above. P09 operational work continues in the
 [development roadmap](roadmap.md); local certificate diagnostics are implemented

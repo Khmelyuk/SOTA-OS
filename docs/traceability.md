@@ -1,5 +1,15 @@
 # Traceability Matrix — Code ↔ Specification
 
+SQLite baseline update 2026-11-26: [ADR-030](adr/ADR-030-sqlite-schema-baseline.md)
+centralizes fresh/legacy opening in `SqlDelightStore` and records `user_version = 1`
+only after compatibility steps succeed. Negative/newer versions and missing core
+tables fail before schema writes. `SchemaVersionMigrationTest` verifies all four
+historical profiles through CLI upgrade and byte-preserving version rejection;
+`StoreOpeningTest` covers seven CLI opening cases. `OpeningRetryMigrationTest` now
+includes four final-marker interruptions, retaining `0` until successful retry.
+This implements an ADR-007 persistence boundary, not release/downgrade certification
+or a complete malformed-schema detector.
+
 Migration acceptance update 2026-11-25: the [upgrade matrix](release-upgrade-matrix.md)
 maps four pinned commit/profile sources to preservation and failure/retry evidence
 under ADR-007/009/027. Eight `OpeningRetryMigrationTest` cases interrupt initialization

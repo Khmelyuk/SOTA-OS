@@ -19,9 +19,10 @@ class OpeningRetryMigrationTest : FunSpec({
     }
 })
 
-private enum class OpeningBoundary(val statement: String) {
+private enum class OpeningBoundary(val statement: String, val before: Boolean = false) {
     DECISION_COLUMN("ALTER TABLE decision ADD COLUMN mission_snapshot_json TEXT"),
-    CREDENTIAL_BASELINE("INSERT INTO local_credential_audit")
+    CREDENTIAL_BASELINE("INSERT INTO local_credential_audit"),
+    VERSION_MARKER("PRAGMA user_version = 1", before = true)
 }
 
 private fun verifyOpeningRetry(schema: HistoricalSchema, boundary: OpeningBoundary) {
@@ -34,6 +35,7 @@ private fun verifyOpeningRetry(schema: HistoricalSchema, boundary: OpeningBounda
             val original = interrupted.sql { it.capture() }
             val originalGuards = interrupted.guards()
             interrupted.interruptAt(boundary)
+            interrupted.sql { it.query("PRAGMA user_version") } shouldBe listOf(listOf("0"))
             interrupted.assertOriginal(original, originalGuards)
             // The completed DDL remains committed even though store construction failed.
             interrupted.sql { it.query("PRAGMA table_info(decision)").any { row ->
@@ -46,6 +48,7 @@ private fun verifyOpeningRetry(schema: HistoricalSchema, boundary: OpeningBounda
             interrupted.open()
             repeat(3) {
                 interrupted.reopen()
+                interrupted.sql { it.query("PRAGMA user_version") } shouldBe listOf(listOf("1"))
                 interrupted.assertOriginal(original, originalGuards)
                 interrupted.sql { it.capture() } shouldBe expected
                 interrupted.sql { it.schemaShape() } shouldBe shape
@@ -77,16 +80,18 @@ private fun HistoricalFixture.interruptAt(boundary: OpeningBoundary) {
     }
 }
 
-private class OpeningInterrupted : IllegalStateException("Injected failure after completed migration statement")
+private class OpeningInterrupted : IllegalStateException("Injected failure at schema opening boundary")
 
-/** Throw only after SQLite completed the selected statement; do not simulate process death. */
+/** Interrupt a selected opening boundary without simulating process death. */
 private class InterruptedOpeningDriver(
     private val delegate: SqlDriver, private val boundary: OpeningBoundary
 ) : SqlDriver by delegate {
     override fun execute(identifier: Int?, sql: String, parameters: Int,
         binders: (SqlPreparedStatement.() -> Unit)?): QueryResult<Long> {
+        val selected = sql.trimStart().startsWith(boundary.statement)
+        if (selected && boundary.before) throw OpeningInterrupted()
         val result = delegate.execute(identifier, sql, parameters, binders)
-        if (sql.trimStart().startsWith(boundary.statement)) throw OpeningInterrupted()
+        if (selected) throw OpeningInterrupted()
         return result
     }
 }
