@@ -25,4 +25,7 @@
 *.sqlite
 *.sqlite3
 
+# Empty, reviewed SQLDelight migration-verification baseline only.
+!persistence/src/main/sqldelight/databases/1.db
+
 # Keep the Gradle wrapper versioned.

@@ -75,7 +75,7 @@ restart/resumption, archive and termination rollback/retry, and independent fulf
 after exit. Snapshot restoration installs old triggers after loading rows, with
 foreign keys checked at commit; this is test setup, not a production migration change.
 
-The focused `:test:migrationAcceptance` task now runs 43 tests. Twelve opening
+The focused `:test:migrationAcceptance` task now runs 45 tests. Twelve opening
 interruptions retain legacy version `0` until successful retry; four source-profile
 tests cover version rejection without byte changes and upgrade through CLI `init`.
 Seven additional API tests exercise the shared CLI opening boundary on fresh, unrelated
@@ -87,6 +87,14 @@ triggers; the other 41 remain explicit runtime responsibilities. Tests compare t
 exact fresh catalog and historical index/guard text, with six separately pinned
 historical formatting variants. See the [inventory](../docs/sqlite-schema-inventory.md)
 for the generator experiment, precise coverage limits and next migration-verification step.
+
+An empty, SHA-256-pinned `src/main/sqldelight/databases/1.db` now anchors the actual
+SQLDelight migration comparison in `check`; missing or modified baseline bytes fail.
+Candidate generation writes separately under `build/schema-candidates`. Two tests
+inspect disposable copies and verify full runtime completion with preserved seeded data.
+The [verification guide](../docs/sqlite-migration-verification.md) records the isolated
+positive/negative canary, build-only comparator override and required production ordering.
+No numbered production migration or version-two acceptance is enabled yet.
 
 `actor_signing_key` stores one active Ed25519 public key per actor as Base64
 X.509 material; private keys are never persisted. Lifecycle changes are

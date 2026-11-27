@@ -1,5 +1,13 @@
 # ADR-007 — Build & Test Toolchain
 
+Migration-verification refinement — 2026-11-27: a frozen empty `1.db` and mandatory
+checksum check now make SQLDelight verification substantive. Only the Gradle buildscript
+dependency `app.cash.sqldelight:migrations` is pinned to 2.3.2 for the upstream
+comparison-performance fix; compiler/dialect/application drivers remain 2.0.2.
+See [verification evidence and limits](../sqlite-migration-verification.md), including
+positive/negative canaries for missing migrations and foreign-key drift. This override
+must be reviewed when upgrading the SQLDelight plugin; schema checks stay enabled.
+
 Status: ACCEPTED
 Date: 2026-08-27
 Level: Implementation Architecture

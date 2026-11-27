@@ -5,12 +5,15 @@ Updated: 2026-11-27
 The [upgrade matrix](release-upgrade-matrix.md) identifies the four verified source
 profiles, their direct upgrade paths, failure/retry requirements and unverified
 release paths. Run `./gradlew :test:migrationAcceptance :test:detekt` with JDK 21
-for the focused 43-test acceptance suite; ordinary `build` also includes these tests.
+for the focused 45-test acceptance suite; ordinary `build` also includes these tests.
 [ADR-030](adr/ADR-030-sqlite-schema-baseline.md) defines the shared opening boundary:
 legacy version `0` becomes baseline `1` only after compatibility initialization succeeds.
 The [canonical inventory](sqlite-schema-inventory.md) pins the complete fresh runtime
 catalog and generated/runtime delta. Seven additional tests cover all 91 objects,
 historical indexes/guards, reviewed text variants and signing-key audit immutability.
+The [SQLDelight verification baseline](sqlite-migration-verification.md) now adds a
+frozen empty `1.db`, a mandatory checksum check and two snapshot acceptance cases.
+Run `:persistence:check` alongside this suite to exercise the actual migration comparator.
 
 The migration suite adds two frozen declared-schema baselines and two captured
 runtime profiles to the existing

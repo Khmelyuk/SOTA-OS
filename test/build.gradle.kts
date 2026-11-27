@@ -15,6 +15,13 @@ dependencies {
     testImplementation("app.cash.sqldelight:sqlite-driver:2.0.2")
 }
 
+// Test only disposable copies of the same binary snapshot consumed by SQLDelight.
+tasks.processTestResources {
+    from(project(":persistence").layout.projectDirectory.file("src/main/sqldelight/databases/1.db")) {
+        into("schema-baseline/sqldelight")
+    }
+}
+
 // The same frozen-profile tests also run in the ordinary test task.
 tasks.register<Test>("migrationAcceptance") {
     group = "verification"

@@ -4,6 +4,14 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 
+buildscript {
+    configurations.classpath {
+        // Build-time comparator only: upstream #6073 fixes exponential FK graph traversal.
+        // Keep the compiler, dialect and application drivers on the existing 2.0.2 line.
+        resolutionStrategy.force("app.cash.sqldelight:migrations:2.3.2")
+    }
+}
+
 plugins {
     kotlin("jvm") version "2.0.21" apply false
     id("app.cash.sqldelight") version "2.0.2" apply false

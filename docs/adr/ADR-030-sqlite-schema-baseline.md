@@ -85,6 +85,7 @@ matching binaries and explicit release evidence remain necessary for rollback pl
 
 The [canonical version-one inventory](../sqlite-schema-inventory.md) was completed
 on 2026-11-27, pinning the exact generated/runtime delta and historical guard/index
-variants. The next step is the migration-verification baseline and a numbered path
-that retains the runtime guard phase. See the
+variants. The [migration-verification baseline](../sqlite-migration-verification.md)
+and ordering contract are also established; production numbered dispatch remains
+the next step, retaining the runtime guard phase. See the
 [upgrade matrix](../release-upgrade-matrix.md) for supported profiles and open paths.

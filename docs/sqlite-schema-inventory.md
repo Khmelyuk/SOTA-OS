@@ -35,7 +35,7 @@ Existing runtime installers remain necessary for older schemas.
 ## Executable contract
 
 Seven `CanonicalSchemaTest` cases are part of ordinary `build` and the focused
-`:test:migrationAcceptance` task (43 historical/schema tests in total):
+`:test:migrationAcceptance` task (now 45 historical/schema tests including snapshot acceptance):
 
 - Generated schema must equal the pinned full catalog minus exactly the 41 named
   runtime triggers. Creating it alone leaves version `0`; store initialization
@@ -71,8 +71,10 @@ conditions are unchanged; no parser suppression or dependency upgrade was introd
 This is an observed limitation of that experiment, not a claim about all SQLDelight
 versions or every possible trigger formulation.
 
-The next increment is to establish SQLDelight's migration-verification baseline and
-the ordering contract for numbered migrations while retaining the runtime guard phase.
+SQLDelight's [migration-verification baseline](sqlite-migration-verification.md) and
+the ordering contract are now established, with an immutable empty `1.db` and isolated
+verifier canary. The next increment is the production numbered dispatcher with a
+tested transaction/retry boundary while retaining the runtime guard phase.
 Generated-only migration verification must not be treated as verification of all 51
 guards. Before enabling a new version, check the complete resulting runtime catalog,
 historical data preservation and interruption/retry behavior, then write the version

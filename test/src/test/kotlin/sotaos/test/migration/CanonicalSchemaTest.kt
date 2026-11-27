@@ -73,7 +73,7 @@ class CanonicalSchemaTest : FunSpec({
     }
 })
 
-private fun baselineManifest(): JsonObject {
+internal fun baselineManifest(): JsonObject {
     val manifest = pinnedManifest("v1.json",
         "0d3728ef8e8df4e687509e8da68cf1810f0f2c80137af69282fb740fc78dae26"
     )
@@ -98,7 +98,7 @@ private fun historicalCatalog(schema: HistoricalSchema): List<List<String?>> {
     }
 }
 
-private fun baselineCatalog(): List<List<String?>> = baselineManifest().getValue("catalog").jsonArray
+internal fun baselineCatalog(): List<List<String?>> = baselineManifest().getValue("catalog").jsonArray
     .map { row -> row.jsonArray.map { it.jsonPrimitive.contentOrNull } }
 
 private fun Connection.catalog() = query(

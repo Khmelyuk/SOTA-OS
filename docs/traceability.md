@@ -1,5 +1,13 @@
 # Traceability Matrix — Code ↔ Specification
 
+Migration verifier update 2026-11-27: a frozen empty SQLDelight `1.db` and mandatory
+SHA-256 check anchor `:persistence:check` under ADR-007/030. `SqlDelightBaselineTest`
+adds two empty-catalog and runtime-completion cases, bringing focused acceptance to
+45 tests. The [verification canary](sqlite-migration-verification.md) exercises real
+schema comparison in a disposable project: unchanged and migrated schemas pass;
+missing migration and FK drift fail. Buildscript-only migrations 2.3.2 fixes the
+old comparator's excessive relationship traversal. Production version `2` remains denied.
+
 Canonical schema update 2026-11-27: `CanonicalSchemaTest` adds seven ADR-007/030
 checks against the SHA-256-pinned `430bde9` runtime catalog: 38 tables, two explicit
 indexes and 51 triggers. Generated declarations must differ only by the named 41

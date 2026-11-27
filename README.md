@@ -14,12 +14,14 @@ The [TLS rollback rehearsal](docs/p09-tls-rollback.md), `./scripts/p09-tls-rollb
 checks failed replacement, unchanged journals and recovery using the previous TLS bundle.
 The [TLS rollout rehearsal](docs/p09-tls-rollout.md), `./scripts/p09-tls-rollout.sh`,
 checks staged replacement under overlapping trust and rejection of retired certificates.
-Run `./gradlew :test:migrationAcceptance :test:detekt` for the 43-test historical
+Run `./gradlew :persistence:check :test:migrationAcceptance :test:detekt` for the 45-test historical
 SQLite [upgrade matrix](docs/release-upgrade-matrix.md), including interrupted opening and retry.
 SQLite opening now checks the persisted schema version before schema changes and
 records baseline `1` only after successful initialization ([ADR-030](docs/adr/ADR-030-sqlite-schema-baseline.md)).
 The [canonical schema inventory](docs/sqlite-schema-inventory.md) pins all 38 tables,
 2 explicit indexes and 51 triggers, including the 41 guards supplied by runtime initialization.
+The [migration verifier](docs/sqlite-migration-verification.md) now consumes a frozen empty
+`1.db`; an isolated canary checks rejection of missing migrations and foreign-key drift.
 
 ## Status: Phase 3 — signed Core Loop, P09 node, P10 exit and Research CLI
 
@@ -151,6 +153,10 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
+Verification baseline update on 2026-11-27: `:persistence:check`, all **45 focused
+tests** and Detekt passed. The isolated verifier canary accepts the unchanged baseline
+and a matching numbered migration, and rejects both missing migrations and foreign-key
+drift. The build-only comparator fix keeps the application driver on SQLDelight 2.0.2.
 Focused verification on 2026-11-27 passed **43 tests** (zero failures, errors or skips)
 and Detekt, including seven canonical-catalog checks. Independent recapture matched
 the pinned inventory and all 43 persistence source fingerprints. Production code is
@@ -239,11 +245,13 @@ authentication port and per-Sota provider allowlist are described in
 [ADR-009](docs/adr/ADR-009-provider-based-authentication.md). Only the local
 provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
-The next increments, updated after the canonical schema inventory on 2026-11-27, are recorded
+The next increments, updated after the migration-verification baseline on 2026-11-27, are recorded
 in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
 admission, signatures and HTTPS hosting are already implemented. The next independent
-engineering increment is SQLDelight's migration-verification baseline and the ordering
-contract for numbered migrations with runtime guards retained. The exact version-one
+engineering increment is the production numbered-upgrade dispatcher with explicit
+transaction/retry and guard-before-marker behavior, before enabling a real version-two
+schema change. SQLDelight's frozen verification baseline and ordering contract are now
+documented and tested; version `2` remains rejected by the current runtime. The exact version-one
 catalog and generated/runtime delta are now pinned. Direct `.sq` placement of all guards
 was rejected by the configured generator for `OLD`/`NEW` references in trigger conditions;
 the existing executable definitions remain unchanged. Persisted baseline `1` and the
