@@ -1,6 +1,6 @@
 # SQLite upgrade matrix and release acceptance
 
-Updated: 2026-11-26
+Updated: 2026-11-27
 
 The currently verified entry points are the four frozen profiles below. They are
 identified by source commit and fixture, not by a release number. As of this review,
@@ -8,6 +8,8 @@ GitHub has no published releases and the remote has no tags. `0.1.0-mvp` in the 
 Gradle build is an artifact version; it does not identify a unique database layout.
 No named release-to-release upgrade is yet certified. [ADR-030](adr/ADR-030-sqlite-schema-baseline.md)
 now defines persisted SQLite baseline `1`, legacy `0` adoption and opening paths.
+The [canonical inventory](sqlite-schema-inventory.md) now pins the full runtime
+catalog and the exact delta from generated SQLDelight declarations.
 
 The target is the exact checkout running acceptance. Retain its commit SHA, clean
 working-tree status and test reports with any release evidence. A passing run does
@@ -71,7 +73,7 @@ git status --short
 ./gradlew :test:migrationAcceptance :test:detekt --continue --console=plain
 ```
 
-The focused task runs all 36 tests in `sotaos.test.migration` using classpath fixtures
+The focused task runs all 43 tests in `sotaos.test.migration` using classpath fixtures
 and temporary SQLite files. It needs no Git history, Node, running node or production
 database. Its independent HTML report is
 `test/build/reports/tests/migrationAcceptance/index.html`; XML results are under
@@ -89,15 +91,17 @@ required for a release. Preserve those reports and the artifact digest separatel
 | Path or condition | Current status / evidence needed |
 |---|---|
 | Named release → named release | Open: select immutable release commits/artifacts and database profiles; give each supported source an explicit row and passing target evidence |
-| Versioned `.sqm` migration chain | Baseline `1` and shared fresh/legacy opening implemented. Next: reconcile generated declarations/runtime structures and add numbered migrations with declared direct/intermediate paths |
+| Versioned `.sqm` migration chain | Baseline `1`, shared opening and full catalog/delta inventory implemented. Next: migration-verification baseline and ordering of numbered migrations plus runtime guard installation, then declared direct/intermediate paths |
 | Unknown version or non-SOTA layout | Markers other than `0`/`1`, missing core tables and an empty versioned catalog now fail before schema writes; byte preservation tested. This is not full validation of arbitrary malformed databases that contain the required table names |
 | Current database → older binary (downgrade) | Unverified. Additive retry is not a downgrade contract. Recovery planning must use a stopped-node backup and matching binary/configuration; restored state needs separate acceptance |
 | Abrupt process death, disk exhaustion, every intermediate statement | Unverified; the two completed-statement interruptions, marker interruption and bounded service failures do not cover these conditions |
 | Additional historical states or production-scale data | Open: capture immutable profiles and exercise their semantics, size and recovery constraints independently |
 
-The next bounded engineering step is a canonical version-one schema inventory,
-reconciling generated declarations with runtime tables/guards before adding the
-first numbered release migration. The persisted baseline and opening inventory are
+The canonical version-one inventory now reconciles the exact generated/runtime delta
+in acceptance tests. The next bounded step is SQLDelight's migration-verification
+baseline and ordering of numbered migrations while retaining runtime guards; direct
+placement of the conditional guards in `.sq` failed with the configured generator.
+The persisted baseline and opening inventory are
 implemented under ADR-030; do not infer compatibility from the Gradle artifact version.
 The compatibility sequence still is not globally atomic, and pre-ADR-030 binaries
 cannot enforce the new version boundary retroactively.

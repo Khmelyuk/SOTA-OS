@@ -83,6 +83,8 @@ validation, power-loss recovery or downgrade support. Older binaries predating t
 ADR ignore the marker; the change cannot retroactively prevent their use. Backups,
 matching binaries and explicit release evidence remain necessary for rollback plans.
 
-The next increment is a canonical version-one schema inventory (generated tables
-plus runtime guards), followed by a verified numbered migration path. See the
+The [canonical version-one inventory](../sqlite-schema-inventory.md) was completed
+on 2026-11-27, pinning the exact generated/runtime delta and historical guard/index
+variants. The next step is the migration-verification baseline and a numbered path
+that retains the runtime guard phase. See the
 [upgrade matrix](../release-upgrade-matrix.md) for supported profiles and open paths.

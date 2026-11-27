@@ -1,13 +1,16 @@
 # Historical SQLite migration acceptance
 
-Updated: 2026-11-26
+Updated: 2026-11-27
 
 The [upgrade matrix](release-upgrade-matrix.md) identifies the four verified source
 profiles, their direct upgrade paths, failure/retry requirements and unverified
 release paths. Run `./gradlew :test:migrationAcceptance :test:detekt` with JDK 21
-for the focused 36-test acceptance suite; ordinary `build` also includes these tests.
+for the focused 43-test acceptance suite; ordinary `build` also includes these tests.
 [ADR-030](adr/ADR-030-sqlite-schema-baseline.md) defines the shared opening boundary:
 legacy version `0` becomes baseline `1` only after compatibility initialization succeeds.
+The [canonical inventory](sqlite-schema-inventory.md) pins the complete fresh runtime
+catalog and generated/runtime delta. Seven additional tests cover all 91 objects,
+historical indexes/guards, reviewed text variants and signing-key audit immutability.
 
 The migration suite adds two frozen declared-schema baselines and two captured
 runtime profiles to the existing
@@ -34,7 +37,8 @@ The fixture catalog and authoring procedure are in
   raw JSON text, historical IDs, timestamps, journal positions and cursors survive.
 - Table names, column types/nullability/defaults/primary-key positions and foreign-key
   edges match a freshly initialized current store. This comparison does not claim
-  complete equivalence of indexes, CHECK clauses or trigger SQL text.
+  complete equivalence of CHECK clauses or table SQL text. The later canonical-catalog
+  tests separately compare explicit indexes and all trigger SQL against pinned expectations.
 - SQLite integrity and foreign-key checks pass. No Decision snapshot, delegation
   parent, signed verification receipt, historical approval or trusted peer is invented.
 - A failed credential-baseline insertion prevents store construction, preserves

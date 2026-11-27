@@ -1,5 +1,13 @@
 # Traceability Matrix — Code ↔ Specification
 
+Canonical schema update 2026-11-27: `CanonicalSchemaTest` adds seven ADR-007/030
+checks against the SHA-256-pinned `430bde9` runtime catalog: 38 tables, two explicit
+indexes and 51 triggers. Generated declarations must differ only by the named 41
+runtime guards; historical profiles must retain the full identity set and pinned
+index/trigger text across reopen, including six explicit formatting variants.
+The [inventory](sqlite-schema-inventory.md) distinguishes exact fresh DDL coverage
+from historical table-SQL limits. No production or governance definitions changed.
+
 SQLite baseline update 2026-11-26: [ADR-030](adr/ADR-030-sqlite-schema-baseline.md)
 centralizes fresh/legacy opening in `SqlDelightStore` and records `user_version = 1`
 only after compatibility steps succeed. Negative/newer versions and missing core

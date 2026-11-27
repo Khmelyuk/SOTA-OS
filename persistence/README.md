@@ -75,11 +75,18 @@ restart/resumption, archive and termination rollback/retry, and independent fulf
 after exit. Snapshot restoration installs old triggers after loading rows, with
 foreign keys checked at commit; this is test setup, not a production migration change.
 
-The focused `:test:migrationAcceptance` task now runs 36 tests. Twelve opening
+The focused `:test:migrationAcceptance` task now runs 43 tests. Twelve opening
 interruptions retain legacy version `0` until successful retry; four source-profile
 tests cover version rejection without byte changes and upgrade through CLI `init`.
 Seven additional API tests exercise the shared CLI opening boundary on fresh, unrelated
 and versioned databases. Existing schema/behavior and P09/P10 history checks remain.
+
+Seven canonical-catalog tests pin 38 tables, two explicit indexes and 51 triggers
+from the completed `430bde9` runtime. Generated declarations alone contain only ten
+triggers; the other 41 remain explicit runtime responsibilities. Tests compare the
+exact fresh catalog and historical index/guard text, with six separately pinned
+historical formatting variants. See the [inventory](../docs/sqlite-schema-inventory.md)
+for the generator experiment, precise coverage limits and next migration-verification step.
 
 `actor_signing_key` stores one active Ed25519 public key per actor as Base64
 X.509 material; private keys are never persisted. Lifecycle changes are

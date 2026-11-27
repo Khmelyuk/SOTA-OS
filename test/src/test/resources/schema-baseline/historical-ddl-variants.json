@@ -1,0 +1,17 @@
+{
+  "sourceRevision": "430bde9a19c3690e843a5ecbe6f54e3c3fd6563c",
+  "profiles": {
+    "durable-p09": {
+      "exit_one_open": "CREATE UNIQUE INDEX exit_one_open ON exit_process(person_id, core_id)\nWHERE stage != 'COMPLETED' ",
+      "credential_audit_no_delete": "CREATE TRIGGER credential_audit_no_delete\n            BEFORE delete ON local_credential_audit\n            BEGIN SELECT RAISE(ABORT, 'credential audit is append-only'); END",
+      "credential_audit_no_update": "CREATE TRIGGER credential_audit_no_update\n            BEFORE update ON local_credential_audit\n            BEGIN SELECT RAISE(ABORT, 'credential audit is append-only'); END",
+      "provisioning_audit_no_delete": "CREATE TRIGGER provisioning_audit_no_delete\n            BEFORE DELETE ON provisioning_audit\n            BEGIN SELECT RAISE(ABORT, 'provisioning audit is append-only'); END",
+      "provisioning_audit_no_update": "CREATE TRIGGER provisioning_audit_no_update\n            BEFORE UPDATE ON provisioning_audit\n            BEGIN SELECT RAISE(ABORT, 'provisioning audit is append-only'); END"
+    },
+    "knowledge-versions": {
+      "exit_one_open": "CREATE UNIQUE INDEX exit_one_open ON exit_process(person_id, core_id) WHERE stage != 'COMPLETED' "
+    },
+    "runtime-signed": {},
+    "runtime-p10": {}
+  }
+}
