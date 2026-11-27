@@ -22,6 +22,10 @@ The [canonical schema inventory](docs/sqlite-schema-inventory.md) pins all 38 ta
 2 explicit indexes and 51 triggers, including the 41 guards supplied by runtime initialization.
 The [migration verifier](docs/sqlite-migration-verification.md) now consumes a frozen empty
 `1.db`; an isolated canary checks rejection of missing migrations and foreign-key drift.
+[Transactional migration dispatch](docs/adr/ADR-031-numbered-sqlite-migrations.md) now
+commits numbered steps, data, runtime guards and the marker together. The persistence
+check includes 33 additional tests, including abrupt JVM termination in DELETE/WAL modes.
+Production remains at schema `1`; the first real versioned change still needs release evidence.
 
 ## Status: Phase 3 — signed Core Loop, P09 node, P10 exit and Research CLI
 
@@ -153,6 +157,10 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
+Transactional dispatcher verification on 2026-11-27: the full JDK 21 build passed
+**452 tests** with zero failures/errors/skips, Detekt, module layering and SQLDelight
+migration verification. This includes 33 new migration/recovery tests (16 child-JVM
+crashes in DELETE/WAL modes), the existing 45 historical/schema cases and 30 API tests.
 Verification baseline update on 2026-11-27: `:persistence:check`, all **45 focused
 tests** and Detekt passed. The isolated verifier canary accepts the unchanged baseline
 and a matching numbered migration, and rejects both missing migrations and foreign-key
@@ -245,12 +253,13 @@ authentication port and per-Sota provider allowlist are described in
 [ADR-009](docs/adr/ADR-009-provider-based-authentication.md). Only the local
 provider is implemented; Google/OIDC, Diia, and qualified-signature adapters
 remain future work. The current verification suite passes as described above.
-The next increments, updated after the migration-verification baseline on 2026-11-27, are recorded
+The next increments, updated after transactional migration dispatch on 2026-11-27, are recorded
 in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
 admission, signatures and HTTPS hosting are already implemented. The next independent
-engineering increment is the production numbered-upgrade dispatcher with explicit
-transaction/retry and guard-before-marker behavior, before enabling a real version-two
-schema change. SQLDelight's frozen verification baseline and ordering contract are now
+engineering increment is release acceptance for the first domain-motivated versioned
+schema change: immutable release identities and populated direct/intermediate profiles.
+The numbered dispatcher now has transaction/retry and guard-before-marker coverage under
+[ADR-031](docs/adr/ADR-031-numbered-sqlite-migrations.md). SQLDelight's verification baseline is
 documented and tested; version `2` remains rejected by the current runtime. The exact version-one
 catalog and generated/runtime delta are now pinned. Direct `.sq` placement of all guards
 was rejected by the configured generator for `OLD`/`NEW` references in trigger conditions;

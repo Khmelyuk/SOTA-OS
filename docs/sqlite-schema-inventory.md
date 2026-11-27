@@ -73,8 +73,10 @@ versions or every possible trigger formulation.
 
 SQLDelight's [migration-verification baseline](sqlite-migration-verification.md) and
 the ordering contract are now established, with an immutable empty `1.db` and isolated
-verifier canary. The next increment is the production numbered dispatcher with a
-tested transaction/retry boundary while retaining the runtime guard phase.
+verifier canary. The production numbered dispatcher now implements a tested
+transaction/retry boundary with the runtime guard phase under
+[ADR-031](adr/ADR-031-numbered-sqlite-migrations.md). A real versioned schema change
+and release-specific populated acceptance remain separate work.
 Generated-only migration verification must not be treated as verification of all 51
 guards. Before enabling a new version, check the complete resulting runtime catalog,
 historical data preservation and interruption/retry behavior, then write the version

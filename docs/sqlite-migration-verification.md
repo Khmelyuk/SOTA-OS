@@ -74,30 +74,27 @@ are checked at exit. The canary is an explicit build-tool acceptance command, no
 a production migration or a default runtime action. It requires review once the
 first real migration changes the baseline-one assumptions.
 
-## Required order before enabling a numbered production upgrade
+## Runtime dispatch and first production upgrade
 
-The current application still accepts only legacy `0` and completed baseline `1`.
-There is no committed `.sqm`, enabled version `2` or numbered production dispatcher
-in this increment. The temporary canary does not change this contract.
+The application now has a transactional numbered dispatcher under
+[ADR-031](adr/ADR-031-numbered-sqlite-migrations.md). It calls generated
+`Schema.migrate` one source version at a time, then registered runtime/data work.
+All pending steps, current guards, target/FK validation and the final version marker
+commit together. Failure returns no store; close the driver and reopen to retry.
+Fresh creation includes runtime guards and the marker in one transaction, while
+populated legacy `0` retains its existing resumable adoption to baseline `1` first.
 
-The first real versioned change must implement and test this ordering explicitly:
+Thirty-three persistence tests cover concrete test-only version 2/3 schemas through
+the real opening path, including direct/intermediate upgrades, injected failures,
+a reader-blocked commit and abrupt child-JVM termination in DELETE and WAL modes.
+These tests complement the 45 historical/canonical tests and real generated verifier
+canary; their synthetic schemas are not a production release migration.
 
-1. Read the stored version and reject unsupported input before any migration writes.
-2. Separate fresh creation from legacy adoption and a known versioned upgrade.
-   Legacy `0` needs existing compatibility handling; it cannot be treated as an empty
-   database or sent blindly through a migration intended for completed version `1`.
-3. Apply the declared numbered steps in order, with a tested transaction/retry
-   boundary. Preserve earlier snapshots and include direct/intermediate paths in
-   the upgrade matrix. The SQLDelight verifier alone does not establish atomicity.
-4. Install or update the runtime guards and validate the resulting full catalog,
-   data invariants and current service behavior. `CREATE IF NOT EXISTS` alone cannot
-   replace an existing changed trigger definition.
-5. Record the target runtime version only after required schema/data/guard work
-   succeeds, then expose the store to callers. Inject failures before and after
-   schema, data, guard and marker boundaries and prove restart/retry behavior.
-
-Keep ADR-030's existing completion-marker rule. SQLDelight's automatic driver schema
-initializer is not enabled here; its version handling must not be added alongside
-the store's marker handling without a unified transaction and ownership contract.
-No business column or artificial production version bump is introduced just to
-exercise migration tooling. Named release support and downgrade certification remain open.
+Production still accepts only legacy `0` and completed `1`. No `.sqm` or version
+`2` is enabled. The first real change must supply a numbered file, matching current
+declarations, explicit runtime/data registration for every source version, a current
+installer that also works on fresh creation, and target-specific assertions. Retain
+old snapshots and certify populated direct/intermediate paths for the actual change.
+Changed guards require explicit replacement; `CREATE IF NOT EXISTS` alone is insufficient.
+Do not enable SQLDelight's automatic driver schema initializer alongside the store's
+version ownership. Named release support and downgrade certification remain open.

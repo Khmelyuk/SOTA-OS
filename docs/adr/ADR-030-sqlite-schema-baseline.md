@@ -1,6 +1,6 @@
 # ADR-030 — SQLite schema baseline and opening boundary
 
-Status: ACCEPTED
+Status: ACCEPTED; fresh creation and numbered dispatch extended by [ADR-031](ADR-031-numbered-sqlite-migrations.md)
 Date: 2026-11-26
 Level: Implementation Architecture
 
@@ -86,6 +86,7 @@ matching binaries and explicit release evidence remain necessary for rollback pl
 The [canonical version-one inventory](../sqlite-schema-inventory.md) was completed
 on 2026-11-27, pinning the exact generated/runtime delta and historical guard/index
 variants. The [migration-verification baseline](../sqlite-migration-verification.md)
-and ordering contract are also established; production numbered dispatch remains
-the next step, retaining the runtime guard phase. See the
+and ordering contract are also established. [ADR-031](ADR-031-numbered-sqlite-migrations.md)
+now implements transactional numbered dispatch and atomic fresh initialization,
+retaining legacy adoption semantics and the runtime guard phase. See the
 [upgrade matrix](../release-upgrade-matrix.md) for supported profiles and open paths.

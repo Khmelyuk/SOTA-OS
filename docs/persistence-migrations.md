@@ -134,8 +134,8 @@ This restoration transaction is separate from production compatibility migration
 
 ## Operational and coverage limits
 
-SqlDelightStore currently applies additive compatibility steps during opening.
-The entire sequence is not a single schema transaction: successful earlier DDL can
+For populated legacy version `0`, SqlDelightStore applies additive compatibility steps.
+This legacy sequence is not a single schema transaction: successful earlier DDL can
 remain after a later step fails. Twelve `OpeningRetryMigrationTest` cases interrupt
 all four profiles after completed Decision-column DDL, credential-baseline writes
 and before the final version marker.
@@ -155,8 +155,11 @@ The historical fixtures remain frozen. Current production opening now checks the
 schema version, creates fresh schemas and stamps the completed baseline under ADR-030.
 Four `SchemaVersionMigrationTest` cases drive the pinned sources through CLI `init`
 and direct unknown-version rejection, including file-byte preservation. Versioned
-`.sqm` release migrations, complete malformed-schema validation and broader
-opening-failure coverage remain open. Populated historical P10 exit/retained-obligation acceptance is now
+release `.sqm` migrations and complete malformed-schema validation remain open.
+[ADR-031](adr/ADR-031-numbered-sqlite-migrations.md) now supplies a transactional
+numbered dispatcher and 33 separate persistence tests, including DELETE/WAL child-JVM
+crashes and commit contention. Production remains at version `1`; no named release
+upgrade is inferred from synthetic version 2/3 test schemas. Populated historical P10 exit/retained-obligation acceptance is now
 covered for the scenarios above. P09 operational work continues in the
 [development roadmap](roadmap.md); local certificate diagnostics are implemented
 under [ADR-028](adr/ADR-028-p09-certificate-diagnostics.md).

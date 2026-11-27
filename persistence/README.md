@@ -11,13 +11,15 @@ Create a `SqlDriver`, enable SQLite foreign keys, then construct `SqlDelightStor
 The store now owns fresh schema creation and legacy compatibility initialization.
 It reads `PRAGMA user_version` before schema writes: unversioned `0` and baseline
 `1` are accepted, all other numbers are rejected. A new empty catalog at `0` gets
-the generated schema transactionally; existing catalogs must contain the core
+the generated schema, runtime guards and marker in one transaction; existing catalogs must contain the core
 tables. Only completed compatibility initialization marks a legacy database `1`.
 See [ADR-030](../docs/adr/ADR-030-sqlite-schema-baseline.md) for the opening inventory
 and limits. The number is not a full schema fingerprint or a release version.
 
 Close the store when the node shuts down. The caller owns the driver and must also
-close it if construction fails. It remains responsible for configuring foreign keys.
+close it if construction fails and use a fresh driver for retry, including commit errors.
+Opening inside an existing SQLDelight transaction is rejected. The caller remains
+responsible for configuring foreign keys.
 Production callers should not invoke generated `Schema.create` themselves; direct
 generated database/repository access does not apply the store's opening contract.
 
@@ -50,8 +52,11 @@ for application-service wiring. JSON columns use explicit mappings in
 The SQLDelight schema is the current MVP declaration. `SqlDelightStore` additionally applies
 idempotent additive table creation for RIGHT and CONSENT so existing database
 files can open with these records available. Other future schema changes
-still need versioned SQLDelight migrations. The baseline marker does not dispatch
-`.sqm` migrations; generated declarations and runtime guards must first be reconciled.
+use the numbered dispatcher described in [ADR-031](../docs/adr/ADR-031-numbered-sqlite-migrations.md).
+Every generated step needs an explicit runtime/data registration; all pending steps,
+current guards, validation and the marker share one transaction. Production stays at
+version `1`. Thirty-three persistence tests cover test-only higher versions, rollback,
+commit contention and child-process recovery in DELETE/WAL modes.
 
 Two frozen Git schema profiles now exercise this opening path with synthetic
 historical governance, memory and credential records. Seven tests cover exact row

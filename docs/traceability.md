@@ -1,5 +1,12 @@
 # Traceability Matrix — Code ↔ Specification
 
+Numbered dispatch update 2026-11-27: [ADR-031](adr/ADR-031-numbered-sqlite-migrations.md)
+implements ordered generated/runtime steps with atomic data, guards and marker,
+fresh creation and separate legacy adoption. Seventeen exception/validation/commit
+tests and sixteen child-JVM crash tests in DELETE/WAL modes verify the actual store
+path using test-only higher schemas. The 45 historical tests and exact baseline
+remain unchanged. Production stays at `1`; release version 2 is not enabled.
+
 Migration verifier update 2026-11-27: a frozen empty SQLDelight `1.db` and mandatory
 SHA-256 check anchor `:persistence:check` under ADR-007/030. `SqlDelightBaselineTest`
 adds two empty-catalog and runtime-completion cases, bringing focused acceptance to

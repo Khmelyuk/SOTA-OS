@@ -1,7 +1,7 @@
 # Development roadmap — updated 2026-11-27
 
-Published baseline before this increment: GitHub `main` at `08460f8`
-(canonical catalog and historical guard variants), with successful CI. The earlier integration
+Published baseline before this increment: GitHub `main` at `4baad0e`
+(frozen SQLDelight verifier baseline), with successful CI. The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
@@ -76,6 +76,11 @@ tracks the integrated implementation and subsequent bounded increments.
   runtime completion with preserved seeded data. An isolated canary rejects column/FK
   drift and accepts a matching numbered migration. A build-only migrations 2.3.2 pin
   fixes comparator traversal while application drivers/compiler remain 2.0.2.
+- Transactional numbered migration dispatch under [ADR-031](adr/ADR-031-numbered-sqlite-migrations.md):
+  ordered generated/runtime steps, target/FK validation, atomic guards and marker,
+  fresh creation and preserved legacy adoption. Thirty-three persistence tests cover
+  rollback, commit contention and DELETE/WAL child-process recovery. Production stays
+  at version `1`; synthetic higher-version tests are not release certification.
 - Local credential lifecycle and a human-invoked, candidate-only Research CLI
   (ADR-018). Research draft approval does not publish externally.
 
@@ -104,7 +109,7 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 | 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state checks, P05 mode propagation, local P07 lifecycle audit, explicit Knowledge revision and Decision/Mission snapshot binding implemented under ADR-020/021/022/023/024/025/026/027. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/numeric revision/mode-change governance and P07 validation mandates/general branch-conflict governance |
 | 3 — in progress | P09 operational lifecycle | Certificate diagnostics, bundle comparison, independent candidate passwords, rollback and overlapping-trust rollout rehearsals implemented under ADR-028/029. Public deployment, governed renewal/configuration changes and automated historical attestations remain open and require their respective policies |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
-| 5 — in progress; next independent increment | Broader persistence and release acceptance | Four historical profiles, 45 migration/schema tests, canonical catalog and frozen SQLDelight verifier baseline implemented. Next: production numbered dispatcher with transaction/retry and guard-before-marker behavior before a real schema-version change. Named release support, further historical states, conformance tests, public API/GUI scope and release evidence remain open |
+| 5 — in progress; next independent increment | Broader persistence and release acceptance | Four historical profiles, 45 migration/schema tests, canonical catalog and frozen SQLDelight verifier baseline implemented. Numbered dispatcher and 33 transaction/crash-recovery tests are implemented. Next: certify the first domain-motivated numbered change with populated old/current profiles and release identities. Named release support, further historical states, conformance tests, public API/GUI scope and release evidence remain open |
 
 P07 now uses the existing P05/P10 signed-runtime pattern. Research remains
 separate from canonical P06/P09 history. Receiving a fact does not validate
@@ -168,7 +173,8 @@ resumption, signed-history and failure/retry checks. Twelve additional opening c
 cover completed Decision DDL, credential-baseline statements and the completion marker
 in every profile, then compare retry/reopen with an uninterrupted upgrade. ADR-030
 adds version recognition and a minimum core-table preflight; complete malformed-schema
-validation, abrupt process/storage failures and versioned migrations remain separate work.
+validation, storage failures and actual versioned release migrations remain separate work.
+ADR-031 separately covers abrupt process termination for numbered upgrade transactions.
 P09 certificate-expiry diagnostics now report all configured server leaves with
 fingerprints, exact validity and an advisory 30-day window; invalid dates still fail.
 Current/staged TLS bundle comparison now reports leaf/trust deltas and checks previous
@@ -182,8 +188,9 @@ The upgrade matrix now identifies the four verified sources and failure/retry cr
 The persisted baseline and opening inventory are now implemented under ADR-030.
 The exact generated/runtime delta is now pinned by canonical-catalog acceptance.
 SQLDelight verification now has a frozen input, tested positive/negative canary and
-documented ordering contract. Next independent increment: production numbered dispatch
-with explicit transaction/retry and guard-before-marker behavior. Direct `.sq` placement of
+documented ordering contract. Numbered dispatch, transaction/retry and guard-before-marker
+behavior are now implemented. Next independent increment: define release identities and
+acceptance criteria for the first real domain-motivated schema change. Direct `.sq` placement of
 conditional guards failed in the configured generator; retain their executable SQL.
 There are
 no published release/tag identities yet; `0.1.0-mvp` alone cannot identify a schema.

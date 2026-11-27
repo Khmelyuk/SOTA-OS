@@ -43,3 +43,8 @@ tasks.matching { it.name == "verifyMainSotaOsDatabaseMigration" }.configureEach 
     dependsOn(verifyPinnedMigrationBaseline)
 }
 tasks.named("check") { dependsOn(verifyPinnedMigrationBaseline) }
+
+// The crash-recovery test launches a disposable JVM with the same tested classes/drivers.
+tasks.test {
+    doFirst { systemProperty("sota.migration.testClasspath", classpath.asPath) }
+}
