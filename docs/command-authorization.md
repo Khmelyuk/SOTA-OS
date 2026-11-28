@@ -58,6 +58,14 @@ mandate and records the human representative rather than accepting a claimed Cor
 actor at its public boundary. Original Protocol/Security constraints were reviewed
 and mapped in that ADR; initial root-grant legitimacy remains unresolved.
 
+[ADR-032](adr/ADR-032-core-genesis-mandate.md) now drafts that missing source boundary:
+unanimous voluntary founding, bounded delegation and proposed two-thirds renewal,
+with [model/source tracing](core-genesis-mandate-traceability.md) and separate
+[open policy decisions](core-genesis-mandate-questions.md). It is **Proposed**, not a
+new authorization path. New founding and existing-Core formalization have different
+eligibility questions; neither current membership nor a migration supplies a root.
+All current command checks and schema 1 remain unchanged.
+
 ## Next review slices
 
 1. Specify initial collective mandate/root eligibility and broader representation

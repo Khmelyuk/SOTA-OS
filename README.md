@@ -14,7 +14,7 @@ The [TLS rollback rehearsal](docs/p09-tls-rollback.md), `./scripts/p09-tls-rollb
 checks failed replacement, unchanged journals and recovery using the previous TLS bundle.
 The [TLS rollout rehearsal](docs/p09-tls-rollout.md), `./scripts/p09-tls-rollout.sh`,
 checks staged replacement under overlapping trust and rejection of retired certificates.
-Run `./gradlew :persistence:check :test:migrationAcceptance :test:detekt` for the 45-test historical
+Run `./gradlew :persistence:check :test:migrationAcceptance :test:detekt` for the 49-test historical
 SQLite [upgrade matrix](docs/release-upgrade-matrix.md), including interrupted opening and retry.
 SQLite opening now checks the persisted schema version before schema changes and
 records baseline `1` only after successful initialization ([ADR-030](docs/adr/ADR-030-sqlite-schema-baseline.md)).
@@ -26,6 +26,18 @@ The [migration verifier](docs/sqlite-migration-verification.md) now consumes a f
 commits numbered steps, data, runtime guards and the marker together. The persistence
 check includes 33 additional tests, including abrupt JVM termination in DELETE/WAL modes.
 Production remains at schema `1`; the first real versioned change still needs release evidence.
+
+The [Core Genesis Mandate draft ADR](docs/adr/ADR-032-core-genesis-mandate.md) now
+develops the owner's [proposal](docs/core-genesis-mandate-proposal.md): unanimous
+founding consent, bounded voluntary delegation and proposed two-thirds renewal.
+It includes [source/model tracing](docs/core-genesis-mandate-traceability.md),
+[24 planned acceptance scenarios](docs/core-genesis-mandate-acceptance.md),
+[migration/recovery gates](docs/core-genesis-mandate-recovery.md) and
+[nine open decisions](docs/core-genesis-mandate-questions.md). **Proposed, not accepted:**
+the Constitution is unchanged, schema 1 remains operational, and no authority is
+created by migration. Existing-Core formalization is distinct from new founding.
+Independent [stopped-node recovery](docs/node-backup-recovery.md) adds four executable
+DELETE/WAL restore cases covering signed P09 history and P10 continuation.
 
 ## Status: Phase 3 — signed Core Loop, P09 node, P10 exit and Research CLI
 

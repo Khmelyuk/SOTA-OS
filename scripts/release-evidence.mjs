@@ -14,6 +14,15 @@ export const provenancePaths = [
   'test/src/test/resources/schema-baseline/historical-ddl-variants.json',
   ...profiles.flatMap(profile => ['schema.json', 'data.json'].map(name =>
     `test/src/test/resources/migrations/${profile}/${name}`)),
+  // Review-input hashes are not ADR approval or evidence of implemented Genesis behavior.
+  'docs/core-genesis-mandate-proposal.md',
+  'docs/adr/ADR-032-core-genesis-mandate.md',
+  'docs/core-genesis-mandate-traceability.md',
+  'docs/core-genesis-mandate-sources.json',
+  'docs/core-genesis-mandate-questions.md',
+  'docs/core-genesis-mandate-acceptance.md',
+  'docs/core-genesis-mandate-recovery.md',
+  'docs/node-backup-recovery.md',
 ];
 const sha256 = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 const git = (root, ...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();

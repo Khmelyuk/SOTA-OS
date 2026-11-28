@@ -1,7 +1,8 @@
 # Development roadmap — updated 2026-11-28
 
-Published baseline before this increment: GitHub `main` at `b1d559c`
-(transactional numbered dispatcher), with successful CI. The earlier integration
+Published baseline before this increment: GitHub `main` at `736ceb82`
+(owner's Genesis proposal and roadmap link), with successful
+[CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/46145143862). The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
@@ -54,6 +55,10 @@ tracks the integrated implementation and subsequent bounded increments.
   exact commit/tree/run identity, CLI ZIP/TAR digests, JUnit reports and fixture hashes.
   Eleven collector tests check refusal of incomplete/changed inputs. Artifacts expire
   after 30 days; named release and upgrade certification remain separate.
+- Four [stopped-node recovery cases](node-backup-recovery.md), covering signed P09
+  history and pending P10 continuation under DELETE/WAL. Exact backup/restore rows,
+  catalog, receipts, signature checks and retained obligations supplement the
+  historical upgrade tests; this does not certify live backup or remote freshness.
 - Two frozen historical declared-schema profiles with synthetic governance/memory/
   credential rows, exact preservation checks, current service behavior, schema
   contracts and failed-opening retry coverage ([migration acceptance](persistence-migrations.md)).
@@ -64,7 +69,7 @@ tracks the integrated implementation and subsequent bounded increments.
   typed terms, retained/fulfilled obligations, pending unsigned exit and unrelated
   Core; seven migration, resumption and rollback/retry tests.
 - An explicit [upgrade matrix](release-upgrade-matrix.md) for four commit/profile
-  sources, with preservation/failure/retry criteria and the focused 45-test
+  sources, with preservation/failure/retry/restore criteria and the focused 49-test
   `:test:migrationAcceptance` task. Twelve cases verify recovery after completed
   Decision DDL, credential-baseline statements and before the version marker.
 - Persisted SQLite baseline `1` and shared fresh/legacy store opening under ADR-030.
@@ -113,7 +118,7 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 | 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state checks, P05 mode propagation, local P07 lifecycle audit, explicit Knowledge revision and Decision/Mission snapshot binding implemented under ADR-020/021/022/023/024/025/026/027. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/numeric revision/mode-change governance and P07 validation mandates/general branch-conflict governance |
 | 3 — in progress | P09 operational lifecycle | Certificate diagnostics, bundle comparison, independent candidate passwords, rollback and overlapping-trust rollout rehearsals implemented under ADR-028/029. Public deployment, governed renewal/configuration changes and automated historical attestations remain open and require their respective policies |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
-| 5 — in progress; next independent increment | Broader persistence and release acceptance | Four historical profiles, 45 migration/schema tests, canonical catalog and frozen SQLDelight verifier baseline implemented. Numbered dispatcher and 33 transaction/crash-recovery tests are implemented. CI evidence bundles now bind commits to distributions and reports. Next: certify the first domain-motivated numbered change with populated old/current profiles and named release identities. Named release support, further historical states, conformance tests, public API/GUI scope and release evidence remain open |
+| 5 — in progress | Broader persistence and release acceptance | Four historical profiles, 49 migration/schema/restore tests, canonical catalog and frozen SQLDelight verifier baseline implemented. Numbered dispatcher and 33 transaction/crash-recovery tests are implemented. CI evidence bundles bind commits to distributions, reports and Genesis review-input hashes. Next: approve a domain change before certifying its numbered migration with populated profiles and named release identities. Named release support, further historical states, conformance tests and public API/GUI scope remain open |
 
 P07 now uses the existing P05/P10 signed-runtime pattern. Research remains
 separate from canonical P06/P09 history. Receiving a fact does not validate
@@ -136,7 +141,15 @@ The original specifications do not select who approves an initial mandate in an
 existing Core or its quorum. A [Core Genesis Mandate proposal](core-genesis-mandate-proposal.md) now records
 unanimous founding consent, a proposed two-thirds renewal threshold and a candidate
 schema 2 feature. Existing-Core root eligibility and final policy confirmation remain
-open; no voting rule is implemented. Independent P05 Mission existence/state work is
+open; no voting rule is implemented. [ADR-032](adr/ADR-032-core-genesis-mandate.md)
+now provides a **Proposed** decision, pinned constitutional/axiom trace and model
+compatibility review, 24 planned acceptance scenarios, migration/recovery/CI gates
+and [Q01–Q09 for separate discussion](core-genesis-mandate-questions.md).
+The Constitution source is itself an unadopted draft; neither its text nor schema 1
+is changed. Resolve subject recognition, collective/holder mapping, original capacity,
+current-Core electorate/cutover, withdrawal scope and offline freshness before the
+corresponding implementation. Independent node/P10 recovery proceeds above; multiparty
+settlement still needs its own policy. Independent P05 Mission existence/state work is
 implemented under [ADR-022](adr/ADR-022-active-mission-boundary.md), with source
 sections and six SQLite regressions. P07 validation/source review can proceed
 independently of the unresolved root policy.

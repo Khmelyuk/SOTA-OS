@@ -13,6 +13,9 @@ collection time, collector Node version, test totals, and the size/SHA-256 of ev
 copied distribution/report. It additionally records hashes of the wrapper properties,
 frozen SQLDelight `1.db`, canonical catalogs and eight historical schema/data inputs.
 Those fixture/database inputs are identified by hash, not copied into the bundle.
+The Genesis proposal, ADR-032 review package/source manifest and stopped-node recovery
+runbook are also identified in provenance by hash. Their status remains Proposed;
+hashing review inputs neither accepts the ADR nor proves its planned tests pass.
 Only explicit distributions and ordinary `test` JUnit reports are copied; the
 collector does not walk the workspace or include configuration, credentials, live
 SQLite files, Gradle caches or unrelated files. The focused migration task's reports

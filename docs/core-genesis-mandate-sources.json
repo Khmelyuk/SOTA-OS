@@ -1,0 +1,122 @@
+{
+  "reviewedAt": "2026-11-28",
+  "status": "proposed-review-inputs-not-adoption",
+  "implementationRevision": "736ceb824401d39dd790f4a8384d62b018546d95",
+  "constitution": {
+    "repository": "Khmelyuk/SOTA-Constitution",
+    "revision": "430621221c7873936211f6fe0533b451ff50ca76",
+    "standing": "Unadopted Ukrainian draft; bounded review of preamble, I–VIII and XII, not a completed cross-axiom review",
+    "files": [
+      {
+        "path": "README.md",
+        "url": "https://raw.githubusercontent.com/Khmelyuk/SOTA-Constitution/430621221c7873936211f6fe0533b451ff50ca76/README.md",
+        "sha256": "2da80dfeee3dc52878b6c80e4d3984d56a6353e565af285168a3e9fc431fce7e"
+      },
+      {
+        "path": "constitution/uk/00-preamble.md",
+        "url": "https://raw.githubusercontent.com/Khmelyuk/SOTA-Constitution/430621221c7873936211f6fe0533b451ff50ca76/constitution/uk/00-preamble.md",
+        "sha256": "42671170712939449014f571df4d13495619076a47c6de38cbd69e1304429802"
+      },
+      {
+        "path": "constitution/uk/01-foundations.md",
+        "url": "https://raw.githubusercontent.com/Khmelyuk/SOTA-Constitution/430621221c7873936211f6fe0533b451ff50ca76/constitution/uk/01-foundations.md",
+        "sha256": "d3924976ca11f700452a08e9f87927855f176d7539a962e5bb5f061fdf96920a"
+      },
+      {
+        "path": "constitution/uk/02-subjecthood-and-recognition.md",
+        "url": "https://raw.githubusercontent.com/Khmelyuk/SOTA-Constitution/430621221c7873936211f6fe0533b451ff50ca76/constitution/uk/02-subjecthood-and-recognition.md",
+        "sha256": "c52db9ad97b737732dc4bcc5d49bd196af5e8612e5afdbd2625f4391c7b7a865"
+      },
+      {
+        "path": "constitution/uk/03-fundamental-rights-and-freedoms.md",
+        "url": "https://raw.githubusercontent.com/Khmelyuk/SOTA-Constitution/430621221c7873936211f6fe0533b451ff50ca76/constitution/uk/03-fundamental-rights-and-freedoms.md",
+        "sha256": "deb95a391ecb073ac1ccbc32899c61c8f18a5798a8d64cf40e254a3b0f97bb93"
+      },
+      {
+        "path": "constitution/uk/04-responsibility-and-duties.md",
+        "url": "https://raw.githubusercontent.com/Khmelyuk/SOTA-Constitution/430621221c7873936211f6fe0533b451ff50ca76/constitution/uk/04-responsibility-and-duties.md",
+        "sha256": "7e1d7b85ffaff631cbe005940b1e8c413bb84da942323cc9560ecedb610efb45"
+      },
+      {
+        "path": "constitution/uk/05-sota-and-self-organization.md",
+        "url": "https://raw.githubusercontent.com/Khmelyuk/SOTA-Constitution/430621221c7873936211f6fe0533b451ff50ca76/constitution/uk/05-sota-and-self-organization.md",
+        "sha256": "b82ba7accd0c526038c26f6350e493d3e4b25180db7e52672518ae0699d9caff"
+      },
+      {
+        "path": "constitution/uk/06-jurisdiction.md",
+        "url": "https://raw.githubusercontent.com/Khmelyuk/SOTA-Constitution/430621221c7873936211f6fe0533b451ff50ca76/constitution/uk/06-jurisdiction.md",
+        "sha256": "f4f89dc7ddc5cfa9d658683a3587e51f35be8c6e0f12e4667e6783a9d82df2c0"
+      },
+      {
+        "path": "constitution/uk/07-legitimacy-and-delegation.md",
+        "url": "https://raw.githubusercontent.com/Khmelyuk/SOTA-Constitution/430621221c7873936211f6fe0533b451ff50ca76/constitution/uk/07-legitimacy-and-delegation.md",
+        "sha256": "e1516419593af2a4a0141c5e2c3d49bc10b0bca052153f7ba2bfb2c70c65d355"
+      },
+      {
+        "path": "constitution/uk/08-arbitration-and-justice.md",
+        "url": "https://raw.githubusercontent.com/Khmelyuk/SOTA-Constitution/430621221c7873936211f6fe0533b451ff50ca76/constitution/uk/08-arbitration-and-justice.md",
+        "sha256": "27c53f845d9ed7bf6762ac8d956cd1476a875a433b99cf804321aac530e76fc3"
+      },
+      {
+        "path": "constitution/uk/12-amendments-and-constitutional-guarantees.md",
+        "url": "https://raw.githubusercontent.com/Khmelyuk/SOTA-Constitution/430621221c7873936211f6fe0533b451ff50ca76/constitution/uk/12-amendments-and-constitutional-guarantees.md",
+        "sha256": "e73f6010b352b78a32d09d76070763e7a1d29a3a29dbd5631484fb4983945ff7"
+      }
+    ]
+  },
+  "axioms": {
+    "standing": "Local engineering traceability ODT notes; relevant source/principle sections reviewed, not certified latest published Doctrine. Public Doctrine site unavailable during review. Originals not included.",
+    "files": [
+      {
+        "id": "A01",
+        "filename": "A01 — Людина є найвищою цінністю.odt",
+        "sha256": "160641935e2e55bac70d77f805d458bcd3f82249f9e61a6a417fdff2202e3935"
+      },
+      {
+        "id": "A03",
+        "filename": "A03 — Свобода неможлива без відповідальності.odt",
+        "sha256": "e14ec615a7572bc85569ecfb6b2d6908debea235a5c365b525125b64bc96c1b4"
+      },
+      {
+        "id": "A04",
+        "filename": "A04 — Гідність людини недоторканна.odt",
+        "sha256": "b86859baf6e307eccceaef41c949fb5594521499b18556cb5cbf282bcbf7e245"
+      },
+      {
+        "id": "A05",
+        "filename": "A05 — Довіра.odt",
+        "sha256": "f8ad202dd85e3a45b17cdfe911f226e555112ce30ba8297ed4a9cab0358000a1"
+      },
+      {
+        "id": "A06",
+        "filename": "A06 — Компетентність є джерелом авторитету.odt",
+        "sha256": "d22d32145e8e44f53348d6eb78ad85185cce43b03701a48f135387cbb2140039"
+      },
+      {
+        "id": "A07",
+        "filename": "A07 — Лідерство як служіння.odt",
+        "sha256": "ecc67abfc5864ff42d5b95b01c373a6f51b0a59801d3373ab2729517d25b9537"
+      },
+      {
+        "id": "A08",
+        "filename": "A08 — Самоорганізація.odt",
+        "sha256": "5486bbe340d3edaf61eaa114a347973f256b5d001d1f88da2b273d0c138934af"
+      },
+      {
+        "id": "A11",
+        "filename": "A11 — Держава є інструментом суспільства.odt",
+        "sha256": "5d9764fa08ed0b9131ca41d7d87d1f42a6dcb1b9616e3b35a290175e7cab310f"
+      },
+      {
+        "id": "A14",
+        "filename": "A14 — Технології повинні підсилювати людину.odt",
+        "sha256": "5847c2b7c959b1c2ac8f8c51d0796ce880b2e76aeed8e62ca52336f092232fe5"
+      },
+      {
+        "id": "A17",
+        "filename": "A17 — СОТА є принципом розвитку.odt",
+        "sha256": "6a65d2e45833ca9eb16cf92776aa6cce54c9d5a0dfd9fa3ea7ed834dfdc6d5a3"
+      }
+    ]
+  }
+}

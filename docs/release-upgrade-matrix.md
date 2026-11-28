@@ -79,7 +79,7 @@ git status --short
 ./gradlew :persistence:check :test:migrationAcceptance :test:detekt --continue --console=plain
 ```
 
-The focused task runs all 45 tests in `sotaos.test.migration` using classpath fixtures
+The focused task runs all 49 tests in `sotaos.test.migration` using classpath fixtures
 and temporary SQLite files. It needs no Git history, Node, running node or production
 database. Its independent HTML report is
 `test/build/reports/tests/migrationAcceptance/index.html`; XML results are under
@@ -87,6 +87,12 @@ database. Its independent HTML report is
 and all twelve profile/boundary cases before recording this matrix as passing.
 Gradle may reuse unchanged results; use `--rerun-tasks` when fresh execution is
 required for a release evidence bundle.
+
+Four of the cases are [stopped-node restore rehearsals](node-backup-recovery.md):
+runtime-signed/runtime-P10 × DELETE/WAL. They verify a consistent snapshot and exact
+restored history, current signature admission and idempotent P10 continuation. These
+are recovery of the same synthetic logical node, not authorization to clone trust
+receipts into a new node or certification of live-writer backups.
 
 The same tests remain in ordinary `./gradlew build` and GitHub CI. The focused task
 does not replace the full build, other compatibility tests, CLI smoke or rehearsals
