@@ -146,6 +146,25 @@ with tempfile.TemporaryDirectory(prefix='p10-signed-cli-') as folder:
         assert f'Exit: {exit_id}; stage: EXPORT_READY' in progress and archive_hash in progress
         assert 'Активне членство: так' in progress and 'не підтверджує його доставку у файл' in progress
         assert destination.read_text() == 'do not overwrite' and p10_state(db) == before
+        recovered = folder/'prepared-copy.json'
+        archive_command = java + ['exit', 'archive', '--handle', 'smoke', '--core', 'chosen',
+                                  '--id', exit_id, '--out', str(recovered), '--db', str(database)]
+        denied = terminal(archive_command, [('Локальна парольна фраза: ', 'wrong-fixture-passphrase')],
+                          False, read_environment)
+        assert not recovered.exists() and archive_hash not in denied
+        copied = terminal(archive_command, auth, True, read_environment)
+        archive_json = db.execute('select document_json from exit_archive').fetchone()[0]
+        assert recovered.read_bytes() == archive_json.encode('utf-8')
+        assert hashlib.sha256(recovered.read_bytes()).hexdigest() == archive_hash
+        assert recovered.stat().st_mode & 0o777 == 0o600
+        assert archive_hash in copied and archive_json not in copied and p10_state(db) == before
+        terminal(archive_command, auth, False, read_environment)
+        assert recovered.read_bytes() == archive_json.encode('utf-8') and p10_state(db) == before
+        wrong_core = archive_command.copy()
+        wrong_core[wrong_core.index('--core') + 1] = 'other'
+        wrong_core[wrong_core.index('--out') + 1] = str(folder/'wrong-core.json')
+        terminal(wrong_core, auth, False, read_environment)
+        assert not (folder/'wrong-core.json').exists() and p10_state(db) == before
         destination.unlink()
         changed_origin = signed.copy()
         changed_origin[changed_origin.index('--node') + 1] = 'other-node'
@@ -187,6 +206,10 @@ with tempfile.TemporaryDirectory(prefix='p10-signed-cli-') as folder:
         completed = terminal(inspect, auth, True, read_environment)
         assert f'Exit: {exit_id}; stage: COMPLETED' in completed and archive_hash in completed
         assert 'Активне членство: ні' in completed and p10_state(db) == before
+        completed_copy = archive_command.copy()
+        completed_copy[completed_copy.index('--out') + 1] = str(folder/'completed-copy.json')
+        terminal(completed_copy, auth, True, read_environment)
+        assert (folder/'completed-copy.json').read_bytes() == data and p10_state(db) == before
         terminal(java + ['auth', 'create', '--handle', 'observer', '--db', str(database)],
                  [('Нова парольна фраза (12–1024 символи): ', passphrase),
                   ('Повторіть парольну фразу: ', passphrase)], True, read_environment)
@@ -197,4 +220,10 @@ with tempfile.TemporaryDirectory(prefix='p10-signed-cli-') as folder:
         assert exit_id not in hidden and archive_hash not in hidden
         assert 'Записів про власний вихід' in hidden and 'Активне членство: ні' in hidden
         assert p10_state(db) == before
-print('Signed P10 CLI smoke passed: actor binding, delivery/resume, six signatures, authenticated isolated status without signing.')
+        foreign_archive = archive_command.copy()
+        foreign_archive[foreign_archive.index('--handle') + 1] = 'observer'
+        foreign_archive[foreign_archive.index('--out') + 1] = str(folder/'forbidden.json')
+        denied = terminal(foreign_archive, auth, False, read_environment)
+        assert archive_hash not in denied and archive_json not in denied
+        assert not (folder/'forbidden.json').exists() and p10_state(db) == before
+print('Signed P10 CLI smoke passed: six signatures, isolated status and frozen archive recovery without signing or exit changes.')

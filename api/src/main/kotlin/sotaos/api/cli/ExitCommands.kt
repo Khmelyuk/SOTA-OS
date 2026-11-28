@@ -7,11 +7,15 @@ import sotaos.persistence.SqlDelightRepositories
 import java.nio.file.Path
 
 internal fun runExitCommand(arguments: Arguments) {
+    if (arguments.subcommand == "archive") {
+        runExitArchive(arguments)
+        return
+    }
     if (arguments.subcommand == "status") {
         runExitStatus(arguments)
         return
     }
-    require(arguments.subcommand == "leave") { "Use exit leave --handle HANDLE --core CORE_ID --out PATH." }
+    require(arguments.subcommand == "leave") { "Use exit leave, exit status or exit archive; see help." }
     validateExitSigning(arguments)
     val handle = requireNotNull(arguments.options["handle"])
     val core = CoreId(requireNotNull(arguments.options["core"]))

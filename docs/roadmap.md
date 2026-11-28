@@ -1,8 +1,8 @@
 # Development roadmap — updated 2026-11-28
 
-Published baseline before this increment: GitHub `main` at `0b80327`
-(Proposed Genesis ADR and stopped-node recovery), with successful
-[CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/46147293067). The earlier integration
+Published baseline before this increment: GitHub `main` at `c39b305`
+(authenticated P10 status), with successful
+[CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/46150368565). The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
@@ -16,6 +16,9 @@ tracks the integrated implementation and subsequent bounded increments.
 - Authenticated [local P10 status](p10-exit.md#inspect-local-progress-after-interruption):
   own Person/Core history, current membership and stored archive digest without
   advancing exit or requiring signing keys. No new settlement or Genesis policy.
+- Authenticated [P10 archive recovery](p10-exit.md#recover-an-existing-archive-file):
+  copy an existing owned snapshot at EXPORT_READY/COMPLETED to a new private file,
+  with exact target/digest checks and no lifecycle mutations or signing requirement.
 - Ed25519 signing, governed peer/key admission, exact historical evidence,
   bounded HTTPS hosting, background retry/shutdown, metrics and staged material
   rotation (ADR-003a/011/012/015/016/017).

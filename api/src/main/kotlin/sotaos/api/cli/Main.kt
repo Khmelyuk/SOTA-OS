@@ -99,6 +99,8 @@ private val HELP_TEXT = """
                  --governance-context DOMAIN --db PATH; password: SOTA_P10_SIGNING_PASSWORD.
           exit status --handle HANDLE --core CORE_ID --db PATH [--unit UNIT] [--provider ID]
                  Authenticate and inspect your local exit progress and archive digest without advancing exit.
+          exit archive --handle HANDLE --core CORE_ID --id EXIT_ID --out NEW_PATH --db PATH
+                 Copy your existing frozen archive to a new private file without advancing exit or signing.
           sync serve --db PATH --node ID --actor PERSON_ID --governance-context DOMAIN
                  --keystore PATH --port PORT [--bind ADDRESS]
                  Serve an already provisioned node over HTTPS (loopback by default).

@@ -22,10 +22,18 @@ class P10Runtime(
     private val scope = SqlDelightExitScopeRepository(store.database)
     val service = ExitService(exits, scope, clock, ids, rights)
     private val inspection = ExitStatusService(exits, scope, rights)
+    private val archives = ExitArchiveService(exits, rights)
     val governance = ExitGovernanceService(exits, SqlDelightExitInventoryRepository(store.database),
         SqlDelightRepositories(store.database).authorities, clock, rights)
 
     fun status(invocation: ProtocolInvocation, core: CoreId): ExitStatus = inspection.status(invocation, core)
+
+    /** Re-delivery is separate from exit advancement, even for an unfinished signed exit. */
+    fun copyArchive(invocation: ProtocolInvocation, core: CoreId, exitId: String, destination: Path): ExitDocument {
+        val document = archives.read(invocation, core, exitId)
+        deliverExitDocument(document, destination)
+        return document
+    }
 
     /** Each stage survives restart. A failed delivery never terminates membership. */
     fun leave(invocation: ProtocolInvocation, core: CoreId, destination: Path): ExitReceipt {

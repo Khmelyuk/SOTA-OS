@@ -63,6 +63,50 @@ rows, and denial of another login's access to the first Person's exit metadata.
 This adds a query to the existing schema; no DDL, migration, new authority or Genesis
 policy is introduced. ADR-032 remains Proposed and production remains schema 1.
 
+## Recover an existing archive file
+
+Use the exact exit ID shown by `exit status`:
+
+```bash
+./gradlew :api:run --args='exit archive --handle HANDLE --core CORE_ID --id EXIT_ID --out /private/new-copy.json --db /path/sota-os.db'
+```
+
+This copies the **already frozen archive** of your own selected exit, at EXPORT_READY
+or COMPLETED, after fresh local authentication. It also works after membership has
+ended and after retirement of a signing key; no signing options/password are required
+or accepted. `--unit` and `--provider` follow the same authentication rules as status.
+An explicit existing nonempty database is required. The Person comes from the session,
+not a `--person` argument. Core and exit ID must both match that Person's process.
+
+`P10/readArchive` checks current rights with `core:CORE_ID` and `exit:EXIT_ID` scope.
+Process, target and saved archive are read in one transaction; the stored JSON's
+UTF-8 SHA-256 is checked before file creation. A missing, damaged or not-yet-prepared
+archive fails without regenerating data or advancing the exit. The content is the
+original approved snapshot, including the obligations recorded at export time; it is
+not a fresh export of subsequently changed knowledge, terms or obligation states.
+
+Delivery reuses the existing POSIX writer: a new 0600 file, no replacement of an
+existing path or final symlink, flush of the file and its parent directory. Use an
+existing private parent directory. A delivery failure may leave a partial or complete
+file; retry at a new path. The archive and P10 state are unchanged on success or failure.
+The command prints path, exit ID and digest, not archive contents.
+
+Archive recovery **does not terminate participation**, even when the process is at
+EXPORT_READY. To complete an unfinished exit, use `exit leave` with a fresh output
+path and its original signed/unsigned mode and origin. Copying an existing signed
+archive creates no unsigned replacement facts and supplies no new signing authority.
+Authentication and normal store opening retain their existing behavior. As with other
+standalone P10 commands, stop `sync run` before accessing that same database.
+
+`ExitArchiveRecoveryTest` covers exact repeated private copies after restart at both
+eligible stages, rejection before export, Person/Core/exit isolation, current policy
+denial, non-Person rejection, collisions/dangling symlinks/missing directories,
+damaged/missing snapshots and retired-key signed history. Database bytes remain
+unchanged during these operations. `ExitArchiveCommandTest` covers strict arguments
+and missing/empty database rejection. The real signed CLI smoke verifies copy bytes,
+hash and permissions, authentication, wrong Core, another login, collision and
+unchanged P10 rows before and after completion. Schema 1 and ADR-032 are unchanged.
+
 ## Runtime and protocol boundaries
 
 Local hosts may use `api.exit.P10Runtime` with authenticated actors and an appropriate
