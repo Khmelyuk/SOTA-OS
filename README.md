@@ -182,6 +182,9 @@ current build/test status for each commit.
 CI also retains [build evidence](docs/release-evidence.md): exact commit/tree, CLI
 ZIP/TAR checksums and JUnit reports, linked to the successful build/smoke run.
 Bundles expire after 30 days and do not constitute a published release.
+An [offline bundle verifier](docs/release-evidence.md#verify-a-retained-or-downloaded-bundle)
+checks the selected commit/CI identity, exact file inventory, hashes and passing report
+totals. CI runs it before artifact upload; 23 Node tests cover collection and verification.
 Archive file verification on 2026-11-28: full JDK 21 build passed **480 tests**
 and all **49 focused migration/recovery cases**, without failures/errors/skips.
 Detekt and signed P10 CLI smoke passed, including valid/tampered files and

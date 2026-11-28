@@ -22,8 +22,8 @@ jobs:
           java-version: '21'
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5
-      - name: Test release evidence collector
-        run: node --test scripts/release-evidence.test.mjs
+      - name: Test release evidence tools
+        run: node --test scripts/release-evidence.test.mjs scripts/verify-release-evidence.test.mjs
       - name: Build, lint, and test
         run: ./gradlew build --continue --console=plain
       - name: CLI status and shutdown smoke test
@@ -38,6 +38,11 @@ jobs:
         run: ./scripts/two-node-core-loop.sh
       - name: Collect release evidence
         run: node scripts/release-evidence.mjs
+      - name: Verify collected release evidence
+        run: >-
+          node scripts/verify-release-evidence.mjs build/release-evidence
+          --commit "$GITHUB_SHA" --repository "$GITHUB_REPOSITORY"
+          --run "$GITHUB_RUN_ID" --attempt "$GITHUB_RUN_ATTEMPT"
       - name: Retain verified distributions and reports
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node.js 24
         with:

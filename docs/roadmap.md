@@ -1,13 +1,18 @@
 # Development roadmap — updated 2026-11-28
 
-Published baseline before this increment: GitHub `main` at `852759c`
-(authenticated P10 archive recovery), with successful
-[CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/46155058432). The earlier integration
+Published baseline before this increment: GitHub `main` at `77c318a`
+(authenticated P10 archive file verification), with successful
+[CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/46157553649). The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
 
 ## Implemented baseline
+
+- Offline [CI evidence verification](release-evidence.md#verify-a-retained-or-downloaded-bundle):
+  explicit expected commit/optional CI run, exact files, lengths/hashes and passing
+  report totals; 23 Node tool tests and verification before upload. This checks bundle
+  consistency, not artifact origin, a final CI conclusion or named release acceptance.
 
 - P04 parent references, ancestor validation, atomic cascades and durable
   revocation audit; P05/P08/P09/P10 consumers check ancestry (ADR-013).

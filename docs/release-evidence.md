@@ -47,6 +47,54 @@ reports, no partial output on report rejection, symlink rejection and overwrite 
 They need Node and Git, use only disposable temporary repositories, and run before
 Gradle in CI. No added package installation is required.
 
+## Verify a retained or downloaded bundle
+
+Use the verifier from a trusted checkout, and obtain the full expected commit from
+the selected workflow run. For a GitHub bundle, also pin repository, run and attempt:
+
+```bash
+node scripts/verify-release-evidence.mjs /path/to/extracted/release-evidence \
+  --commit FULL_COMMIT_SHA --repository Khmelyuk/SOTA-OS --run RUN_ID --attempt ATTEMPT
+```
+
+For a local bundle, omit all three CI options; `--commit` is always required. The
+verifier runs without Git, network access, a build or a source checkout alongside
+the bundle. Keep the two repository scripts together because it imports the existing
+Gradle report parser. It reads files without modifying them and does not extract ZIP/TAR
+contents, install the distribution or run bundled code.
+
+Verification checks format version 1, the requested commit and optional exact CI
+identity, the complete file inventory, one matching CLI ZIP/TAR pair, required module
+reports, byte lengths and SHA-256, report counts and recomputed aggregate totals.
+`SHA256SUMS` must match every manifest entry plus the manifest itself, with no missing,
+duplicate or extra lines. Reports must pass the same nonempty/no-failure/no-skip parser
+as collection. Absolute/traversal paths, duplicate file entries, symlinks and nonregular
+files are rejected. Distribution hashes are streamed; manifests/checksum indexes are
+limited to 4 MiB and individual XML reports to 32 MiB. Unsupported formats fail closed.
+
+Provenance references are checked for valid, unique path/hash/size metadata; their
+source bytes are not included in the bundle and are **not reverified**. The verifier
+does not claim that the listed provenance set is sufficient for a release. Likewise,
+internal consistency and an expected commit do not authenticate a self-contained
+manifest: an attacker who replaces files and all hashes can construct a consistent
+bundle. Obtain it through a trusted artifact channel and separately confirm the run's
+final successful conclusion. Local `ci: null` evidence cannot satisfy CI expectations.
+Use a trusted parent directory and stable extracted files; concurrent host-level path
+replacement is outside this check. Access timestamps may change under filesystem policy.
+
+Twelve verifier tests cover detached CLI use, commit/run identity and local/CI separation,
+file damage/inventory, unsafe and duplicate paths, file/directory/root symlinks,
+malformed metadata, checksum-index changes, rehashed failed reports, count mismatches,
+required modules/distribution pairs, provenance and strict arguments. Run all 23 tests:
+
+```bash
+node --test scripts/release-evidence.test.mjs scripts/verify-release-evidence.test.mjs
+```
+
+CI now verifies its freshly collected bundle against its own commit/repository/run/attempt
+before upload. A failed verification prevents artifact publication. This is an additional
+consistency gate, not a signature, named release approval or new schema compatibility claim.
+
 ## What this proves and what it does not
 
 `SHA256SUMS` detects changed bundle contents. Obtain its trusted reference from the
