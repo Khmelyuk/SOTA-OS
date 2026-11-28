@@ -157,6 +157,9 @@ The runner is Ubuntu 24.04; Node.js 24 Actions are pinned by commit SHA
 
 [GitHub CI](https://github.com/Khmelyuk/SOTA-OS/actions/workflows/ci.yml) is the
 current build/test status for each commit.
+CI also retains [build evidence](docs/release-evidence.md): exact commit/tree, CLI
+ZIP/TAR checksums and JUnit reports, linked to the successful build/smoke run.
+Bundles expire after 30 days and do not constitute a published release.
 Transactional dispatcher verification on 2026-11-27: the full JDK 21 build passed
 **452 tests** with zero failures/errors/skips, Detekt, module layering and SQLDelight
 migration verification. This includes 33 new migration/recovery tests (16 child-JVM
@@ -257,7 +260,8 @@ The next increments, updated after transactional migration dispatch on 2026-11-2
 in the [development roadmap](docs/roadmap.md). Delegation chains, CI, peer
 admission, signatures and HTTPS hosting are already implemented. The next independent
 engineering increment is release acceptance for the first domain-motivated versioned
-schema change: immutable release identities and populated direct/intermediate profiles.
+schema change: named release identities and populated direct/intermediate profiles.
+CI build identity, artifact checksums and retained verification reports are now implemented.
 The numbered dispatcher now has transaction/retry and guard-before-marker coverage under
 [ADR-031](docs/adr/ADR-031-numbered-sqlite-migrations.md). SQLDelight's verification baseline is
 documented and tested; version `2` remains rejected by the current runtime. The exact version-one

@@ -1,5 +1,12 @@
 # ADR-007 — Build & Test Toolchain
 
+Build-evidence refinement — 2026-11-28: after all build and CLI/rehearsal checks,
+CI collects exact commit/tree/run identity, distribution/report SHA-256 values and
+fixture provenance, then uploads a 30-day artifact using a commit-pinned Node.js 24
+upload action. Eleven native Node tests exercise the collector. See
+[scope, inspection and limits](../release-evidence.md); collection is not release
+certification or proof that locally available outputs were freshly built.
+
 Migration-verification refinement — 2026-11-27: a frozen empty `1.db` and mandatory
 checksum check now make SQLDelight verification substantive. Only the Gradle buildscript
 dependency `app.cash.sqldelight:migrations` is pinned to 2.3.2 for the upstream

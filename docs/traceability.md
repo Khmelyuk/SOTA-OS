@@ -1,5 +1,11 @@
 # Traceability Matrix — Code ↔ Specification
 
+Build evidence update 2026-11-28: ADR-007 CI acceptance now retains exact source/run
+identity, CLI distributions, passing Gradle reports and checksums in a bounded
+[artifact bundle](release-evidence.md). Eleven Node regressions cover identity,
+missing/failed inputs, symlinks and overwrite refusal. This supplies inspectable
+build evidence for the release matrix, not named release/downgrade certification.
+
 Numbered dispatch update 2026-11-27: [ADR-031](adr/ADR-031-numbered-sqlite-migrations.md)
 implements ordered generated/runtime steps with atomic data, guards and marker,
 fresh creation and separate legacy adoption. Seventeen exception/validation/commit

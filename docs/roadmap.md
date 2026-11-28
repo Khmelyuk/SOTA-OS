@@ -1,7 +1,7 @@
-# Development roadmap — updated 2026-11-27
+# Development roadmap — updated 2026-11-28
 
-Published baseline before this increment: GitHub `main` at `4baad0e`
-(frozen SQLDelight verifier baseline), with successful CI. The earlier integration
+Published baseline before this increment: GitHub `main` at `b1d559c`
+(transactional numbered dispatcher), with successful CI. The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
@@ -50,6 +50,10 @@ tracks the integrated implementation and subsequent bounded increments.
   to match. Action history includes the snapshot, while migration retains unbound
   old Decisions and historical Result reporting (ADR-027).
 - JDK 21 CI with module graph checks, Detekt, tests and CLI smoke scenarios.
+- Retained [build-evidence bundles](release-evidence.md) after successful CI acceptance:
+  exact commit/tree/run identity, CLI ZIP/TAR digests, JUnit reports and fixture hashes.
+  Eleven collector tests check refusal of incomplete/changed inputs. Artifacts expire
+  after 30 days; named release and upgrade certification remain separate.
 - Two frozen historical declared-schema profiles with synthetic governance/memory/
   credential rows, exact preservation checks, current service behavior, schema
   contracts and failed-opening retry coverage ([migration acceptance](persistence-migrations.md)).
@@ -109,7 +113,7 @@ ADR-010 number is not reused: upstream ADR-010 already defines the P10 contract.
 | 2 — in progress | Remaining command authorization and source conformance | Command audit, persisted P08 admission, authenticated delegated Core invitation/acceptance, active persisted P05 Missions, ordinary P07 source/state checks, P05 mode propagation, local P07 lifecycle audit, explicit Knowledge revision and Decision/Mission snapshot binding implemented under ADR-020/021/022/023/024/025/026/027. Remaining: initial collective mandate/root eligibility, broader representation, P05 participation/numeric revision/mode-change governance and P07 validation mandates/general branch-conflict governance |
 | 3 — in progress | P09 operational lifecycle | Certificate diagnostics, bundle comparison, independent candidate passwords, rollback and overlapping-trust rollout rehearsals implemented under ADR-028/029. Public deployment, governed renewal/configuration changes and automated historical attestations remain open and require their respective policies |
 | 4 | Extended P10 relations and settlement | Multiparty consent and additional settlement rules from source requirements, retained obligations, failure/restart coverage, and explicit collective scope |
-| 5 — in progress; next independent increment | Broader persistence and release acceptance | Four historical profiles, 45 migration/schema tests, canonical catalog and frozen SQLDelight verifier baseline implemented. Numbered dispatcher and 33 transaction/crash-recovery tests are implemented. Next: certify the first domain-motivated numbered change with populated old/current profiles and release identities. Named release support, further historical states, conformance tests, public API/GUI scope and release evidence remain open |
+| 5 — in progress; next independent increment | Broader persistence and release acceptance | Four historical profiles, 45 migration/schema tests, canonical catalog and frozen SQLDelight verifier baseline implemented. Numbered dispatcher and 33 transaction/crash-recovery tests are implemented. CI evidence bundles now bind commits to distributions and reports. Next: certify the first domain-motivated numbered change with populated old/current profiles and named release identities. Named release support, further historical states, conformance tests, public API/GUI scope and release evidence remain open |
 
 P07 now uses the existing P05/P10 signed-runtime pattern. Research remains
 separate from canonical P06/P09 history. Receiving a fact does not validate

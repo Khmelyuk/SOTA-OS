@@ -1,6 +1,6 @@
 # SQLite upgrade matrix and release acceptance
 
-Updated: 2026-11-27
+Updated: 2026-11-28
 
 The currently verified entry points are the four frozen profiles below. They are
 identified by source commit and fixture, not by a release number. As of this review,
@@ -90,13 +90,16 @@ required for a release evidence bundle.
 
 The same tests remain in ordinary `./gradlew build` and GitHub CI. The focused task
 does not replace the full build, other compatibility tests, CLI smoke or rehearsals
-required for a release. Preserve those reports and the artifact digest separately.
+required for a release. CI now retains the distributions, exact commit/tree, JUnit
+reports and artifact/file hashes in a [build-evidence bundle](release-evidence.md)
+after all checks and smoke steps pass. Retention is 30 days; archive evidence before
+expiry when selecting a release. Local collection alone does not prove a fresh build.
 
 ## Unverified paths and next implementation
 
 | Path or condition | Current status / evidence needed |
 |---|---|
-| Named release → named release | Open: select immutable release commits/artifacts and database profiles; give each supported source an explicit row and passing target evidence |
+| Named release → named release | CI build identities and artifact/report bundles are implemented. Open: select immutable named release commits/artifacts and database profiles; give each supported source an explicit row and passing target evidence |
 | Versioned `.sqm` migration chain | Frozen `1.db`, checksum protection, real SQLDelight verification and isolated numbered-migration canary implemented. Transactional dispatcher and 33 exception/process-recovery tests implemented under ADR-031. Next: a real domain-motivated schema change and declared release upgrade paths |
 | Unknown version or non-SOTA layout | Markers other than `0`/`1`, missing core tables and an empty versioned catalog now fail before schema writes; byte preservation tested. This is not full validation of arbitrary malformed databases that contain the required table names |
 | Current database → older binary (downgrade) | Unverified. Additive retry is not a downgrade contract. Recovery planning must use a stopped-node backup and matching binary/configuration; restored state needs separate acceptance |
