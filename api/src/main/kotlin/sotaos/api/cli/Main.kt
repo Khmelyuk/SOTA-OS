@@ -97,6 +97,8 @@ private val HELP_TEXT = """
                  Export allowed data and terminate your membership in one Core.
                  Signed mode: --signing-keystore PATH --signing-alias ALIAS --node ID
                  --governance-context DOMAIN --db PATH; password: SOTA_P10_SIGNING_PASSWORD.
+          exit status --handle HANDLE --core CORE_ID --db PATH [--unit UNIT] [--provider ID]
+                 Authenticate and inspect your local exit progress and archive digest without advancing exit.
           sync serve --db PATH --node ID --actor PERSON_ID --governance-context DOMAIN
                  --keystore PATH --port PORT [--bind ADDRESS]
                  Serve an already provisioned node over HTTPS (loopback by default).

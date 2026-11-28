@@ -14,6 +14,57 @@ existing directory. A failed write does not terminate membership; rerunning
 with a new path resumes the open exit. Earlier revocations/closures remain committed.
 Unfulfilled obligations remain recorded as responsibility after leaving.
 
+## Inspect local progress after interruption
+
+```bash
+./gradlew :api:run --args='exit status --handle HANDLE --core CORE_ID --db /path/sota-os.db'
+```
+
+`exit status` authenticates with the existing local provider (`--unit` / `--provider`
+are supported) and derives the Person from that session. It shows only that Person's
+exit history for the specified Core, current active membership, each recorded stage
+and update time, and the durable archive's SHA-256 when present. Completed exits
+remain visible after membership termination. A later re-admission or new exit does
+not hide earlier history; current membership is reported separately. History is
+ordered by parsed request time, then exit ID for a deterministic tie-break.
+
+No signing key/password, exit confirmation or output file is needed. Output contains
+metadata, not archive contents or another Person's records. Signing/output options
+and a `--person` override are rejected before opening the store. An explicit existing,
+nonempty `--db` is required, so a missing path does not create a new node. An empty
+history means no local records for this Person/Core; it does not establish global
+membership or even the existence of a mistyped Core ID.
+
+The query evaluates `P10/status` rights with `core:CORE_ID` scope and reads history,
+archive metadata and membership in one database transaction. It never requests an
+exit, advances a stage, generates an Event/receipt, signs, exports a file, or performs
+network synchronization. As with other CLI commands, ordinary store opening and
+authentication still apply; this is not a forensic read-only SQLite opener. Stop
+`sync run` before using the standalone CLI against the same database.
+
+- `EXPORT_READY` means the archive is durable **in the database**, not that delivery
+  to a file succeeded. Membership remains active until termination commits. Resume
+  with `exit leave` and a fresh output path using the original signed/unsigned mode
+  and origin; earlier committed revocations and closures are not undone.
+- `COMPLETED` records a committed termination for that exit. Inspect current membership
+  separately, especially after re-admission. Status does not re-run termination or
+  promise that the archive file is still present.
+- A retired signing key does not prevent inspection of existing signed history after
+  successful local login. Inspection supplies no new signing authority and does not
+  resolve unknown remote state or a stale restored backup.
+
+`ExitStatusTest` covers all six stages across restart, byte-preserving inspection,
+Person/Core isolation, scoped policy denial, non-Person rejection, re-admission and
+retired-key history. `ExitStatusCommandTest` covers option/path validation and honest
+display of membership/history/delivery. The signed CLI smoke also checks authentication
+failure, EXPORT_READY/COMPLETED inspection without signing secrets, unchanged P10
+rows, and denial of another login's access to the first Person's exit metadata.
+
+This adds a query to the existing schema; no DDL, migration, new authority or Genesis
+policy is introduced. ADR-032 remains Proposed and production remains schema 1.
+
+## Runtime and protocol boundaries
+
 Local hosts may use `api.exit.P10Runtime` with authenticated actors and an appropriate
 RightsConstraint. Trusted adapters populate `ExitInventoryRepository` with scoped
 relations, obligations and owned evidence. Export approval requires an independent

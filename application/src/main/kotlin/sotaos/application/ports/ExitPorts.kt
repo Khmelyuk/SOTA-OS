@@ -13,12 +13,16 @@ data class ExitProcess(
 data class ExitDocument(val exitId: String, val target: ExitTarget, val json: String, val sha256: String)
 data class ExitReceipt(val exitId: String, val target: ExitTarget, val completedAt: Instant, val exportSha256: String)
 data class ExitTransition(val exitId: String, val stage: ExitStage, val actor: PersonId, val occurredAt: Instant)
+/** Local persisted progress, not proof that an archive was delivered or that peers are current. */
+data class ExitProgress(val process: ExitProcess, val archiveSha256: String?)
+data class ExitStatus(val target: ExitTarget, val membershipActive: Boolean, val history: List<ExitProgress>)
 
 /** State, transition audit and archive share the same transaction as ExitScopeRepository. */
 interface ExitRepository {
     fun <T> transaction(block: () -> T): T
     fun find(id: String): ExitProcess?
     fun findOpen(target: ExitTarget): ExitProcess?
+    fun findByTarget(target: ExitTarget): List<ExitProcess>
     fun save(process: ExitProcess)
     fun appendTransition(transition: ExitTransition)
     fun transitions(id: String): List<ExitTransition>

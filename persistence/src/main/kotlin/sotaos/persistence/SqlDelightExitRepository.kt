@@ -13,6 +13,8 @@ class SqlDelightExitRepository(
     override fun find(id: String): ExitProcess? = db.exitQueries.findExit(id).executeAsOneOrNull()?.toDomain()
     override fun findOpen(target: ExitTarget): ExitProcess? = db.exitQueries
         .findOpenExit(target.person.value, target.core.value).executeAsOneOrNull()?.toDomain()
+    override fun findByTarget(target: ExitTarget): List<ExitProcess> = db.exitQueries
+        .findExitsByTarget(target.person.value, target.core.value).executeAsList().map { it.toDomain() }
     override fun save(process: ExitProcess) {
         if (find(process.id) == null) {
             db.exitQueries.insertExit(process.id, process.target.person.value, process.target.core.value,

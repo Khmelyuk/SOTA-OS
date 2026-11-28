@@ -38,6 +38,9 @@ the Constitution is unchanged, schema 1 remains operational, and no authority is
 created by migration. Existing-Core formalization is distinct from new founding.
 Independent [stopped-node recovery](docs/node-backup-recovery.md) adds four executable
 DELETE/WAL restore cases covering signed P09 history and P10 continuation.
+Authenticated `exit status --handle HANDLE --core CORE_ID --db PATH` now reports
+your local P10 progress, current membership and stored archive digest without
+advancing exit or loading a signing key. See [P10 recovery/status](docs/p10-exit.md#inspect-local-progress-after-interruption).
 
 ## Status: Phase 3 — signed Core Loop, P09 node, P10 exit and Research CLI
 
@@ -55,7 +58,7 @@ What exists and is source-complete:
   value-object/JSON-column conversion. The persistence module compiles
   against the generated SQLDelight API.
 - `api/` — executable local CLI composition root with `help`, `init`,
-  `demo`, authentication, consent, and authenticated `exit leave` commands. `demo` persists one
+  `demo`, authentication, consent, and authenticated `exit leave` / `exit status` commands. `demo` persists one
   authorized Core Loop to a local SQLite database. Commands, terminal
   input, database lifetime, and the demo are kept in separate files.
 - `security/` — a protocol-neutral RightsConstraint request and checks wired
@@ -172,6 +175,11 @@ current build/test status for each commit.
 CI also retains [build evidence](docs/release-evidence.md): exact commit/tree, CLI
 ZIP/TAR checksums and JUnit reports, linked to the successful build/smoke run.
 Bundles expire after 30 days and do not constitute a published release.
+P10 status verification on 2026-11-28: full JDK 21 build passed **464 tests**,
+plus all **49 focused migration/recovery cases**, with zero failures/errors/skips.
+Detekt, module layering, schema verification and the expanded signed P10 CLI smoke
+passed; the smoke includes authenticated status without signing secrets and isolation
+of another login's records. DDL and schema version remain unchanged.
 Transactional dispatcher verification on 2026-11-27: the full JDK 21 build passed
 **452 tests** with zero failures/errors/skips, Detekt, module layering and SQLDelight
 migration verification. This includes 33 new migration/recovery tests (16 child-JVM

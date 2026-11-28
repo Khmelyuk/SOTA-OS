@@ -41,7 +41,9 @@ def terminal(command, replies, expected_success, environment):
             ended, result = os.waitpid(pid, os.WNOHANG)
             if ended:
                 status = result
-        assert environment['SOTA_P10_SIGNING_PASSWORD'].encode() not in transcript
+        signing_password = environment.get('SOTA_P10_SIGNING_PASSWORD')
+        if signing_password:
+            assert signing_password.encode() not in transcript
         assert b'local-fixture-passphrase' not in transcript
         assert not pending, 'CLI exited before expected prompt'
         assert (os.waitstatus_to_exitcode(status) == 0) == expected_success, 'Unexpected CLI exit status'
@@ -50,6 +52,14 @@ def terminal(command, replies, expected_success, environment):
         if status is None:
             os.kill(pid, signal.SIGKILL)
             os.waitpid(pid, 0)
+    return transcript.decode('utf-8', errors='replace')
+
+
+def p10_state(db):
+    tables = ('exit_process', 'exit_transition', 'exit_archive', 'exit_governance_audit',
+              'membership', 'authority', 'event', 'sync_journal', 'verified_sync_record',
+              'core_exit_relation', 'exit_obligation')
+    return {table: db.execute(f'SELECT * FROM {table} ORDER BY rowid').fetchall() for table in tables}
 
 
 java_home = Path(os.environ['JAVA_HOME'])
@@ -92,6 +102,19 @@ with tempfile.TemporaryDirectory(prefix='p10-signed-cli-') as folder:
                         '--out', str(destination), '--db', str(database)]
         signed = local + ['--signing-keystore', str(keystore), '--signing-alias', 'exit',
                           '--node', 'source', '--governance-context', 'governance']
+        inspect = java + ['exit', 'status', '--handle', 'smoke', '--core', 'chosen', '--db', str(database)]
+        read_environment = dict(environment)
+        del read_environment['SOTA_P10_SIGNING_PASSWORD']
+        before = p10_state(db)
+        initial = terminal(inspect, auth, True, read_environment)
+        assert 'Активне членство: так' in initial and 'Записів про власний вихід' in initial
+        assert p10_state(db) == before
+        denied = terminal(inspect, [('Локальна парольна фраза: ', 'wrong-fixture-passphrase')],
+                          False, read_environment)
+        assert 'Активне членство:' not in denied
+        terminal(inspect + ['--person', person], [], False, read_environment)
+        terminal(inspect + ['--out', str(destination)], [], False, read_environment)
+        assert not destination.exists() and p10_state(db) == before
         terminal(local + ['--node', 'source'], [], False, environment)
         no_database = signed.copy()
         index = no_database.index('--db')
@@ -116,6 +139,13 @@ with tempfile.TemporaryDirectory(prefix='p10-signed-cli-') as folder:
         assert destination.read_text() == 'do not overwrite'
         assert db.execute('select stage from exit_process').fetchone()[0] == 'EXPORT_READY'
         assert db.execute('select count(*) from sync_journal').fetchone()[0] == 5
+        before = p10_state(db)
+        progress = terminal(inspect, auth, True, read_environment)
+        exit_id = db.execute('select exit_id from exit_process').fetchone()[0]
+        archive_hash = db.execute('select sha256 from exit_archive').fetchone()[0]
+        assert f'Exit: {exit_id}; stage: EXPORT_READY' in progress and archive_hash in progress
+        assert 'Активне членство: так' in progress and 'не підтверджує його доставку у файл' in progress
+        assert destination.read_text() == 'do not overwrite' and p10_state(db) == before
         destination.unlink()
         changed_origin = signed.copy()
         changed_origin[changed_origin.index('--node') + 1] = 'other-node'
@@ -153,4 +183,18 @@ with tempfile.TemporaryDirectory(prefix='p10-signed-cli-') as folder:
         assert db.execute('select sha256 from exit_archive').fetchone()[0] == hashlib.sha256(data).hexdigest()
         assert destination.stat().st_mode & 0o777 == 0o600
         assert db.execute('select count(*) from local_credential').fetchone()[0] == 1
-print('Signed P10 CLI smoke passed: actor binding, confirmation, delivery failure, resume, mode/origin guards, six signatures.')
+        before = p10_state(db)
+        completed = terminal(inspect, auth, True, read_environment)
+        assert f'Exit: {exit_id}; stage: COMPLETED' in completed and archive_hash in completed
+        assert 'Активне членство: ні' in completed and p10_state(db) == before
+        terminal(java + ['auth', 'create', '--handle', 'observer', '--db', str(database)],
+                 [('Нова парольна фраза (12–1024 символи): ', passphrase),
+                  ('Повторіть парольну фразу: ', passphrase)], True, read_environment)
+        before = p10_state(db)
+        observer = inspect.copy()
+        observer[observer.index('--handle') + 1] = 'observer'
+        hidden = terminal(observer, auth, True, read_environment)
+        assert exit_id not in hidden and archive_hash not in hidden
+        assert 'Записів про власний вихід' in hidden and 'Активне членство: ні' in hidden
+        assert p10_state(db) == before
+print('Signed P10 CLI smoke passed: actor binding, delivery/resume, six signatures, authenticated isolated status without signing.')

@@ -41,6 +41,8 @@ findExit:
 SELECT * FROM exit_process WHERE exit_id = ?;
 findOpenExit:
 SELECT * FROM exit_process WHERE person_id = ? AND core_id = ? AND stage != 'COMPLETED';
+findExitsByTarget:
+SELECT * FROM exit_process WHERE person_id = ? AND core_id = ?;
 insertExit:
 INSERT INTO exit_process(exit_id, person_id, core_id, requested_at, updated_at, stage) VALUES (?, ?, ?, ?, ?, ?);
 updateExit:

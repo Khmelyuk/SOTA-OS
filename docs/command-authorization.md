@@ -35,6 +35,7 @@ actor's identity or automatically supply missing authority.
 | P09 peer/key/historical provisioning | Independent actor-bound authority, configured context, exact operation/resource, current lineage and rights check | ProvisioningGovernanceTest, HistoricalApprovalTest; initial trust anchors remain explicit host setup |
 | P09 exchange | Current peer credential, signature/evidence, origin/relay/context/sharing policy and causal validation | ProductionAdmissionTest, ProductionSharingTest, HistoricalSignatureTest; receipt does not authorize remote business commands |
 | P10 exit stages | Exiting Person, stored scoped exit process, valid stage, rights check and verified export before termination | ExitServiceTest, ExitExportTest; third-party exit and general settlement remain open |
+| P10 status | Fresh CLI authentication; Person derived from session, exact Person/Core query, scoped P10/status rights check; membership/history/archive digest read together without lifecycle writes | ExitStatusTest, ExitStatusCommandTest and signed CLI smoke; no third-party selector, signing requirement, archive delivery proof or remote freshness claim |
 | P10 export/fulfillment governance | Independent Person with current lineage, explicit Core/resource scope and matching context; rights check | ExitExportTest, DelegationEnforcementTest |
 | Research commands | Fresh provider proof and current Person-bound operation/workspace/unit scope; recheck before commit after waits | ResearchAgentTest and CLI smoke; approvals remain draft-only, separate from canonical Knowledge |
 

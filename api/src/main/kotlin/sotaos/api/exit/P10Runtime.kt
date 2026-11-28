@@ -21,8 +21,11 @@ class P10Runtime(
     private val exits = SqlDelightExitRepository(store.database, recorder)
     private val scope = SqlDelightExitScopeRepository(store.database)
     val service = ExitService(exits, scope, clock, ids, rights)
+    private val inspection = ExitStatusService(exits, scope, rights)
     val governance = ExitGovernanceService(exits, SqlDelightExitInventoryRepository(store.database),
         SqlDelightRepositories(store.database).authorities, clock, rights)
+
+    fun status(invocation: ProtocolInvocation, core: CoreId): ExitStatus = inspection.status(invocation, core)
 
     /** Each stage survives restart. A failed delivery never terminates membership. */
     fun leave(invocation: ProtocolInvocation, core: CoreId, destination: Path): ExitReceipt {
