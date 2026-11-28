@@ -158,6 +158,21 @@ with tempfile.TemporaryDirectory(prefix='p10-signed-cli-') as folder:
         assert hashlib.sha256(recovered.read_bytes()).hexdigest() == archive_hash
         assert recovered.stat().st_mode & 0o777 == 0o600
         assert archive_hash in copied and archive_json not in copied and p10_state(db) == before
+        verify = java + ['exit', 'verify', '--handle', 'smoke', '--core', 'chosen',
+                         '--id', exit_id, '--file', str(recovered), '--db', str(database)]
+        denied = terminal(verify, [('Локальна парольна фраза: ', 'wrong-fixture-passphrase')],
+                          False, read_environment)
+        assert archive_hash not in denied and p10_state(db) == before
+        verified = terminal(verify, auth, True, read_environment)
+        assert 'Файл відповідає збереженому архіву' in verified and archive_hash in verified
+        assert archive_json not in verified and p10_state(db) == before
+        damaged = folder/'damaged.json'
+        damaged_data = b'!' + recovered.read_bytes()[1:]
+        damaged.write_bytes(damaged_data)
+        verify_damaged = verify.copy()
+        verify_damaged[verify_damaged.index('--file') + 1] = str(damaged)
+        terminal(verify_damaged, auth, False, read_environment)
+        assert damaged.read_bytes() == damaged_data and p10_state(db) == before
         terminal(archive_command, auth, False, read_environment)
         assert recovered.read_bytes() == archive_json.encode('utf-8') and p10_state(db) == before
         wrong_core = archive_command.copy()
@@ -210,6 +225,8 @@ with tempfile.TemporaryDirectory(prefix='p10-signed-cli-') as folder:
         completed_copy[completed_copy.index('--out') + 1] = str(folder/'completed-copy.json')
         terminal(completed_copy, auth, True, read_environment)
         assert (folder/'completed-copy.json').read_bytes() == data and p10_state(db) == before
+        terminal(verify, auth, True, read_environment)
+        assert recovered.read_bytes() == data and p10_state(db) == before
         terminal(java + ['auth', 'create', '--handle', 'observer', '--db', str(database)],
                  [('Нова парольна фраза (12–1024 символи): ', passphrase),
                   ('Повторіть парольну фразу: ', passphrase)], True, read_environment)
@@ -226,4 +243,9 @@ with tempfile.TemporaryDirectory(prefix='p10-signed-cli-') as folder:
         denied = terminal(foreign_archive, auth, False, read_environment)
         assert archive_hash not in denied and archive_json not in denied
         assert not (folder/'forbidden.json').exists() and p10_state(db) == before
-print('Signed P10 CLI smoke passed: six signatures, isolated status and frozen archive recovery without signing or exit changes.')
+        foreign_verify = verify.copy()
+        foreign_verify[foreign_verify.index('--handle') + 1] = 'observer'
+        denied = terminal(foreign_verify, auth, False, read_environment)
+        assert archive_hash not in denied and archive_json not in denied
+        assert recovered.read_bytes() == data and p10_state(db) == before
+print('Signed P10 CLI smoke passed: six signatures, isolated status, archive recovery and file verification without exit changes.')

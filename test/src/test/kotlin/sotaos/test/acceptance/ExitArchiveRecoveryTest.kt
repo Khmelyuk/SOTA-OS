@@ -139,6 +139,7 @@ class ExitArchiveRecoveryTest : FunSpec({
             f.reopen()
             val before = Files.readAllBytes(f.path).toList()
             f.runtime.copyArchive(f.invocation, f.core, id, directory.resolve("copy.json")) shouldBe document
+            f.runtime.verifyArchive(f.invocation, f.core, id, directory.resolve("copy.json")) shouldBe document
             f.exits.transitions(id).size shouldBe 5
             f.exits.find(id)?.stage shouldBe ExitStage.EXPORT_READY
             Files.readAllBytes(f.path).toList() shouldBe before

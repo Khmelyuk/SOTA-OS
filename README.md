@@ -45,6 +45,9 @@ advancing exit or loading a signing key. See [P10 recovery/status](docs/p10-exit
 recovers your existing frozen archive to a new private file, including after exit
 completion. It checks ownership/scope and the saved digest without advancing P10
 or requiring a signing key. See [archive recovery](docs/p10-exit.md#recover-an-existing-archive-file).
+`exit verify --handle HANDLE --core CORE_ID --id EXIT_ID --file PATH --db PATH`
+checks an existing file against your frozen archive without changing the file or P10.
+See [archive file verification](docs/p10-exit.md#verify-an-existing-archive-file).
 
 ## Status: Phase 3 — signed Core Loop, P09 node, P10 exit and Research CLI
 
@@ -62,7 +65,7 @@ What exists and is source-complete:
   value-object/JSON-column conversion. The persistence module compiles
   against the generated SQLDelight API.
 - `api/` — executable local CLI composition root with `help`, `init`,
-  `demo`, authentication, consent, and authenticated `exit leave` / `exit status` / `exit archive` commands. `demo` persists one
+  `demo`, authentication, consent, and authenticated `exit leave` / `exit status` / `exit archive` / `exit verify` commands. `demo` persists one
   authorized Core Loop to a local SQLite database. Commands, terminal
   input, database lifetime, and the demo are kept in separate files.
 - `security/` — a protocol-neutral RightsConstraint request and checks wired
@@ -179,6 +182,10 @@ current build/test status for each commit.
 CI also retains [build evidence](docs/release-evidence.md): exact commit/tree, CLI
 ZIP/TAR checksums and JUnit reports, linked to the successful build/smoke run.
 Bundles expire after 30 days and do not constitute a published release.
+Archive file verification on 2026-11-28: full JDK 21 build passed **480 tests**
+and all **49 focused migration/recovery cases**, without failures/errors/skips.
+Detekt and signed P10 CLI smoke passed, including valid/tampered files and
+authentication/ownership denial without changing P10. Schema 1 is unchanged.
 Archive recovery verification on 2026-11-28: full JDK 21 build passed **472 tests**
 and all **49 focused migration/recovery cases**, without failures/errors/skips.
 Detekt and the expanded signed P10 CLI smoke passed, including exact private copies

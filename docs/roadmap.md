@@ -1,8 +1,8 @@
 # Development roadmap — updated 2026-11-28
 
-Published baseline before this increment: GitHub `main` at `c39b305`
-(authenticated P10 status), with successful
-[CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/46150368565). The earlier integration
+Published baseline before this increment: GitHub `main` at `852759c`
+(authenticated P10 archive recovery), with successful
+[CI](https://github.com/Khmelyuk/SOTA-OS/actions/runs/46155058432). The earlier integration
 review started at `1f6d175` (human-invoked Research CLI); the local checkout had
 been based on `ece3ad1` and was missing 26 upstream commits. The roadmap now
 tracks the integrated implementation and subsequent bounded increments.
@@ -19,6 +19,9 @@ tracks the integrated implementation and subsequent bounded increments.
 - Authenticated [P10 archive recovery](p10-exit.md#recover-an-existing-archive-file):
   copy an existing owned snapshot at EXPORT_READY/COMPLETED to a new private file,
   with exact target/digest checks and no lifecycle mutations or signing requirement.
+- Authenticated [P10 archive file verification](p10-exit.md#verify-an-existing-archive-file):
+  compare an existing regular file with the owned frozen snapshot using byte length
+  and SHA-256, without file repair, lifecycle changes or a signing requirement.
 - Ed25519 signing, governed peer/key admission, exact historical evidence,
   bounded HTTPS hosting, background retry/shutdown, metrics and staged material
   rotation (ADR-003a/011/012/015/016/017).

@@ -107,6 +107,44 @@ and missing/empty database rejection. The real signed CLI smoke verifies copy by
 hash and permissions, authentication, wrong Core, another login, collision and
 unchanged P10 rows before and after completion. Schema 1 and ADR-032 are unchanged.
 
+## Verify an existing archive file
+
+After copying or recovering an archive, verify its bytes against the saved snapshot:
+
+```bash
+./gradlew :api:run --args='exit verify --handle HANDLE --core CORE_ID --id EXIT_ID --file /private/archive.json --db /path/sota-os.db'
+```
+
+Fresh authentication, exact Person/Core/exit ownership, eligible stage and current
+`P10/readArchive` rights are checked before inspecting the file. The same archive
+reader verifies the stored snapshot's own SHA-256 first. This works at EXPORT_READY
+and COMPLETED without a signing key, including after key retirement. An explicit
+existing nonempty database is required; `--unit` and `--provider` are supported.
+Person overrides, output paths and signing options are rejected.
+
+Only an existing regular file is accepted. Final symlinks, including dangling links,
+are rejected and the file is opened with NOFOLLOW_LINKS. Verification reads bounded
+chunks, checks byte length and SHA-256, and never normalizes JSON, whitespace or text
+encoding. Missing, changed, truncated or appended files fail with a nonzero CLI exit.
+The command never repairs a file, regenerates an archive, changes permissions or
+advances P10. Success prints the selected path, exit ID and digest, without content.
+
+This observes the bytes read locally; it is not a signature check, durable delivery
+receipt, remote freshness guarantee or promise that a file will remain unchanged.
+Use a trusted parent directory and stop other writers while verifying; parent-directory
+symlinks and concurrent host-level path replacement are outside this guarantee.
+Normal store opening and authentication retain their behavior. Stop `sync run`
+before using the same database with this standalone command. File access timestamps
+may change according to filesystem policy.
+
+`ExitArchiveVerificationTest` checks both eligible stages after restart, unchanged
+database/file content, tampering/truncation/append, missing paths and symlinks, scope
+and rights denial before file inspection, and corrupt/unprepared stored archives.
+`ExitArchiveFileTest` covers multiple buffers and exact UTF-8 byte comparison;
+`ExitVerifyCommandTest` checks arguments. The retired-key recovery test also verifies
+its copy. Signed CLI smoke covers successful checks before/after completion, wrong
+password, changed bytes and another login, with unchanged P10 rows.
+
 ## Runtime and protocol boundaries
 
 Local hosts may use `api.exit.P10Runtime` with authenticated actors and an appropriate

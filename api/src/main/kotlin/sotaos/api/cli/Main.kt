@@ -101,6 +101,8 @@ private val HELP_TEXT = """
                  Authenticate and inspect your local exit progress and archive digest without advancing exit.
           exit archive --handle HANDLE --core CORE_ID --id EXIT_ID --out NEW_PATH --db PATH
                  Copy your existing frozen archive to a new private file without advancing exit or signing.
+          exit verify --handle HANDLE --core CORE_ID --id EXIT_ID --file PATH --db PATH
+                 Verify an existing file against your frozen archive without advancing exit or signing.
           sync serve --db PATH --node ID --actor PERSON_ID --governance-context DOMAIN
                  --keystore PATH --port PORT [--bind ADDRESS]
                  Serve an already provisioned node over HTTPS (loopback by default).

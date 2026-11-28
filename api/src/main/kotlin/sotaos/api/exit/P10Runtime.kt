@@ -35,6 +35,13 @@ class P10Runtime(
         return document
     }
 
+    /** Verification observes an existing file and never acknowledges delivery or advances exit. */
+    fun verifyArchive(invocation: ProtocolInvocation, core: CoreId, exitId: String, file: Path): ExitDocument {
+        val document = archives.read(invocation, core, exitId)
+        verifyExitDocument(document, file)
+        return document
+    }
+
     /** Each stage survives restart. A failed delivery never terminates membership. */
     fun leave(invocation: ProtocolInvocation, core: CoreId, destination: Path): ExitReceipt {
         val process = service.requestExit(invocation, core)
