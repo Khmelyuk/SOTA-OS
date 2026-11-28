@@ -133,8 +133,10 @@ the original Protocol and Security PDF constraints reviewed for the bounded
 admission host; it does not claim to define the missing collective decision protocol.
 
 The original specifications do not select who approves an initial mandate in an
-existing Core or its quorum. That policy question is pending the owner's answer;
-no voting rule is inferred. Independent P05 Mission existence/state work is
+existing Core or its quorum. A [Core Genesis Mandate proposal](core-genesis-mandate-proposal.md) now records
+unanimous founding consent, a proposed two-thirds renewal threshold and a candidate
+schema 2 feature. Existing-Core root eligibility and final policy confirmation remain
+open; no voting rule is implemented. Independent P05 Mission existence/state work is
 implemented under [ADR-022](adr/ADR-022-active-mission-boundary.md), with source
 sections and six SQLite regressions. P07 validation/source review can proceed
 independently of the unresolved root policy.
